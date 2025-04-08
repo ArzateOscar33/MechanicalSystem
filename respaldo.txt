@@ -1,0 +1,129 @@
+<?php include_once 'Views/template/header-admin.php'; ?>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+    <div class="col">
+        <div class="card radius-10 border-start border-0 border-3 border-warning">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Certificados Cargados en la Base de Datos</p>
+                        <h4 class="my-1 text-warning">
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class='fas fa-exclamation-circle'></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 border-start border-0 border-3 border-info">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Pedidos en Proceso</p>
+                        <h4 class="my-1 text-info">
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class='fas fa-spinner'></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 border-start border-0 border-3 border-success">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Pedidos Finalizados</p>
+                        <h4 class="my-1 text-success">
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class='fas fa-check-circle'></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 border-start border-0 border-3 border-warning">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Total Productos</p>
+                        <h4 class="my-1 text-warning">
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class='bx bxs-group'></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--end row-->
+
+<div class="row">
+    <div class="col-12 col-lg-4">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0">Pedidos</h6>
+                    </div>
+                </div>
+                <div class="chart-container-2 mt-4">
+                    <canvas id="reportePedidos"></canvas>
+                </div>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center">Finalizados <span class="badge bg-success rounded-pill"></span>
+                </li>
+                <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center">Proceso <span class="badge bg-primary rounded-pill"></span>
+                </li>
+                <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center">Pendientes <span class="badge bg-warning text-dark rounded-pill"></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="card radius-10 w-100">
+            <div class="card-header bg-transparent">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0">Productos con Stock Mínimo</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container-1">
+                    <canvas id="chart4"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="card radius-10 w-100">
+            <div class="card-header bg-transparent">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0">Productos más vendidos</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container-1">
+                    <canvas id="topProductos"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php include_once 'Views/template/footer-admin.php'; ?>
+
+
+<script src="<?php echo BASE_URL; ?>assets/js/index.js"></script>
+
+</body>
+
+</html>
