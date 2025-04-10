@@ -78,14 +78,14 @@
                     <div class="mobile-toggle-menu"><i class='bx bx-menu'></i>
                     </div>
                     <div class="search-bar flex-grow-1">
-
+                 
                     </div>
                     <div class="user-box dropdown">
                         <a class="d-flex align-items-center nav-link dropdown-toggle dropdown-toggle-nocaret" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="<?php echo BASE_URL; ?>assets/images/logo.png" class="user-img" alt="user avatar">
                             <div class="user-info ps-3">
-                                <p class="user-name mb-0"><//?php echo $_SESSION['nombre_usuario']; ?></p>
-                                <p class="designattion mb-0"><//?php echo $_SESSION['email']; ?></p>
+                                <p class="user-name mb-0"><?php echo $_SESSION['nombre_usuario'].' ' .  $_SESSION['apellido_usuario']; ?></p>
+                                <p class="designattion mb-0"><?php echo $_SESSION['email']; ?></p>
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
@@ -94,7 +94,7 @@
                             <li>
                                 <div class="dropdown-divider mb-0"></div>
                             </li>
-                            <li><a class="dropdown-item" href="<//?php echo BASE_URL . 'admin/salir'; ?>"><i class='bx bx-log-out-circle'></i><span>Logout</span></a>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL . 'admin/salir'; ?>"><i class='bx bx-log-out-circle'></i><span>Logout</span></a>
                             </li>
                         </ul>
                     </div>

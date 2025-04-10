@@ -1,3 +1,5 @@
+
+
 <!doctype html>
 <html lang="en">
 
@@ -45,7 +47,7 @@
                                         <form class="row g-3" id="formulario">
                                             <div class="col-12">
                                                 <label for="email" class="form-label">Correo Electrónico</label>
-                                                <input type="email" class="form-control" id="email" name="email" value="angelsifuentes2580@gmail.com" placeholder="Correo Electronico">
+                                                <input type="email" class="form-control" id="email" name="email" value="arzateoscar33@gmail.com" placeholder="Correo Electronico">
                                             </div>
                                             <div class="col-12">
                                                 <label for="clave" class="form-label">Contraseña</label>
