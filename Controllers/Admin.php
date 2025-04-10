@@ -50,12 +50,36 @@ class Admin extends Controller
             exit;
         }
         $data['title'] = 'Panel Administrativo';
- 
+        $data['certificadosTotales'] = $this->model->certificadosTotales();
+        $data['ciudadesTotales'] = $this->model->ciudadesTotales();
+        
+        $data['estadosTotales'] = $this->model->estadosTotales();
+        
         $this->views->getView('admin/administracion', "index", $data);
     }
 
- 
- 
+    public function ciudadesCertificados()
+    {
+        if (empty($_SESSION['nombre_usuario'])) {
+            header('Location: '. BASE_URL . 'admin');
+            exit;
+        }
+        $data = $this->model->ciudadesCertificados();
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
+
+    }
+    public function estadosCertificados()
+    {
+        if (empty($_SESSION['nombre_usuario'])) {
+            header('Location: '. BASE_URL . 'admin');
+            exit;
+        }
+        $data = $this->model->estadosCertificados();
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
+
+    }
 
     public function salir()
     {

@@ -6,8 +6,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div>
-                        <p class="mb-0 text-secondary">assaCertificados Cargados en la Base de Datos</p>
+                        <p class="mb-0 text-secondary">Certificados</p>
                         <h4 class="my-1 text-warning">
+                        <?php echo $data['certificadosTotales']['total']; ?>
                     </div>
                     <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class='fas fa-exclamation-circle'></i>
                     </div>
@@ -20,8 +21,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div>
-                        <p class="mb-0 text-secondary">#####</p>
+                        <p class="mb-0 text-secondary">Zip Guardados</p>
                         <h4 class="my-1 text-info">
+                            ######
                     </div>
                     <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class='fas fa-spinner'></i>
                     </div>
@@ -34,8 +36,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div>
-                        <p class="mb-0 text-secondary">#####</p>
+                        <p class="mb-0 text-secondary">Ciudades Registradas</p>
                         <h4 class="my-1 text-success">
+                        <?php echo $data['ciudadesTotales']['total']; ?>
                     </div>
                     <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class='fas fa-check-circle'></i>
                     </div>
@@ -57,15 +60,52 @@
             </div>
         </div>
     </div>
+ 
 </div>
-<!--end row-->
+</div>
 
+<div>
+
+<!--end row-->
+<div class="row">
+    <!--grafico ciudades-->
+    <div class="col-12 col-lg-4">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0">Ciudades</h6>
+                    </div>
+                </div>
+                <div class="chart-container-2 mt-4">
+                    <canvas id="ciudadesGrafico"></canvas>
+                </div>
+            </div> 
+        </div>
+    </div>
+
+<!--Grafico estados-->
+    <div class="col-12 col-lg-4">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0">Estados</h6>
+                    </div>
+                </div>
+                <div class="chart-container-2 mt-4">
+                    <canvas id="estadosGrafico"></canvas>
+                </div>
+            </div> 
+        </div>
+    </div>
+</div>
 
 <?php include_once 'Views/template/footer-admin.php'; ?>
 
 
-<script src="<?php echo BASE_URL; ?>assets/js/index.js"></script>
 
 </body>
 
 </html>
+<script src="<?php echo BASE_URL; ?>assets/js/index.js"></script>

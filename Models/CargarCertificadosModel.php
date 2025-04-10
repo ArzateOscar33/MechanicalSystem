@@ -85,11 +85,11 @@ class CargarCertificadosModel extends Query
     }
     
     // Registrar log de importación
-    public function registrarImportacion($file_name, $status, $error_message, $usuario_nombre)
+    public function registrarImportacion($file_name, $status, $error_message, $id_usuario)
     {
         // Asumiendo que hay una columna "imported_by" en la tabla import_logs
         $sql = "INSERT INTO import_logs (file_name, status, error_message, imported_by) VALUES (?, ?, ?, ?)";
-        return $this->insertar($sql, [$file_name, $status, $error_message, $usuario_nombre]);
+        return $this->insertar($sql, [$file_name, $status, $error_message, $id_usuario]);
     }
     
     // Si no existe la columna "imported_by", usa esta función alternativa:

@@ -1,24 +1,27 @@
-productosMinimos();
-topProductos();
 
-function productosMinimos() {
-    const url = base_url + "admin/productosMinimos";
+ciudadesCertificados();
+estadosCertificado();
+
+function ciudadesCertificados() {
+    const url = base_url + "admin/ciudadesCertificados";
     const http = new XMLHttpRequest();
     http.open("GET", url, true);
     http.send();
-    http.onreadystatechange = function() {
+
+    http.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
             const res = JSON.parse(this.responseText);
-            let nombre = [];
-            let cantidad = [];
+            let ciudades = [];
+            let porcentajes = [];
+
             for (let i = 0; i < res.length; i++) {
-                nombre.push(res[i]['nombre']);
-                cantidad.push(res[i]['cantidad']);
+                ciudades.push(res[i]['city']);
+                porcentajes.push(parseFloat(res[i]['porcentaje']).toFixed(2));  // 2 decimales
             }
 
-            var ctx = document.getElementById("chart4").getContext("2d");
+            var ctx = document.getElementById("ciudadesGrafico").getContext("2d");
 
+            // Gradientes originales
             var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
             gradientStroke1.addColorStop(0, "#ee0979");
             gradientStroke1.addColorStop(1, "#ff6a00");
@@ -31,65 +34,73 @@ function productosMinimos() {
             gradientStroke3.addColorStop(0, "#7f00ff");
             gradientStroke3.addColorStop(1, "#e100ff");
 
+            // Repetimos los gradientes si hay más de 3 ciudades
+            const gradients = [gradientStroke1, gradientStroke2, gradientStroke3];
+            const backgroundColors = ciudades.map((_, i) => gradients[i % gradients.length]);
+
             var myChart = new Chart(ctx, {
                 type: "pie",
                 data: {
-                    labels: nombre,
+                    labels: ciudades,
                     datasets: [{
-                        backgroundColor: [
-                            gradientStroke1,
-                            gradientStroke2,
-                            gradientStroke3,
-                        ],
-
-                        hoverBackgroundColor: [
-                            gradientStroke1,
-                            gradientStroke2,
-                            gradientStroke3,
-                        ],
-
-                        data: cantidad,
-                        borderWidth: [1, 1, 1],
-                    }, ],
+                        backgroundColor: backgroundColors,
+                        hoverBackgroundColor: backgroundColors,
+                        data: porcentajes,
+                        borderWidth: 1,
+                    }],
                 },
                 options: {
                     maintainAspectRatio: false,
-                    cutoutPercentage: 0,
-                    legend: {
-                        position: "bottom",
-                        display: false,
-                        labels: {
-                            boxWidth: 8,
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                            labels: {
+                                boxWidth: 10,
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
                         },
-                    },
-                    tooltips: {
-                        displayColors: false,
-                    },
-                },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    let value = context.raw || 0;
+                                    return `${label}: ${parseFloat(value).toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
     };
 }
 
 
-function topProductos() {
-    const url = base_url + "admin/topProductos";
+function estadosCertificado() {
+    const url = base_url + "admin/estadosCertificados";  // Cambié la URL para que apunte al método correcto
     const http = new XMLHttpRequest();
     http.open("GET", url, true);
     http.send();
+    
     http.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
+            console.log(this.responseText); // Esto te ayuda a ver la respuesta en la consola
             const res = JSON.parse(this.responseText);
-            let nombre = [];
-            let cantidad = [];
+            let estados = [];
+            let porcentajes = [];
+
+            // Iteramos sobre los datos recibidos
             for (let i = 0; i < res.length; i++) {
-                nombre.push(res[i]['producto']);
-                cantidad.push(res[i]['total']);
+                estados.push(res[i]['state']);  // Aquí usamos 'state' para obtener el nombre del estado
+                porcentajes.push(res[i]['cantidad']);  // Usamos 'porcentaje' para obtener el porcentaje
             }
 
-            var ctx = document.getElementById("topProductos").getContext("2d");
+            var ctx = document.getElementById("estadosGrafico").getContext("2d");
 
+            // Crear gradientes para los colores del gráfico
             var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
             gradientStroke1.addColorStop(0, "#ee0979");
             gradientStroke1.addColorStop(1, "#ff6a00");
@@ -102,40 +113,40 @@ function topProductos() {
             gradientStroke3.addColorStop(0, "#7f00ff");
             gradientStroke3.addColorStop(1, "#e100ff");
 
+            // Crear el gráfico de barras con los datos y gradientes
             var myChart = new Chart(ctx, {
-                type: "pie",
+                type: "bar",  // Cambiar a 'bar' para un gráfico de barras
                 data: {
-                    labels: nombre,
+                    labels: estados,  // Las etiquetas serán los estados
                     datasets: [{
                         backgroundColor: [
                             gradientStroke1,
                             gradientStroke2,
                             gradientStroke3,
-                        ],
-
+                        ],  // Colores de las barras
                         hoverBackgroundColor: [
                             gradientStroke1,
                             gradientStroke2,
                             gradientStroke3,
-                        ],
-
-                        data: cantidad,
-                        borderWidth: [1, 1, 1],
-                    }, ],
+                        ],  // Colores cuando se pasa el mouse
+                        data: porcentajes,  // Los datos de porcentaje
+                        borderWidth: 1,  // Borde de las barras
+                    }],
                 },
                 options: {
-                    maintainAspectRatio: false,
-                    cutoutPercentage: 0,
-                    legend: {
-                        position: "bottom",
-                        display: false,
-                        labels: {
-                            boxWidth: 8,
+                    maintainAspectRatio: false,  // Permite que el gráfico se adapte al tamaño del contenedor
+                    scales: {
+                        y: {
+                            beginAtZero: true,  // Asegura que las barras empiecen desde cero en el eje Y
                         },
                     },
-                    tooltips: {
-                        displayColors: false,
+                    legend: {
+                        display: false,  // No es necesario mostrar la leyenda para un gráfico de barras
                     },
+                    tooltips: {
+                        displayColors: false,  // No mostrar los colores en el tooltip
+                    },
+                    responsive: true,  // Hace que el gráfico sea responsivo
                 },
             });
         }

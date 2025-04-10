@@ -6,8 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Certificado</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEJ5b3Q0P6i7vD1nZzDaxpFqK5fjf6n6fRyy0e0sF7v/25D/J/Ry4/Ks/nj69" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode"></script>
 </head>
 <body>
@@ -177,15 +175,12 @@
             <button type="submit" class="btn btn-primary w-100">Crear Certificado</button>
         </form>
     </div>
-
-    <script src="assets/js/crearCertificado.js"></script>
+ 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
-<script>
-    const base_url = '<?php echo BASE_URL; ?>';
-</script>
-<script src="<?php echo BASE_URL; ?>assets/js/crearcertificados.js"></script>
+ 
+<script src="<?php echo BASE_URL; ?>assets/js/modulos/crearcertificados.js"></script>
 
 <?php include_once 'Views/template/footer-admin.php'; ?>

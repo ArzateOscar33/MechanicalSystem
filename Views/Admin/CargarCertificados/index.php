@@ -114,9 +114,7 @@
 
 <script src="<?php echo BASE_URL; ?>assets/js/index.js"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/cargarcertificados.js"></script>
-<script>
-    const base_url = '<?php echo BASE_URL; ?>';
-</script>
+ 
 
 
 </body>
