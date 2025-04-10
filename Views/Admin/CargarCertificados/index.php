@@ -75,7 +75,7 @@
                                 <div class="card-body">
                                     <form id="formulario" enctype="multipart/form-data">
                                         <div class="form-group">
-                                            <label for="fileUpload">Archivo ZIP</label>
+                                            <label for="fileUpload">Archivo ZI  P</label>
                                             <input type="file" class="form-control" id="fileUpload" accept=".zip">
                                             <small class="form-text text-muted">Selecciona un archivo ZIP con los certificados a importar.</small>
                                         </div>
