@@ -30,10 +30,12 @@ class Usuarios extends Controller
     public function registrar()
     {
         if (isset($_POST['nombre'])) {
+            $username=$_POST['username'];
             $nombre = $_POST['nombre'];
             $apellido = $_POST['apellido'];
             $correo = $_POST['correo'];
             $clave = $_POST['clave'];
+            $phone = $_POST['phone'];
             $id = $_POST['id'];
             $hash = password_hash($clave, PASSWORD_DEFAULT);
             if (empty($_POST['nombre']) || empty($_POST['apellido'])) {
@@ -42,7 +44,7 @@ class Usuarios extends Controller
                 if (empty($id)) {
                     $result = $this->model->verificarCorreo($correo);
                     if (empty($result)) {
-                        $data = $this->model->registrar($nombre, $apellido, $correo, $hash);
+                        $data = $this->model->registrar($username,$nombre, $apellido, $correo, $hash,$phone);
                         if ($data > 0) {
                             $respuesta = array('msg' => 'usuario registrado', 'icono' => 'success');
                         } else {

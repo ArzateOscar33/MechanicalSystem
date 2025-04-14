@@ -66,6 +66,11 @@
                         <div class="menu-title"><i class='fas fa-search'></i> Busqueda de Certificados</div>
                     </a>
                 </li>
+                <li>
+                    <a href="<?php echo BASE_URL . 'Usuarios'; ?>">
+                        <div class="menu-title"><i class='fas fa-user'></i> Usuarios</div>
+                    </a>
+                </li>
                 
             </ul>
             <!--end navigation-->

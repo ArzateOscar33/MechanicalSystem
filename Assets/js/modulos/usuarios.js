@@ -12,10 +12,11 @@ document.addEventListener("DOMContentLoaded", function() {
         },
         columns: [
             { data: "id" },
-            { data: "nombres" },
-            { data: "apellidos" },
+            { data: "username" },
+            { data: "first_name" },
+            { data: "last_name" },
             { data: "correo" },
-            { data: "perfil" },
+            { data: "phone" },
             { data: "accion" },
         ],
         language,
@@ -92,9 +93,10 @@ function editUser(idUser) {
             console.log(this.responseText);
             const res = JSON.parse(this.responseText);
             document.querySelector('#id').value = res.id;
-            document.querySelector('#nombre').value = res.nombres;
-            document.querySelector('#apellido').value = res.apellidos;
+            document.querySelector('#nombre').value = res.first_name;
+            document.querySelector('#apellido').value = res.last_name;
             document.querySelector('#correo').value = res.correo;
+            document.querySelector('#phone').value = res.phone;
             document.querySelector('#clave').setAttribute('readonly', 'readonly');
             btnAccion.textContent = 'Actualizar';
             titleModal.textContent = "MODIFICAR USUARIO";
