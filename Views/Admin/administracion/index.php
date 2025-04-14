@@ -9,7 +9,7 @@
                         <h4 class="my-1 text-warning">
                             <?php echo $data['certificadosTotales']['total']; ?>
                     </div>
-                    <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class='fas fa-exclamation-circle'></i>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class='fas fa-file-contract'></i>
                     </div>
                 </div>
             </div>
@@ -24,7 +24,7 @@
                         <h4 class="my-1 text-info">
                             ######
                     </div>
-                    <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class='fas fa-spinner'></i>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class='fas fa-file-archive'></i>
                     </div>
                 </div>
             </div>
@@ -39,7 +39,7 @@
                         <h4 class="my-1 text-success">
                             <?php echo $data['ciudadesTotales']['total']; ?>
                     </div>
-                    <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class='fas fa-check-circle'></i>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class='fas fa-city'></i>
                     </div>
                 </div>
             </div>
@@ -50,10 +50,11 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div>
-                        <p class="mb-0 text-secondary">#####</p>
-                        <h4 class="my-1 text-warning">
+                        <p class="mb-0 text-secondary">Inspectores Registrados</p>
+                        
+                        <h4 class="my-1 text-warning"><?php echo $data['inspector_name']['total']; ?>
                     </div>
-                    <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class='bx bxs-group'></i>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class="fas fa-id-card-alt"></i>
                     </div>
                 </div>
             </div>

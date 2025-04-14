@@ -63,6 +63,7 @@ class Admin extends Controller
         $data['estadosTotales'] = $this->model->estadosTotales();
         $data['fechasPorMes'] = $this->model->certificadosPorMes();
         
+        $data['inspector_name'] = $this->model->inspectoresTotales();
         $data['certificadosPorInspector'] = $this->model->certificadosPorInspector();
         
         $this->views->getView('admin/administracion', "index", $data);

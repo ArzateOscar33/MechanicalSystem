@@ -25,6 +25,8 @@ class Home extends Controller
         $data['ciudadesTotales'] = $this->adminModel->ciudadesTotales();
         $data['estadosTotales'] = $this->adminModel->estadosTotales();
         $data['fechasPorMes'] = $this->adminModel->certificadosPorMes();
+        
+        $data['inspector_name'] = $this->adminModel->inspectoresTotales();
 
         $this->views->getView('admin/administracion', "index", $data);
 

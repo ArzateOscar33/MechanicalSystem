@@ -135,7 +135,17 @@ foreach ($result as &$row) {
         return $this->selectAll($sql);
 
     }
-    
+    public function inspectoresTotales()
+    {
+        // Consulta para obtener la cantidad de certificados por ciudad
+        $sql = "SELECT COUNT(DISTINCT inspector_name) AS total
+FROM certificates;
+              ";
+
+        // Ejecutar la consulta y obtener los resultados
+        return $this->select($sql);
+
+    }
     
     
 }
