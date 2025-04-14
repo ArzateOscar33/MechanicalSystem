@@ -1,6 +1,7 @@
-
+fechaChart();
 ciudadesCertificados();
 estadosCertificado();
+
 
 function ciudadesCertificados() {
     const url = base_url + "admin/ciudadesCertificados";
@@ -87,7 +88,7 @@ function estadosCertificado() {
     
     http.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText); // Esto te ayuda a ver la respuesta en la consola
+            //console.log(this.responseText); // Esto te ayuda a ver la respuesta en la consola
             const res = JSON.parse(this.responseText);
             let estados = [];
             let porcentajes = [];
@@ -148,6 +149,112 @@ function estadosCertificado() {
                     },
                     responsive: true,  // Hace que el gráfico sea responsivo
                 },
+            });
+        }
+    };
+}
+function fechaChart() {
+    const url = base_url + "admin/certificadosPorMes"; 
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.send();
+
+    http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log("Respuesta:", this.responseText);
+            const res = JSON.parse(this.responseText);
+            const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+
+            // Crear objeto dinámico para almacenar datos por año
+            let datosPorAnio = {
+                2024: new Array(12).fill(0),
+                2025: new Array(12).fill(0),
+                2026: new Array(12).fill(0)  // Deja espacio preparado para 2026
+            };
+
+            for (let i = 0; i < res.length; i++) {
+                const anio = res[i]['anio'];
+                const mes = res[i]['mes'] - 1;
+                const total = parseInt(res[i]['total']);
+                if (!datosPorAnio[anio]) {
+                    datosPorAnio[anio] = new Array(12).fill(0); // Por si llega otro año
+                }
+                datosPorAnio[anio][mes] = total;
+            }
+
+            var ctx = document.getElementById("fechaChart").getContext("2d");
+
+            const datasets = [
+                {
+                    label: "2024",
+                    data: datosPorAnio[2024],
+                    borderColor: "#007bff",
+                    backgroundColor: "rgba(0, 123, 255, 0.1)",
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: "2025",
+                    data: datosPorAnio[2025],
+                    borderColor: "#ff4d4d",
+                    backgroundColor: "rgba(255, 77, 77, 0.1)",
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: "2026",
+                    data: datosPorAnio[2026],
+                    borderColor: "#28a745",
+                    backgroundColor: "rgba(40, 167, 69, 0.1)",
+                    fill: false,
+                    tension: 0.4
+                }
+            ];
+
+            var myChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: meses,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Certificados'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Mes'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: "top"
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        title: {
+                            display: true,
+                            text: "Certificados por Mes (2024 - 2026)"
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
             });
         }
     };

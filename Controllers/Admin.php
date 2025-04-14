@@ -54,6 +54,7 @@ class Admin extends Controller
         $data['ciudadesTotales'] = $this->model->ciudadesTotales();
         
         $data['estadosTotales'] = $this->model->estadosTotales();
+        $data['fechasPorMes'] = $this->model->certificadosPorMes();
         
         $this->views->getView('admin/administracion', "index", $data);
     }
@@ -80,6 +81,18 @@ class Admin extends Controller
         die();
 
     }
+
+    public function certificadosPorMes()
+{
+    if (empty($_SESSION['nombre_usuario'])) {
+        header('Location: '. BASE_URL . 'admin');
+        exit;
+    }
+    $data = $this->model->certificadosPorMes();
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    die();
+}
+
 
     public function salir()
     {

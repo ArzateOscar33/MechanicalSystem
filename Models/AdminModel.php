@@ -103,4 +103,18 @@ foreach ($result as &$row) {
         return $this->select($sql);
 
     }
+
+    public function certificadosPorMes()
+    {
+        $sql = "SELECT 
+        YEAR(test_date) AS anio, 
+        MONTH(test_date) AS mes, 
+        COUNT(*) AS total
+    FROM certificates
+    GROUP BY anio, mes
+    ORDER BY anio, mes";
+        return $this->selectAll($sql);
+    }
+    
+    
 }

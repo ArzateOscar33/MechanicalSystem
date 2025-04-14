@@ -101,11 +101,27 @@
     </div>
 </div>
 
-<?php include_once 'Views/template/footer-admin.php'; ?>
+<!--Grafico fechas-->
+<div class="col-12 col-lg-4">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0">Cantidad de Certificados por Fecha</h6>
+                    </div>
+                </div>
+                <div class="chart-container-2 mt-4">
+                    <canvas id="fechaChart"></canvas>
+                </div>
+            </div> 
+        </div>
+    </div>
+</div>
 
+<?php include_once 'Views/template/footer-admin.php'; ?>
+<script src="<?php echo BASE_URL; ?>assets/js/index.js"></script>
 
 
 </body>
 
 </html>
-<script src="<?php echo BASE_URL; ?>assets/js/index.js"></script>
