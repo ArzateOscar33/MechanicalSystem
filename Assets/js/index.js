@@ -1,6 +1,7 @@
 fechaChart();
 ciudadesCertificados();
 estadosCertificado();
+certificadosPorInspector();
 
 
 function ciudadesCertificados() {
@@ -161,7 +162,7 @@ function fechaChart() {
 
     http.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            console.log("Respuesta:", this.responseText);
+            //console.log("Respuesta:", this.responseText);
             const res = JSON.parse(this.responseText);
             const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
@@ -259,3 +260,83 @@ function fechaChart() {
         }
     };
 }
+function certificadosPorInspector() {
+    const url = base_url + "admin/certificadosPorInspector";
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.send();
+
+    http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            const res = JSON.parse(this.responseText);
+            //console.log(this.responseText);
+            let inspectores = [];
+            let cantidades = [];
+
+            for (let i = 0; i < res.length; i++) {
+                inspectores.push(res[i]['inspector_name']);
+                cantidades.push(parseInt(res[i]['total']));
+            }
+
+            var ctx = document.getElementById("inspectoresChart").getContext("2d");
+
+            // Gradientes
+            var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientStroke1.addColorStop(0, "#ee0979");
+            gradientStroke1.addColorStop(1, "#ff6a00");
+
+            var gradientStroke2 = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientStroke2.addColorStop(0, "#283c86");
+            gradientStroke2.addColorStop(1, "#39bd3c");
+
+            var gradientStroke3 = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientStroke3.addColorStop(0, "#7f00ff");
+            gradientStroke3.addColorStop(1, "#e100ff");
+
+            const gradients = [gradientStroke1, gradientStroke2, gradientStroke3];
+            const backgroundColors = inspectores.map((_, i) => gradients[i % gradients.length]);
+
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: inspectores,
+                    datasets: [{
+                        data: cantidades,
+                        backgroundColor: backgroundColors,
+                        hoverBackgroundColor: backgroundColors,
+                        borderWidth: 1,
+                        // ✅ le damos nombre si se necesita, pero no se muestra
+                        label: "Certificados"
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // 🔇 no mostrar leyenda
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.label}: ${context.raw} certificados`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    };
+}
+
+
+
+
+
+ 

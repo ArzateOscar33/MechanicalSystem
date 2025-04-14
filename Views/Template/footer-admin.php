@@ -120,7 +120,7 @@
     
     <!--app JS-->
     <script src="<?php echo BASE_URL; ?>assets/js/app.js"></script>
-
+ 
     <script src="<?php echo BASE_URL; ?>assets/js/dropzone-min.js"></script>
 
     <script src="<?php echo BASE_URL; ?>assets/js/all.min.js"></script>

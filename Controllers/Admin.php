@@ -63,6 +63,8 @@ class Admin extends Controller
         $data['estadosTotales'] = $this->model->estadosTotales();
         $data['fechasPorMes'] = $this->model->certificadosPorMes();
         
+        $data['certificadosPorInspector'] = $this->model->certificadosPorInspector();
+        
         $this->views->getView('admin/administracion', "index", $data);
     }
 
@@ -100,6 +102,18 @@ class Admin extends Controller
     die();
 }
 
+
+public function certificadosPorInspector()
+{
+    if (empty($_SESSION['nombre_usuario'])) {
+        header('Location: '. BASE_URL . 'admin');
+        exit;
+    }
+    $data = $this->model->certificadosPorInspector();
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    die();
+
+}
 
     public function salir()
     {

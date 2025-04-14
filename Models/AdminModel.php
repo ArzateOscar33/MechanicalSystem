@@ -122,6 +122,20 @@ foreach ($result as &$row) {
     ORDER BY anio, mes";
         return $this->selectAll($sql);
     }
+
+
+    public function certificadosPorInspector()
+    {
+        // Consulta para obtener la cantidad de certificados por ciudad
+        $sql = "SELECT inspector_name, COUNT(*) AS total 
+        FROM certificates 
+        GROUP BY inspector_name";
+
+        // Ejecutar la consulta y obtener los resultados
+        return $this->selectAll($sql);
+
+    }
+    
     
     
 }

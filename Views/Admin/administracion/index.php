@@ -1,5 +1,4 @@
 <?php include_once 'Views/template/header-admin.php'; ?>
-
 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
     <div class="col">
         <div class="card radius-10 border-start border-0 border-3 border-warning">
@@ -8,7 +7,7 @@
                     <div>
                         <p class="mb-0 text-secondary">Certificados</p>
                         <h4 class="my-1 text-warning">
-                        <?php echo $data['certificadosTotales']['total']; ?>
+                            <?php echo $data['certificadosTotales']['total']; ?>
                     </div>
                     <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class='fas fa-exclamation-circle'></i>
                     </div>
@@ -38,7 +37,7 @@
                     <div>
                         <p class="mb-0 text-secondary">Ciudades Registradas</p>
                         <h4 class="my-1 text-success">
-                        <?php echo $data['ciudadesTotales']['total']; ?>
+                            <?php echo $data['ciudadesTotales']['total']; ?>
                     </div>
                     <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class='fas fa-check-circle'></i>
                     </div>
@@ -60,66 +59,86 @@
             </div>
         </div>
     </div>
- 
+
 </div>
 </div>
 
 <div>
 
-<!--end row-->
-<div class="row">
-    <!--grafico ciudades-->
+    <!--end row-->
+    <div class="row">
+        <!--grafico ciudades-->
+        <div class="col-12 col-lg-4">
+            <div class="card radius-10">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <h6 class="mb-0">Ciudades</h6>
+                        </div>
+                    </div>
+                    <div class="chart-container-2 mt-4">
+                        <canvas id="ciudadesGrafico"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Grafico estados-->
+        <div class="col-12 col-lg-4">
+            <div class="card radius-10">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <h6 class="mb-0">Estados</h6>
+                        </div>
+                    </div>
+                    <div class="chart-container-2 mt-4">
+                        <canvas id="estadosGrafico"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!--Grafico fechas-->
+        <div class="col-12 col-lg-4">
+            <div class="card radius-10">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <h6 class="mb-0">Cantidad de Certificados por Fecha</h6>
+                        </div>
+                    </div>
+                    <div class="chart-container-2 mt-4">
+                        <canvas id="fechaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+
+    <!--Grafico inspectores-->
     <div class="col-12 col-lg-4">
         <div class="card radius-10">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div>
-                        <h6 class="mb-0">Ciudades</h6>
+                        <h6 class="mb-0">Cantidad de Certificados por Inspector</h6>
                     </div>
                 </div>
                 <div class="chart-container-2 mt-4">
-                    <canvas id="ciudadesGrafico"></canvas>
+                    <canvas id="inspectoresChart"></canvas>
                 </div>
-            </div> 
+            </div>
         </div>
     </div>
-
-<!--Grafico estados-->
-    <div class="col-12 col-lg-4">
-        <div class="card radius-10">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <h6 class="mb-0">Estados</h6>
-                    </div>
-                </div>
-                <div class="chart-container-2 mt-4">
-                    <canvas id="estadosGrafico"></canvas>
-                </div>
-            </div> 
-        </div>
     </div>
 </div>
-
-<!--Grafico fechas-->
-<div class="col-12 col-lg-4">
-        <div class="card radius-10">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <h6 class="mb-0">Cantidad de Certificados por Fecha</h6>
-                    </div>
-                </div>
-                <div class="chart-container-2 mt-4">
-                    <canvas id="fechaChart"></canvas>
-                </div>
-            </div> 
-        </div>
-    </div>
 </div>
-
 <?php include_once 'Views/template/footer-admin.php'; ?>
-<script src="<?php echo BASE_URL; ?>assets/js/index.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/index.js"></script> 
+
 
 
 </body>
