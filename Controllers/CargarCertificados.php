@@ -13,15 +13,23 @@ class CargarCertificados extends Controller
 
         }
     }
-    
+    private function verificarRol($rolPermitido)
+{
+    if ($_SESSION['rol_usuario'] != $rolPermitido && $_SESSION['rol_usuario'] != 1) {
+        header('Location: ' . BASE_URL . 'admin');
+        exit;
+    }
+}
+
     public function index()
-    {
+    { 
         $data['title'] = 'Cargar Certificados';
         $this->views->getView('admin/CargarCertificados', "index", $data);
     }
     
     public function cargar()
     {
+        $this->verificarRol(3);
         if (!isset($_FILES['fileUpload'])) {
             $this->responderJSON('Error: No se recibió ningún archivo', 'error');
             return;

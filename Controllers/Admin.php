@@ -30,6 +30,7 @@ class Admin extends Controller
                         $_SESSION['nombre_usuario'] = $data['first_name'];
                         $_SESSION['apellido_usuario'] = $data['last_name'];
                         $_SESSION['id_usuario'] = $data['id'];
+                        $_SESSION['rol_usuario'] = $this->model->getRolUsuario($data['id']);
                         $respuesta = array('msg' => 'datos correcto', 'icono' => 'success');
                     } else {
                         $respuesta = array('msg' => 'contraseña incorrecta', 'icono' => 'warning');
@@ -42,7 +43,13 @@ class Admin extends Controller
         echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
         die();
     }
-
+    private function verificarRol($rolPermitido)
+    {
+        if ($_SESSION['rol_usuario'] != $rolPermitido && $_SESSION['rol_usuario'] != 1) {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
+    }
     public function home()
     {
         if (empty($_SESSION['nombre_usuario'])) {

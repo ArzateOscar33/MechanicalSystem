@@ -1,5 +1,6 @@
 <?php include_once 'Views/template/header-admin.php'; ?> 
 <?php echo $_SESSION['id_usuario'];?>
+
 <!DOCTYPE html>
 <html lang="es">
 

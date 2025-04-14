@@ -11,6 +11,13 @@ class AdminModel extends Query
         $sql = "SELECT * FROM users WHERE correo = '$correo'";
         return $this->select($sql);
     }
+
+    public function getRolUsuario($userId)
+{
+    $sql = "SELECT role_id FROM user_roles WHERE user_id = $userId";
+    $data = $this->select($sql);
+    return $data ? $data['role_id'] : null;
+}
     public function ciudadesCertificados()
     {
         // Consulta para obtener la cantidad de certificados por ciudad

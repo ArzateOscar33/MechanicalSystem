@@ -44,35 +44,42 @@
             </div>
             <!--navigation-->
             <ul class="metismenu" id="menu">
-                <li>
-                    <a href="<?php echo BASE_URL . 'admin/home'; ?>">
-                        <div class="parent-icon"><i class='bx bx-home-circle'></i>
-                        </div>
-                        <div class="menu-title">Dashboard</div>
-                    </a>
-                </li>
-                <li>
-                    <a href="<?php echo BASE_URL . 'CargarCertificados'; ?>">
-                        <div class="menu-title"><i class='fas fa-upload'></i> Cargar Certificados</div>
-                    </a>
-                </li>
-                <li>
-                    <a href="<?php echo BASE_URL . 'CrearCertificados'; ?>">
-                        <div class="menu-title"><i class='fas fa-plus-circle'></i> Crear Nuevo Certificado</div>
-                    </a>
-                </li>
-                <li>
-                    <a href="<?php echo BASE_URL . 'BuscarCertificados'; ?>">
-                        <div class="menu-title"><i class='fas fa-search'></i> Busqueda de Certificados</div>
-                    </a>
-                </li>
-                <li>
-                    <a href="<?php echo BASE_URL . 'Usuarios'; ?>">
-                        <div class="menu-title"><i class='fas fa-user'></i> Usuarios</div>
-                    </a>
-                </li>
-                
-            </ul>
+    <li>
+        <a href="<?php echo BASE_URL . 'admin/home'; ?>">
+            <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
+            <div class="menu-title">Dashboard</div>
+        </a>
+    </li>
+
+    <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ?>
+    <li>
+        <a href="<?php echo BASE_URL . 'CargarCertificados'; ?>">
+            <div class="menu-title"><i class='fas fa-upload'></i> Cargar Certificados</div>
+        </a>
+    </li>
+    <?php endif; ?>
+
+    <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 3): // Admin y capturista ?>
+    <li>
+        <a href="<?php echo BASE_URL . 'CrearCertificados'; ?>">
+            <div class="menu-title"><i class='fas fa-plus-circle'></i> Crear Nuevo Certificado</div>
+        </a>
+    </li>
+    <li>
+        <a href="<?php echo BASE_URL . 'BuscarCertificados'; ?>">
+            <div class="menu-title"><i class='fas fa-search'></i> Busqueda de Certificados</div>
+        </a>
+    </li>
+    <?php endif; ?>
+
+    <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ?>
+    <li>
+        <a href="<?php echo BASE_URL . 'Usuarios'; ?>">
+            <div class="menu-title"><i class='fas fa-user'></i> Usuarios</div>
+        </a>
+    </li>
+    <?php endif; ?>
+</ul>
             <!--end navigation-->
         </div>
         <!--end sidebar wrapper -->
