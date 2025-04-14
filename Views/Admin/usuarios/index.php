@@ -14,6 +14,7 @@
                         <th>Apellido</th>
                         <th>Correo</th>
                         <th>Telefono</th>
+                        <th>Rol</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -58,6 +59,15 @@
                     <div class="form-group mb-2">
                         <label for="clave">Contraseña</label>
                         <input id="clave" class="form-control" type="password" name="clave" placeholder="Contraseña">
+                    </div>
+                    <div class="form-group mb-2">
+                        <label for="rol">Rol</label>
+                        <select id="rol" class="form-control" name="rol">
+                            <option value="">Seleccione un rol</option>
+                            <option value="1">Administrador</option>
+                            <option value="2">Manager</option>
+                            <option value="3">Capturista</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">

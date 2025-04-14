@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function() {
             { data: "last_name" },
             { data: "correo" },
             { data: "phone" },
+            { data: "rol" },
             { data: "accion" },
         ],
         language,
@@ -88,20 +89,20 @@ function editUser(idUser) {
     const http = new XMLHttpRequest();
     http.open("GET", url, true);
     http.send();
-    http.onreadystatechange = function() {
+    http.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
             const res = JSON.parse(this.responseText);
             document.querySelector('#id').value = res.id;
+            document.querySelector('#username').value = res.username;
             document.querySelector('#nombre').value = res.first_name;
             document.querySelector('#apellido').value = res.last_name;
             document.querySelector('#correo').value = res.correo;
             document.querySelector('#phone').value = res.phone;
+            document.querySelector('#rol').value = res.role_id; // 👈 Aquí se selecciona el rol
             document.querySelector('#clave').setAttribute('readonly', 'readonly');
             btnAccion.textContent = 'Actualizar';
             titleModal.textContent = "MODIFICAR USUARIO";
             myModal.show();
-            //$('#nuevoModal').modal('show');
         }
     }
 }

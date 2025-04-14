@@ -30,35 +30,38 @@ class Usuarios extends Controller
     public function registrar()
     {
         if (isset($_POST['nombre'])) {
-            $username=$_POST['username'];
+            $username = $_POST['username'];
             $nombre = $_POST['nombre'];
             $apellido = $_POST['apellido'];
             $correo = $_POST['correo'];
             $clave = $_POST['clave'];
             $phone = $_POST['phone'];
+            $role_id = $_POST['rol']; // <-- ¡nuevo!
             $id = $_POST['id'];
-            $hash = password_hash($clave, PASSWORD_DEFAULT);
-            if (empty($_POST['nombre']) || empty($_POST['apellido'])) {
-                $respuesta = array('msg' => 'todo los campos son requeridos', 'icono' => 'warning');
+    
+            if (empty($nombre) || empty($apellido) || empty($role_id)) {
+                $respuesta = array('msg' => 'Todos los campos son requeridos', 'icono' => 'warning');
             } else {
                 if (empty($id)) {
                     $result = $this->model->verificarCorreo($correo);
                     if (empty($result)) {
-                        $data = $this->model->registrar($username,$nombre, $apellido, $correo, $hash,$phone);
+                        $hash = password_hash($clave, PASSWORD_DEFAULT);
+                        $data = $this->model->registrar($username, $nombre, $apellido, $correo, $hash, $phone, $role_id);
                         if ($data > 0) {
-                            $respuesta = array('msg' => 'usuario registrado', 'icono' => 'success');
+                            $respuesta = array('msg' => 'Usuario registrado', 'icono' => 'success');
                         } else {
-                            $respuesta = array('msg' => 'error al registrar', 'icono' => 'error');
+                            $respuesta = array('msg' => 'Error al registrar', 'icono' => 'error');
                         }
                     } else {
-                        $respuesta = array('msg' => 'correo ya existe', 'icono' => 'warning');
+                        $respuesta = array('msg' => 'Correo ya existe', 'icono' => 'warning');
                     }
                 } else {
-                    $data = $this->model->modificar($nombre, $apellido, $correo, $id);
+                    // Puedes agregar aquí la lógica para modificar el rol también si lo deseas
+                    $data = $this->model->modificar($username, $nombre, $apellido, $correo, $phone, $role_id, $id);
                     if ($data == 1) {
-                        $respuesta = array('msg' => 'usuario modificado', 'icono' => 'success');
+                        $respuesta = array('msg' => 'Usuario modificado', 'icono' => 'success');
                     } else {
-                        $respuesta = array('msg' => 'error al modificar', 'icono' => 'error');
+                        $respuesta = array('msg' => 'Error al modificar', 'icono' => 'error');
                     }
                 }
             }
@@ -66,6 +69,7 @@ class Usuarios extends Controller
         }
         die();
     }
+    
     //eliminar user
     public function delete($idUser)
     {

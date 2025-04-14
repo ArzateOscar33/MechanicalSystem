@@ -44,42 +44,45 @@
             </div>
             <!--navigation-->
             <ul class="metismenu" id="menu">
-    <li>
-        <a href="<?php echo BASE_URL . 'admin/home'; ?>">
-            <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
-            <div class="menu-title">Dashboard</div>
-        </a>
-    </li>
+                <li>
+                    <a href="<?php echo BASE_URL . 'admin/home'; ?>">
+                        <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
+                        <div class="menu-title">Dashboard</div>
+                    </a>
+                </li>
 
-    <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ?>
-    <li>
-        <a href="<?php echo BASE_URL . 'CargarCertificados'; ?>">
-            <div class="menu-title"><i class='fas fa-upload'></i> Cargar Certificados</div>
-        </a>
-    </li>
-    <?php endif; ?>
+                <?php if ($_SESSION['rol_usuario'] == 1|| $_SESSION['rol_usuario'] == 2): // Solo admin y manager
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'CargarCertificados'; ?>">
+                            <div class="menu-title"><i class='fas fa-upload'></i> Cargar Certificados</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
 
-    <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 3): // Admin y capturista ?>
-    <li>
-        <a href="<?php echo BASE_URL . 'CrearCertificados'; ?>">
-            <div class="menu-title"><i class='fas fa-plus-circle'></i> Crear Nuevo Certificado</div>
-        </a>
-    </li>
-    <li>
-        <a href="<?php echo BASE_URL . 'BuscarCertificados'; ?>">
-            <div class="menu-title"><i class='fas fa-search'></i> Busqueda de Certificados</div>
-        </a>
-    </li>
-    <?php endif; ?>
+                <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 2|| $_SESSION['rol_usuario'] == 3): // Admin,manager,capturista
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'CrearCertificados'; ?>">
+                            <div class="menu-title"><i class='fas fa-plus-circle'></i> Crear Nuevo Certificado</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'BuscarCertificados'; ?>">
+                            <div class="menu-title"><i class='fas fa-search'></i> Busqueda de Certificados</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
 
-    <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ?>
-    <li>
-        <a href="<?php echo BASE_URL . 'Usuarios'; ?>">
-            <div class="menu-title"><i class='fas fa-user'></i> Usuarios</div>
-        </a>
-    </li>
-    <?php endif; ?>
-</ul>
+                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin 
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'Usuarios'; ?>">
+                            <div class="menu-title"><i class='fas fa-user'></i> Usuarios</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
+            </ul>
             <!--end navigation-->
         </div>
         <!--end sidebar wrapper -->
@@ -90,13 +93,13 @@
                     <div class="mobile-toggle-menu"><i class='bx bx-menu'></i>
                     </div>
                     <div class="search-bar flex-grow-1">
-                 
+
                     </div>
                     <div class="user-box dropdown">
                         <a class="d-flex align-items-center nav-link dropdown-toggle dropdown-toggle-nocaret" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="<?php echo BASE_URL; ?>assets/images/logo.png" class="user-img" alt="user avatar">
                             <div class="user-info ps-3">
-                                <p class="user-name mb-0"><?php echo $_SESSION['nombre_usuario'].' ' .  $_SESSION['apellido_usuario']; ?></p>
+                                <p class="user-name mb-0"><?php echo $_SESSION['nombre_usuario'] . ' ' .  $_SESSION['apellido_usuario']; ?></p>
                                 <p class="designattion mb-0"><?php echo $_SESSION['email']; ?></p>
                             </div>
                         </a>
