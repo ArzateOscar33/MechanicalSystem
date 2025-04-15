@@ -90,7 +90,7 @@ foreach ($result as &$row) {
     public function ciudadesTotales()
     {
         // Consulta para obtener la cantidad de certificados por ciudad
-        $sql = "SELECT COUNT(city) AS total
+        $sql = "SELECT COUNT(DISTINCT  city) AS total
         FROM addresses
               ";
 
@@ -98,11 +98,12 @@ foreach ($result as &$row) {
         return $this->select($sql);
 
     }
+    
 
     public function estadosTotales()
     {
-        // Consulta para obtener la cantidad de certificados por ciudad
-        $sql = "SELECT COUNT(state) AS total
+        // Consulta para obtener la cantidad estados
+        $sql = "SELECT COUNT(DISTINCT state) AS total
         FROM addresses
               ";
 
