@@ -4,7 +4,8 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
- 
+use Picqer\Barcode\BarcodeGeneratorPNG;
+
 require_once __DIR__ . '/../vendor/autoload.php';
 class CrearCertificados extends Controller
 {
@@ -120,9 +121,12 @@ class CrearCertificados extends Controller
             // PDF + ZIP
             $pdf_path = 'uploads/temp/' . $cert_number . '.pdf';
             $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
-
+            //Generar los certificados
             $this->generarCertificadoPDF($cert_number, $pdf_path, $_POST, $address_id);
+            //Generar el archivo zip 
             $this->generarArchivoZIP($cert_number, $pdf_path, $_FILES['imagenes']);
+            // Limpieza de temporales
+            $this->limpiarTemporales($cert_number);
 
             // Respuesta final
             echo json_encode([
@@ -140,14 +144,14 @@ class CrearCertificados extends Controller
 
     private function generarCertificadoPDF($cert_number, $pdf_path, $data, $address_id)
     {
-         
-    
+
+
         // Rutas de logo y QR para web
         $logoPath = BASE_URL . 'assets/images/logo.png';
         $qrPathRel = 'uploads/temp/' . $cert_number . '_qr.png';
         $qrWebPath = BASE_URL . $qrPathRel;
         $qrFileFullPath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $qrPathRel;
-    
+
         // Generar QR
         $contenidoQR = "{$data['vin']}|{$data['propietario']}|{$data['fabricado_en']}|{$data['year']}|{$data['modelo']}|{$data['marca']}";
         $optionsQR = new QROptions([
@@ -155,11 +159,18 @@ class CrearCertificados extends Controller
             'eccLevel' => QRCode::ECC_L,
         ]);
         (new QRCode($optionsQR))->render($contenidoQR, $qrFileFullPath);
-    
+
         // Dirección
         $direccion = $this->model->obtenerDireccionPorId($address_id);
         $direccion_texto = "{$direccion['number']} {$direccion['street']}, {$direccion['city']}, {$direccion['state']} {$direccion['zip']}";
-    
+        $barcodeGenerator = new BarcodeGeneratorPNG();
+
+        file_put_contents("uploads/temp/{$cert_number}_vin_barcode.png", $barcodeGenerator->getBarcode($data['vin'], $barcodeGenerator::TYPE_CODE_128));
+        file_put_contents("uploads/temp/{$cert_number}_cert_barcode.png", $barcodeGenerator->getBarcode($cert_number, $barcodeGenerator::TYPE_CODE_128));
+
+        // Rutas web para mostrar en el PDF
+        $vinBarcodeWeb = BASE_URL . 'uploads/temp/' . $cert_number . '_vin_barcode.png';
+        $certBarcodeWeb = BASE_URL . 'uploads/temp/' . $cert_number . '_cert_barcode.png';
         // Incluir imágenes subidas al PDF (copiarlas temporalmente en uploads/temp/)
         $imagenesHTML = '';
         if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_name'])) {
@@ -170,108 +181,159 @@ class CrearCertificados extends Controller
                 $rutaDestino = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreArchivo;
                 $rutaWeb = BASE_URL . $rutaDestino;
                 $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $rutaDestino;
-    
+
                 if (is_uploaded_file($rutaTemp)) {
                     move_uploaded_file($rutaTemp, $rutaFisica);
                     $imagenesHTML .= '<img src="' . $rutaWeb . '" width="150" style="margin:5px;">';
                 }
             }
         }
-    
+
         // HTML del PDF
         $html = '
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                font-size: 12px;
-            }
-            .title {
-                font-size: 20px;
-                font-weight: bold;
-                text-align: center;
-                margin-bottom: 15px;
-            }
-            .section {
-                margin-bottom: 20px;
-            }
-            .label {
-                font-weight: bold;
-                color: #333;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 8px;
-            }
-            table, th, td {
-                border: 1px solid #999;
-            }
-            th {
-                background-color: #f0f0f0;
-                padding: 6px;
-                text-align: left;
-            }
-            td {
-                padding: 6px;
-            }
-        </style>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        font-size: 12px;
+                    }
+
+                    .header-barcodes {
+                        width: 100%;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 10px;
+                    }
+
+                    .barcode-block {
+                        text-align: center;
+                        flex: 1;
+                    }
+
+                    .barcode-block img {
+                        max-width: 100%;
+                        height: auto;
+                        max-height: 50px;
+                    }
+
+                    .barcode-label {
+                        font-weight: bold;
+                        margin-bottom: 5px;
+                    }
+
+                    .title {
+                        font-size: 20px;
+                        font-weight: bold;
+                        text-align: center;
+                        margin-top: 10px;
+                        margin-bottom: 10px;
+                    }
+
+                    .logo {
+                        text-align: center;
+                        margin-bottom: 15px;
+                    }
+
+                    .section {
+                        margin-bottom: 20px;
+                    }
+
+                    .label {
+                        font-weight: bold;
+                        color: #333;
+                    }
+
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 8px;
+                    }
+
+                    table, th, td {
+                        border: 1px solid #999;
+                    }
+
+                    th {
+                        background-color: #f0f0f0;
+                        padding: 6px;
+                        text-align: left;
+                    }
+
+                    td {
+                        padding: 6px;
+                    }
+                    </style>
+
+                    <!-- Encabezado: Códigos de Barras VIN y Cert -->
+                    <div class="header-barcodes">
+                        <div class="barcode-block" style="text-align: left;">
+                            <div class="barcode-label">VIN</div>
+                            <img src="' . $vinBarcodeWeb . '" alt="VIN Barcode">
+                            <div class="barcode-block" style="text-align: right;">
+                            <div class="barcode-label">Cert Number</div>
+                            <img src="' . $certBarcodeWeb . '" alt="Cert Barcode">
+                        </div>
+                        </div>
+                    
+                    </div>
+                    <!-- Nombre del Centro -->
+                    <div class="title">MECHANICAL EMISSIONS SERVICES LLC</div>
     
-        <div class="title">MECHANICAL EMISSIONS SERVICES LLC</div>
-        <div style="text-align:center"><img src="' . $logoPath . '" height="80"></div>
-        <div class="section"><b>Dirección:</b> ' . $direccion_texto . '</div>
-        <div class="section"><b>Cert Number:</b> ' . $cert_number . '</div>
-    
-        <div class="section"><b>Vehicle Information</b>
-            <table>
-                <tr><th>Campo</th><th>Valor</th></tr>
-                <tr><td>VIN</td><td>' . $data['vin'] . '</td></tr>
-                <tr><td>Año</td><td>' . $data['year'] . '</td></tr>
-                <tr><td>Fabricado en</td><td>' . $data['fabricado_en'] . '</td></tr>
-                <tr><td>Marca</td><td>' . $data['marca'] . '</td></tr>
-                <tr><td>Modelo</td><td>' . $data['modelo'] . '</td></tr>
-                <tr><td>Placa</td><td>' . $data['placa'] . '</td></tr>
-                <tr><td>Odómetro</td><td>' . $data['odometro'] . '</td></tr>
-                <tr><td>Propietario</td><td>' . $data['propietario'] . '</td></tr>
-            </table>
-        </div>
-    
-        <div class="section"><b>Monitoreo & Certificación</b>
-            <table>
-                <tr><th>Tipo</th><th>Resultado</th></tr>
-                <tr><td>Fallo de Encendido</td><td>' . $data['monitor_fallo_encendido'] . '</td></tr>
-                <tr><td>Sistema de Combustible</td><td>' . $data['monitor_sistema_combustible'] . '</td></tr>
-                <tr><td>Catalizador Integral</td><td>' . $data['monitor_integral_catalizador'] . '</td></tr>
-                <tr><td>Catalizador</td><td>' . $data['monitor_catalizador'] . '</td></tr>
-                <tr><td>Sensor C2</td><td>' . $data['monitor_sensor_c2'] . '</td></tr>
-                <tr><td>Resultado General</td><td>' . $data['resultado_prueba'] . '</td></tr>
-            </table>
-        </div>
-    
-        <div class="section"><b>Información del Inspector</b>
-            <table>
-                <tr><th>Campo</th><th>Valor</th></tr>
-                <tr><td>Inspector</td><td>' . $data['inspector'] . '</td></tr>
-                <tr><td>Firma del Inspector</td><td>' . $data['firma_inspector'] . '</td></tr>
-                <tr><td>EBITN</td><td>' . $data['ebitn'] . '</td></tr>
-                <tr><td>Fecha</td><td>' . $data['fecha'] . '</td></tr>
-                <tr><td>Fecha Expiración</td><td>' . $data['fecha_expiracion'] . '</td></tr>
-            </table>
-        </div>
-    
-        <div class="section"><b>Ubicación Geográfica</b><br>' . $data['latitud'] . ', ' . $data['longitud'] . '</div>
-    
-        <div class="section"><b>Código QR del Certificado</b><br>
-            <img src="' . $qrWebPath . '" width="150">
-        </div>
-    
-        <div class="section"><b>Imágenes del vehículo</b><br>' . $imagenesHTML . '</div>
-    
-        <div class="section" style="text-align:center">
-            <small>Powered by -- Formula 1 Auto Repair -- (BAR NBR RC 00305923)<br>
-            To verify this certificate, go to www.mecemissions.com</small>
-        </div>
-        ';
-    
+            <div style="text-align:center"><img src="' . $logoPath . '" height="80"></div>
+            <div class="section"><b>Dirección:</b> ' . $direccion_texto . '</div>
+            <div class="section"><b>Cert Number:</b> ' . $cert_number . '</div>
+        
+            <div class="section"><b>Vehicle Information</b>
+                <table>
+                    <tr><th>Campo</th><th>Valor</th></tr>
+                    <tr><td>VIN</td><td>' . $data['vin'] . '</td></tr>
+                    <tr><td>Año</td><td>' . $data['year'] . '</td></tr>
+                    <tr><td>Fabricado en</td><td>' . $data['fabricado_en'] . '</td></tr>
+                    <tr><td>Marca</td><td>' . $data['marca'] . '</td></tr>
+                    <tr><td>Modelo</td><td>' . $data['modelo'] . '</td></tr>
+                    <tr><td>Placa</td><td>' . $data['placa'] . '</td></tr>
+                    <tr><td>Odómetro</td><td>' . $data['odometro'] . '</td></tr>
+                    <tr><td>Propietario</td><td>' . $data['propietario'] . '</td></tr>
+                </table>
+            </div>
+        
+            <div class="section"><b>Monitoreo & Certificación</b>
+                <table>
+                    <tr><th>Tipo</th><th>Resultado</th></tr>
+                    <tr><td>Fallo de Encendido</td><td>' . $data['monitor_fallo_encendido'] . '</td></tr>
+                    <tr><td>Sistema de Combustible</td><td>' . $data['monitor_sistema_combustible'] . '</td></tr>
+                    <tr><td>Catalizador Integral</td><td>' . $data['monitor_integral_catalizador'] . '</td></tr>
+                    <tr><td>Catalizador</td><td>' . $data['monitor_catalizador'] . '</td></tr>
+                    <tr><td>Sensor C2</td><td>' . $data['monitor_sensor_c2'] . '</td></tr>
+                    <tr><td>Resultado General</td><td>' . $data['resultado_prueba'] . '</td></tr>
+                </table>
+            </div>
+        
+            <div class="section"><b>Información del Inspector</b>
+                <table>
+                    <tr><th>Campo</th><th>Valor</th></tr>
+                    <tr><td>Inspector</td><td>' . $data['inspector'] . '</td></tr>
+                    <tr><td>Firma del Inspector</td><td>' . $data['firma_inspector'] . '</td></tr>
+                    <tr><td>EBITN</td><td>' . $data['ebitn'] . '</td></tr>
+                    <tr><td>Fecha</td><td>' . $data['fecha'] . '</td></tr>
+                    <tr><td>Fecha Expiración</td><td>' . $data['fecha_expiracion'] . '</td></tr>
+                </table>
+            </div>
+        
+            <div class="section"><b>Ubicación Geográfica</b><br>' . $data['latitud'] . ', ' . $data['longitud'] . '</div>
+        
+            <div class="section"><b>Código QR del Certificado</b><br>
+                <img src="' . $qrWebPath . '" width="150">
+            </div>
+        
+            <div class="section"><b>Imágenes del vehículo</b><br>' . $imagenesHTML . '</div>
+        
+            <div class="section" style="text-align:center">
+                <small>Powered by -- Formula 1 Auto Repair -- (BAR NBR RC 00305923)<br>
+                To verify this certificate, go to www.mecemissions.com</small>
+            </div>
+            ';
+
         // Generar PDF
         $options = new Options();
         $options->set('isRemoteEnabled', true);
@@ -279,30 +341,46 @@ class CrearCertificados extends Controller
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4');
         $dompdf->render();
-    
+
         file_put_contents($pdf_path, $dompdf->output());
     }
-    
-    
+
+
     private function generarArchivoZIP($cert_number, $pdf_path, $imagenes)
     {
         $zip_path = "uploads/certificates/{$cert_number}.zip";
         $zip = new ZipArchive();
     
-        if ($zip->open($zip_path, ZipArchive::CREATE) === TRUE) {
-            $zip->addFile($pdf_path, basename($pdf_path));
+        if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
     
-            $total = count($imagenes['name']);
-            $total = min(9, $total);
+            // Agregar PDF
+            if (file_exists($pdf_path)) {
+                $zip->addFile($pdf_path, basename($pdf_path));
+            }
     
+            // Agregar imágenes desde uploads/temp
+            $total = min(9, count($imagenes['name']));
             for ($i = 0; $i < $total; $i++) {
-                if (is_uploaded_file($imagenes['tmp_name'][$i])) {
-                    $filename = basename($imagenes['name'][$i]);
-                    $zip->addFile($imagenes['tmp_name'][$i], 'imagenes/' . $filename);
+                $nombreOriginal = basename($imagenes['name'][$i]);
+                $rutaTemp = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreOriginal;
+    
+                if (file_exists($rutaTemp)) {
+                    $zip->addFile($rutaTemp, 'imagenes/' . $nombreOriginal);
                 }
             }
     
             $zip->close();
+        }
+    }
+    
+    
+   private function limpiarTemporales($cert_number)
+    {
+        $archivos = glob("uploads/temp/{$cert_number}_*");
+        foreach ($archivos as $archivo) {
+            if (is_file($archivo)) {
+                unlink($archivo);
+            }
         }
     }
 
@@ -311,5 +389,4 @@ class CrearCertificados extends Controller
         echo json_encode(['msg' => $mensaje, 'icono' => $icono], JSON_UNESCAPED_UNICODE);
         exit;
     }
-    
 }
