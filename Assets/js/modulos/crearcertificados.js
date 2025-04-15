@@ -1,45 +1,116 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     const frm = document.querySelector("#formularioCertificado");
     const generarQRBtn = document.querySelector("#generarQR");
-
-    // Función para generar el código QR
-    generarQRBtn.addEventListener("click", function() {
-        const vin = document.querySelector("#vin").value;
-        const propietario = document.querySelector("#propietario").value;
-
-        if (vin && propietario) {
-            const qrData = `VIN: ${vin}, Propietario: ${propietario}`;
-            const qrCodeContainer = document.querySelector("#codigoQR");
-            qrCodeContainer.innerHTML = '';  // Limpiar el contenedor antes de generar un nuevo QR
-            new QRCode(qrCodeContainer, qrData);
-        } else {
-            alertas("Por favor completa el VIN y el nombre del propietario para generar el código QR.", "warning");
+    const qrCodeContainer = document.querySelector("#codigoQR");
+    const selectDireccion = document.getElementById("direccion_existente");
+    const camposNuevaDireccion = document.getElementById("nuevaDireccionCampos");
+    const telefonoInput = document.querySelector('input[name="telefono"]');
+  
+    // Todos los campos requeridos (excepto imágenes)
+    const requiredInputs = document.querySelectorAll(
+      "#formularioCertificado input[required], #formularioCertificado select[required]"
+    );
+  
+    // Mostrar u ocultar campos de nueva dirección y quitar/reponer 'required' en teléfono
+    function actualizarVisibilidadDireccion() {
+      const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
+  
+      if (usandoDireccionExistente) {
+        camposNuevaDireccion.style.display = "none";
+        telefonoInput.required = false;
+      } else {
+        camposNuevaDireccion.style.display = "block";
+        telefonoInput.required = true;
+      }
+  
+      verificarCamposCompletos();
+    }
+  
+    if (selectDireccion) {
+      selectDireccion.addEventListener("change", actualizarVisibilidadDireccion);
+      actualizarVisibilidadDireccion(); // Estado inicial
+    }
+  
+    // Verificar si todos los campos están completos
+    function verificarCamposCompletos() {
+      const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
+  
+      const incompletos = Array.from(requiredInputs).some((input) => {
+        if (usandoDireccionExistente && camposNuevaDireccion.contains(input)) {
+          return false;
         }
+        return input.type !== "file" && !input.value.trim();
+      });
+  
+      generarQRBtn.disabled = incompletos;
+    }
+  
+    // Verifica en cada cambio
+    requiredInputs.forEach((input) => {
+      input.addEventListener("input", verificarCamposCompletos);
+      input.addEventListener("change", verificarCamposCompletos);
     });
-
-    // Manejo de la presentación del formulario
-    frm.addEventListener("submit", function(e) {
-        e.preventDefault();
-
-        // Aquí puedes agregar más validaciones si es necesario
-
-        let data = new FormData(this);
-        const url = base_url + "CrearCertificado/crear";  // Asegúrate que esta ruta sea la correcta
-        const http = new XMLHttpRequest();
-        http.open("POST", url, true);
-        http.send(data);
-
-        http.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                const res = JSON.parse(this.responseText);
-                alertas(res.msg, res.icono);
-            }
+  
+    verificarCamposCompletos(); // Inicial
+  
+    // Generar código QR con datos clave
+    generarQRBtn.addEventListener("click", function () {
+      const vin = document.querySelector("#vin").value.trim();
+      const propietario = document.querySelector("#propietario").value.trim();
+      const fabricadoEn = document.querySelector("#fabricado_en").value.trim();
+      const year = document.querySelector("#year").value.trim();
+      const modelo = document.querySelector("#modelo").value.trim();
+      const marca = document.querySelector("#marca").value.trim();
+  
+      if (!vin || !propietario || !fabricadoEn || !year || !modelo || !marca) {
+        alertas("Faltan campos para generar el código QR", "warning");
+        return;
+      }
+  
+      const contenidoQR = `${vin}|${propietario}|${fabricadoEn}|${year}|${modelo}|${marca}`;
+  
+      qrCodeContainer.innerHTML = "";
+  
+      new QRCode(qrCodeContainer, {
+        text: contenidoQR,
+        width: 256,
+        height: 256,
+      });
+    });
+  
+    // Envío del formulario
+    frm.addEventListener("submit", function (e) {
+      e.preventDefault();
+  
+      const data = new FormData(frm);
+      const url = base_url + "CrearCertificados/crear";
+  
+      const http = new XMLHttpRequest();
+      http.open("POST", url, true);
+      http.send(data);
+  
+      http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+        console.log(this.responseText);
+          const res = JSON.parse(this.responseText);
+          
+          alertas(res.msg, res.icono);
+          if (res.icono === "success") {
+            frm.reset();
+            qrCodeContainer.innerHTML = "";
+            verificarCamposCompletos();
+  
+            // Descargar archivos
+            window.open(res.pdf_url, '_blank'); // Abre PDF
+            window.location.href = res.zip_url; // Descarga ZIP
+          }
         }
+      };
     });
-
-});
-
-// Función para mostrar alertas
-function alertas(msg, icono) {
+  });
+  
+  // Función para mostrar alertas con SweetAlert
+  function alertas(msg, icono) {
     Swal.fire("Aviso", msg.toUpperCase(), icono);
-}
+  }
+  

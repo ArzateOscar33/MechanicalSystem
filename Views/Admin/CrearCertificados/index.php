@@ -2,17 +2,64 @@
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Certificado</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
+
 <body>
     <div class="container mt-5">
         <h3 class="text-center">Crear Certificado</h3>
         <form id="formularioCertificado" enctype="multipart/form-data">
-            
+            <!-- Dirección del Certificado -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Dirección del Certificado</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="direccion_existente" class="form-label">Seleccionar Dirección Existente</label>
+                        <select class="form-select" id="direccion_existente" name="direccion_existente">
+                            <option value="">-- Nueva Dirección --</option>
+                            <?php foreach ($data['direcciones'] as $dir): ?>
+                                <option value="<?= $dir['id']; ?>"><?= $dir['nombre']; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Campos para nueva dirección -->
+                    <div id="nuevaDireccionCampos">
+                        <div class="mb-3">
+                            <label for="numero" class="form-label">Número</label>
+                            <input type="text" class="form-control" name="numero" id="numero">
+                        </div>
+                        <div class="mb-3">
+                            <label for="calle" class="form-label">Calle</label>
+                            <input type="text" class="form-control" name="calle" id="calle">
+                        </div>
+                        <div class="mb-3">
+                            <label for="ciudad" class="form-label">Ciudad</label>
+                            <input type="text" class="form-control" name="ciudad" id="ciudad">
+                        </div>
+                        <div class="mb-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <input type="text" class="form-control" name="estado" id="estado">
+                        </div>
+                        <div class="mb-3">
+                            <label for="zip" class="form-label">Código Postal</label>
+                            <input type="text" class="form-control" name="zip" id="zip">
+                        </div>
+                        <div class="mb-3">
+    <label for="telefono" class="form-label">Teléfono</label>
+    <input type="text" class="form-control" id="telefono" name="telefono" required>
+</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Información del Vehículo -->
             <div class="card mb-4">
                 <div class="card-header">
@@ -76,7 +123,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="numero_certificado" class="form-label">Número de Certificado</label>
-                        <input type="text" class="form-control" id="numero_certificado" name="numero_certificado" required>
+                        <input type="text" class="form-control" id="numero_certificado" name="numero_certificado" value="<?= $data['cert_number']; ?>" readonly>
                     </div>
                     <div class="mb-3">
                         <label for="ubicacion_geografica" class="form-label">Ubicación Geográfica (Latitud/Longitud)</label>
@@ -167,7 +214,8 @@
                     <h5>Códigos QR</h5>
                 </div>
                 <div class="card-body">
-                    <button type="button" class="btn btn-success" id="generarQR">Generar Código QR</button>
+                <button type="button" class="btn btn-success" id="generarQR" disabled>Generar Código QR</button>
+
                     <div id="codigoQR" class="mt-3"></div>
                 </div>
             </div>
@@ -175,12 +223,12 @@
             <button type="submit" class="btn btn-primary w-100">Crear Certificado</button>
         </form>
     </div>
- 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
 
  
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/crearcertificados.js"></script>
-
 <?php include_once 'Views/template/footer-admin.php'; ?>
