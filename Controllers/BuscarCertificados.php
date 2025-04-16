@@ -18,26 +18,61 @@ class BuscarCertificados extends Controller
         $this->views->getView('admin/BuscarCertificados', "index", $data);
     }
     
-    // Método para buscar certificados mediante AJAX
-    public function buscar()
+    public function listar()
     {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $filtros = [
-                'cert_number' => $_POST['cert_number'] ?? '',
-                'city' => $_POST['city'] ?? '',
-                'state' => $_POST['state'] ?? '',
-                'make' => $_POST['make'] ?? '',
-                'owner_name' => $_POST['owner_name'] ?? '',
-                'inspector_name' => $_POST['inspector_name'] ?? ''
-            ];
-            
-            // Si se implementa el método buscarCertificados en el modelo
-            $certificados = $this->model->buscarCertificados($filtros);
-            
-            echo json_encode($certificados);
-        } else {
-            echo json_encode(['error' => 'Método no permitido']);
+        $data = $this->model->obtenerCertificados();
+        for ($i = 0; $i < count($data); $i++) {
+            $data[$i]['accion'] = '<div class="d-flex"> 
+            <button class="btn btn-success" type="button" onclick="descargarCertificado(\'' . $data[$i]['cert_number'] . '\')"><i class="fas fa-download"></i></button>
+        </div>';
         }
+        echo json_encode($data);
         die();
     }
+    //descargarCertificado
+    public function descargar($cert_number)
+    {
+        if (!empty($cert_number)) {
+            $data = $this->model->descargarCertificado($cert_number);
+    
+            if (!empty($data)) {
+                $ruta = 'uploads/certificates/' . $data['zip_file_path'];
+    
+                if (file_exists($ruta)) {
+                    // Forzar descarga
+                    header('Content-Description: File Transfer');
+                    header('Content-Type: application/zip');
+                    header('Content-Disposition: attachment; filename="' . basename($ruta) . '"');
+                    header('Expires: 0');
+                    header('Cache-Control: must-revalidate');
+                    header('Pragma: public');
+                    header('Content-Length: ' . filesize($ruta));
+                    readfile($ruta);
+                    exit;
+                } else {
+                    http_response_code(404);
+                    echo json_encode(['msg' => 'Archivo no encontrado', 'icono' => 'error']);
+                    exit;
+                }
+            } else {
+                echo json_encode(['msg' => 'Certificado no encontrado', 'icono' => 'error']);
+                exit;
+            }
+        } else {
+            echo json_encode(['msg' => 'Solicitud inválida', 'icono' => 'error']);
+            exit;
+        }
+    }
+    
+    public function obtenerFiltros()
+{
+    $ciudades = $this->model->obtenerCiudadesUnicas();
+    $estados = $this->model->obtenerEstadosUnicos();
+
+    echo json_encode([
+        'ciudades' => $ciudades,
+        'estados' => $estados
+    ]);
+    die();
+}
 }
