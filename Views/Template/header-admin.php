@@ -51,7 +51,7 @@
                     </a>
                 </li>
 
-                <?php if ($_SESSION['rol_usuario'] == 1|| $_SESSION['rol_usuario'] == 2): // Solo admin y manager
+                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
                 ?>
                     <li>
                         <a href="<?php echo BASE_URL . 'CargarCertificados'; ?>">
@@ -82,7 +82,17 @@
                         </a>
                     </li>
                 <?php endif; ?>
+
+                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin 
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'DescargarCertificados'; ?>">
+                            <div class="menu-title"><i class='fas fa-download'></i> Descargar Certificados</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
             </ul>
+            
             <!--end navigation-->
         </div>
         <!--end sidebar wrapper -->

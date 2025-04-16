@@ -114,26 +114,21 @@ function estadosCertificado() {
             var gradientStroke3 = ctx.createLinearGradient(0, 0, 0, 300);
             gradientStroke3.addColorStop(0, "#7f00ff");
             gradientStroke3.addColorStop(1, "#e100ff");
-
+            const gradients = [gradientStroke1, gradientStroke2, gradientStroke3];
+            const backgroundColors = estados.map((_, i) => gradients[i % gradients.length]);
             // Crear el gráfico de barras con los datos y gradientes
-            var myChart = new Chart(ctx, {
-                type: "bar",  // Cambiar a 'bar' para un gráfico de barras
+            new Chart(ctx, {
+                type: "bar",
                 data: {
-                    labels: estados,  // Las etiquetas serán los estados
+                    labels: estados,
                     datasets: [{
-                        backgroundColor: [
-                            gradientStroke1,
-                            gradientStroke2,
-                            gradientStroke3,
-                        ],  // Colores de las barras
-                        hoverBackgroundColor: [
-                            gradientStroke1,
-                            gradientStroke2,
-                            gradientStroke3,
-                        ],  // Colores cuando se pasa el mouse
-                        data: porcentajes,  // Los datos de porcentaje
-                        borderWidth: 1,  // Borde de las barras
-                    }],
+                        data: porcentajes,
+                        backgroundColor: backgroundColors,
+                        hoverBackgroundColor: backgroundColors,
+                        borderWidth: 1,
+                         
+                         
+                    }]
                 },
                 options: {
                     maintainAspectRatio: false,  // Permite que el gráfico se adapte al tamaño del contenedor
@@ -154,6 +149,7 @@ function estadosCertificado() {
         }
     };
 }
+
 function fechaChart() {
     const url = base_url + "admin/certificadosPorMes"; 
     const http = new XMLHttpRequest();
@@ -305,31 +301,25 @@ function certificadosPorInspector() {
                         backgroundColor: backgroundColors,
                         hoverBackgroundColor: backgroundColors,
                         borderWidth: 1,
-                        // ✅ le damos nombre si se necesita, pero no se muestra
-                        label: "Certificados"
+                         
+                         
                     }]
                 },
                 options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
+                    maintainAspectRatio: false,  // Permite que el gráfico se adapte al tamaño del contenedor
                     scales: {
                         y: {
-                            beginAtZero: true
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false // 🔇 no mostrar leyenda
+                            beginAtZero: true,  // Asegura que las barras empiecen desde cero en el eje Y
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    return `${context.label}: ${context.raw} certificados`;
-                                }
-                            }
-                        }
-                    }
-                }
+                    },
+                    legend: {
+                        display: false,  // No es necesario mostrar la leyenda para un gráfico de barras
+                    },
+                    tooltips: {
+                        displayColors: false,  // No mostrar los colores en el tooltip
+                    },
+                    responsive: true,  // Hace que el gráfico sea responsivo
+                },
             });
         }
     };

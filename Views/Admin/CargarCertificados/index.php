@@ -113,7 +113,7 @@
 <?php include_once 'Views/template/footer-admin.php'; ?>
 
 
-<script src="<?php echo BASE_URL; ?>assets/js/index.js"></script>
+ 
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/cargarcertificados.js"></script>
  
 
