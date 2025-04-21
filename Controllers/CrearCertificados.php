@@ -264,18 +264,16 @@ class CrearCertificados extends Controller
                     }
                     </style>
 
-                    <!-- Encabezado: Códigos de Barras VIN y Cert -->
-                    <div class="header-barcodes">
-                        <div class="barcode-block" style="text-align: left;">
-                            <div class="barcode-label">VIN</div>
-                            <img src="' . $vinBarcodeWeb . '" alt="VIN Barcode">
-                            <div class="barcode-block" style="text-align: right;">
-                            <div class="barcode-label">Cert Number</div>
-                            <img src="' . $certBarcodeWeb . '" alt="Cert Barcode">
-                        </div>
-                        </div>
-                    
-                    </div>
+<div style="display: flex; justify-content: center; align-items: flex-start; gap: 40px; margin-bottom: 10px;">
+    <div style="text-align: center; display: inline-block;">
+        <div style="font-weight: bold; margin-bottom: 4px;">VIN</div>
+        <img src="' . $vinBarcodeWeb . '" alt="VIN Barcode" style="max-height: 50px;">
+    </div>
+    <div style="text-align: center; display: inline-block;">
+        <div style="font-weight: bold; margin-bottom: 4px;">Cert Number</div>
+        <img src="' . $certBarcodeWeb . '" alt="Cert Barcode" style="max-height: 50px;">
+    </div>
+</div>
                     <!-- Nombre del Centro -->
                     <div class="title">MECHANICAL EMISSIONS SERVICES LLC</div>
     
@@ -350,31 +348,31 @@ class CrearCertificados extends Controller
     {
         $zip_path = "uploads/certificates/{$cert_number}.zip";
         $zip = new ZipArchive();
-    
+
         if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-    
+
             // Agregar PDF
             if (file_exists($pdf_path)) {
                 $zip->addFile($pdf_path, basename($pdf_path));
             }
-    
+
             // Agregar imágenes desde uploads/temp
             $total = min(9, count($imagenes['name']));
             for ($i = 0; $i < $total; $i++) {
                 $nombreOriginal = basename($imagenes['name'][$i]);
                 $rutaTemp = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreOriginal;
-    
+
                 if (file_exists($rutaTemp)) {
                     $zip->addFile($rutaTemp, 'imagenes/' . $nombreOriginal);
                 }
             }
-    
+
             $zip->close();
         }
     }
-    
-    
-   private function limpiarTemporales($cert_number)
+
+
+    private function limpiarTemporales($cert_number)
     {
         $archivos = glob("uploads/temp/{$cert_number}_*");
         foreach ($archivos as $archivo) {

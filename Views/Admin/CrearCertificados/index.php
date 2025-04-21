@@ -19,6 +19,7 @@
                 <div class="card-header">
                     <h5>Dirección del Certificado</h5>
                 </div>
+               <!-- Dirección del Certificado --> 
                 <div class="card-body">
                     <div class="mb-3">
                         <label for="direccion_existente" class="form-label">Seleccionar Dirección Existente</label>
@@ -213,7 +214,7 @@
                 <div class="card-header">
                     <h5>Códigos QR</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" >
                 <button type="button" class="btn btn-success" id="generarQR" disabled>Generar Código QR</button>
 
                     <div id="codigoQR" class="mt-3"></div>

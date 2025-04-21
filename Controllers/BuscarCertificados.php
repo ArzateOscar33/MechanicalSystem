@@ -39,15 +39,15 @@ class BuscarCertificados extends Controller
                 $ruta = 'uploads/certificates/' . $data['zip_file_path'];
     
                 if (file_exists($ruta)) {
-                    // Forzar descarga
-                    header('Content-Description: File Transfer');
-                    header('Content-Type: application/zip');
-                    header('Content-Disposition: attachment; filename="' . basename($ruta) . '"');
-                    header('Expires: 0');
-                    header('Cache-Control: must-revalidate');
-                    header('Pragma: public');
-                    header('Content-Length: ' . filesize($ruta));
-                    readfile($ruta);
+                        // Encabezados para forzar descarga
+                        header('Content-Description: File Transfer');
+                        header('Content-Type: application/octet-stream');
+                        header('Content-Disposition: attachment; filename="' . basename($ruta) . '"');
+                        header('Expires: 0');
+                        header('Cache-Control: must-revalidate');
+                        header('Pragma: public');
+                        header('Content-Length: ' . filesize($ruta));
+                        readfile($ruta);
                     exit;
                 } else {
                     http_response_code(404);
@@ -75,4 +75,21 @@ class BuscarCertificados extends Controller
     ]);
     die();
 }
+public function verificarArchivo($cert_number)
+{
+    $data = $this->model->descargarCertificado($cert_number);
+
+    if (!empty($data)) {
+        $ruta = 'uploads/certificates/' . $data['zip_file_path'];
+        if (file_exists($ruta)) {
+            echo json_encode(['existe' => true]);
+        } else {
+            echo json_encode(['existe' => false, 'msg' => 'Archivo no encontrado']);
+        }
+    } else {
+        echo json_encode(['existe' => false, 'msg' => 'Certificado no encontrado']);
+    }
+    die();
+}
+
 }

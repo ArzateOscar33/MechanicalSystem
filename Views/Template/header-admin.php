@@ -87,7 +87,7 @@
                 ?>
                     <li>
                         <a href="<?php echo BASE_URL . 'DescargarCertificados'; ?>">
-                            <div class="menu-title"><i class='fas fa-download'></i> Descargar Certificados</div>
+                            <div class="menu-title"><i class='fas fa-download'></i> Control de  Certificados</div>
                         </a>
                     </li>
                 <?php endif; ?>
