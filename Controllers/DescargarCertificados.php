@@ -32,10 +32,20 @@ class DescargarCertificados extends Controller
         echo json_encode($data);
         die();
     }
-    //eliminar user
+    //eliminar certificado y zip
     public function delete($cert_number)
     {
         if (!empty($cert_number)) {
+            $certificado = $this->model->obtenerZipPath($cert_number);
+    
+            if ($certificado && !empty($certificado['zip_file_path'])) {
+                $filePath = $certificado['zip_file_path'];
+    
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+    
             $data = $this->model->eliminar($cert_number);
             if ($data == 1) {
                 $respuesta = array('msg' => 'certificado eliminado', 'icono' => 'success');
@@ -48,4 +58,5 @@ class DescargarCertificados extends Controller
         echo json_encode($respuesta);
         die();
     }
+    
 }

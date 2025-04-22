@@ -280,4 +280,36 @@ class CargarCertificados extends Controller
         $data['logs'] = $this->model->obtenerImportLogs();
         $this->views->getView('admin/CargarCertificados', "logs", $data);
     }
+    public function subirZIP()
+    { 
+        if (!isset($_FILES['fileUpload'])) {
+            $this->responderJSON('No se recibió ningún archivo', 'error');
+            return;
+        }
+    
+        $archivo = $_FILES['fileUpload'];
+        $nombreArchivo = basename($archivo['name']);
+        $directorio = 'uploads/certificates/';
+        $rutaDestino = $directorio . $nombreArchivo;
+    
+        // Verifica si ya existe
+        if (file_exists($rutaDestino)) {
+            $this->responderJSON('El archivo ya está dentro del servidor', 'warning');
+            return;
+        }
+    
+        // Crear carpeta si no existe
+        if (!is_dir($directorio)) {
+            mkdir($directorio, 0755, true);
+        }
+    
+        // Mover el archivo
+        if (move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
+            $this->responderJSON('Archivo subido correctamente', 'success');
+        } else {
+            $this->responderJSON('Error al subir el archivo', 'error');
+        }
+    }
+    
+
 }

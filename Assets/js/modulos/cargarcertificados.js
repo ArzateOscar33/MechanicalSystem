@@ -75,3 +75,42 @@ document.addEventListener("DOMContentLoaded", function() {
 function alertas(msg, icono) {
     Swal.fire("Aviso", msg.toUpperCase(), icono);
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    const frmZip = document.querySelector("#formularioZIP");
+    const fileZip = document.querySelector("#fileUploadZIP");
+
+    frmZip.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const file = fileZip.files[0];
+        if (!file) {
+            alertas("Por favor selecciona un archivo ZIP.", "warning");
+            return;
+        }
+
+        if (file.type !== "application/zip" && file.name.split('.').pop() !== 'zip') {
+            alertas("El archivo debe ser un ZIP.", "error");
+            return;
+        }
+
+        const data = new FormData();
+        data.append("fileUpload", file);
+
+        const url = base_url + "CargarCertificados/subirZIP";
+
+        const http = new XMLHttpRequest();
+        http.open("POST", url, true);
+
+        http.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                const res = JSON.parse(this.responseText);
+                console.log(this.responseText);
+                alertas(res.msg, res.icono);
+                if (res.icono == 'success') frmZip.reset();
+            }
+        };
+
+        http.send(data);
+    });
+});

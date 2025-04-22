@@ -1,5 +1,5 @@
 <?php include_once 'Views/template/header-admin.php'; ?> 
-<?php echo $_SESSION['id_usuario'];?>
+ 
 
 <!DOCTYPE html>
 <html lang="es">
@@ -74,10 +74,10 @@
                                     <h5>Seleccionar Archivo ZIP</h5>
                                 </div>
                                 <div class="card-body">
-                                    <form id="formulario" enctype="multipart/form-data">
+                                    <form id="formularioZIP" enctype="multipart/form-data">
                                         <div class="form-group">
-                                            <label for="fileUpload">Archivo ZI  P</label>
-                                            <input type="file" class="form-control" id="fileUpload" accept=".zip">
+                                            <label for="fileUpload">Archivo ZIP</label>
+                                            <input type="file" class="form-control" id="fileUploadZIP" accept=".zip">
                                             <small class="form-text text-muted">Selecciona un archivo ZIP con los certificados a importar.</small>
                                         </div>
                                         <div class="form-group mt-3">

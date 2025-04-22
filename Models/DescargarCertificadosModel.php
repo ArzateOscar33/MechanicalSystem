@@ -24,7 +24,11 @@ class DescargarCertificadosModel extends Query{
         return $this->save($sql, $array);
     }
     
-
+    public function obtenerZipPath($cert_number)
+    {
+        $sql = "SELECT zip_file_path FROM certificates WHERE cert_number = '{$cert_number}'";
+        return $this->select($sql);
+    }
 }
  
 ?>
