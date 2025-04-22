@@ -8,4 +8,5 @@ const CHARSET = "charset=utf8";
 const TITLE = "Mechanical System ";
 const MONEDA = "USD";
 const CLIENT_ID = "";
+const BASE_PATH = __DIR__ . '/../';
 ?>

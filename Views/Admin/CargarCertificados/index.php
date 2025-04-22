@@ -51,7 +51,7 @@
                                 </div>
                                 <div class="card-body">
                                     <ol>
-                                        <li>El archivo debe estar en formato ZIP.</li>
+                                        <li>El archivo debe estar en formato JSON.</li>
                                         <li>Cada certificado debe tener un número único (cert_number).</li>
                                         <li>Los archivos ZIP asociados deben ser subidos por separado.</li>
                                         <li>El sistema verificará certificados duplicados y los actualizará.</li>

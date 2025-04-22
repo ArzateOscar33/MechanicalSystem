@@ -38,7 +38,7 @@ public function obtenerEstadosUnicos()
 }
 public function descargarCertificado($cert_number)
 {
-    $sql = "SELECT zip_file_path from certificates where cert_number=?";
+    $sql = "SELECT zip_file_path from certificates where cert_number='$cert_number'";
     return $this->select($sql);
 }
 

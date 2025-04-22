@@ -125,7 +125,7 @@
 
     <script src="<?php echo BASE_URL; ?>assets/js/all.min.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/sweetalert2.all.min.js"></script>
-<script>
+    <script>
   const base_url = '<?php echo BASE_URL; ?>';
 </script>
 <script type="text/javascript" src="<?php echo BASE_URL . 'assets/DataTables/datatables.min.js'; ?>"></script>

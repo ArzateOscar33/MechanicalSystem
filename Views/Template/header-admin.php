@@ -91,6 +91,22 @@
                         </a>
                     </li>
                 <?php endif; ?>
+                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin 
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'Direcciones'; ?>">
+                            <div class="menu-title"><i class='fas fa-map-marked-alt'></i> Control de Direcciones</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin 
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'Importaciones'; ?>">
+                            <div class="menu-title"><i class='fas fa-file-import'></i> Registro de Importaciones</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
             </ul>
             
             <!--end navigation-->
