@@ -82,35 +82,57 @@ document.addEventListener("DOMContentLoaded", function () {
 
     frmZip.addEventListener("submit", function (e) {
         e.preventDefault();
+        const files = fileZip.files;
 
-        const file = fileZip.files[0];
-        if (!file) {
-            alertas("Por favor selecciona un archivo ZIP.", "warning");
+        if (!files.length) {
+            alertas("Por favor selecciona uno o más archivos ZIP.", "warning");
             return;
         }
 
-        if (file.type !== "application/zip" && file.name.split('.').pop() !== 'zip') {
-            alertas("El archivo debe ser un ZIP.", "error");
-            return;
-        }
+        let total = files.length;
+        let subidos = 0;
 
-        const data = new FormData();
-        data.append("fileUpload", file);
-
-        const url = base_url + "CargarCertificados/subirZIP";
-
-        const http = new XMLHttpRequest();
-        http.open("POST", url, true);
-
-        http.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                const res = JSON.parse(this.responseText);
-                console.log(this.responseText);
-                alertas(res.msg, res.icono);
-                if (res.icono == 'success') frmZip.reset();
+        Swal.fire({
+            title: 'Subiendo archivos...',
+            html: '<div id="swal-progress" style="width:100%;background:#ddd;height:20px;"><div id="swal-bar" style="width:0%;height:100%;background:#4caf50;"></div></div><p id="swal-status">0 de ' + total + ' completados</p>',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                subirArchivo(0);
             }
-        };
+        });
 
-        http.send(data);
+        function subirArchivo(index) {
+            if (index >= total) {
+                Swal.update({
+                    html: '<p>Todos los archivos fueron subidos.</p>',
+                    icon: 'success',
+                    showConfirmButton: true
+                });
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("fileUpload", files[index]);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", base_url + "CargarCertificados/subirZIP", true);
+
+            xhr.onload = function () {
+                const res = JSON.parse(xhr.responseText);
+                if (res.icono === "success") {
+                    subidos++;
+                }
+
+                let porcentaje = Math.round((subidos / total) * 100);
+                document.getElementById("swal-bar").style.width = porcentaje + "%";
+                document.getElementById("swal-status").textContent = subidos + " de " + total + " completados";
+
+                subirArchivo(index + 1);
+            };
+
+            xhr.send(formData);
+        }
     });
 });
+

@@ -6,6 +6,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const camposNuevaDireccion = document.getElementById("nuevaDireccionCampos");
     const telefonoInput = document.querySelector('input[name="telefono"]');
   
+
+    const fechaInput = document.getElementById("fecha");
+    const expiracionInput = document.getElementById("fecha_expiracion");
+    
+    fechaInput.addEventListener("change", function () {
+      if (fechaInput.value) {
+        const fecha = new Date(fechaInput.value);
+        fecha.setFullYear(fecha.getFullYear() + 1);
+    
+        // Formatear a YYYY-MM-DD
+        const yyyy = fecha.getFullYear();
+        const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+        const dd = String(fecha.getDate()).padStart(2, "0");
+    
+        expiracionInput.value = `${yyyy}-${mm}-${dd}`;
+      }
+    });
+
     // Todos los campos requeridos (excepto imágenes)
     const requiredInputs = document.querySelectorAll(
       "#formularioCertificado input[required], #formularioCertificado select[required]"

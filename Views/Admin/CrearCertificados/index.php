@@ -130,10 +130,10 @@
                         <label for="ubicacion_geografica" class="form-label">Ubicación Geográfica (Latitud/Longitud)</label>
                         <div class="row">
                             <div class="col">
-                                <input type="number" class="form-control" id="latitud" name="latitud" placeholder="Latitud" required>
+                            <input type="number" class="form-control" id="latitud" name="latitud" placeholder="Latitud" step="any" min="-90" max="90" required>
                             </div>
                             <div class="col">
-                                <input type="number" class="form-control" id="longitud" name="longitud" placeholder="Longitud" required>
+                            <input type="number" class="form-control" id="longitud" name="longitud" placeholder="Longitud" step="any" min="-180" max="180" required>
                             </div>
                         </div>
                     </div>
@@ -192,7 +192,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="fecha_expiracion" class="form-label">Fecha de Expiración</label>
-                        <input type="date" class="form-control" id="fecha_expiracion" name="fecha_expiracion" required>
+                        <input type="date" class="form-control" id="fecha_expiracion" name="fecha_expiracion" required readonly>
                     </div>
                 </div>
             </div>

@@ -77,7 +77,7 @@
                                     <form id="formularioZIP" enctype="multipart/form-data">
                                         <div class="form-group">
                                             <label for="fileUpload">Archivo ZIP</label>
-                                            <input type="file" class="form-control" id="fileUploadZIP" accept=".zip">
+                                            <input type="file" class="form-control" id="fileUploadZIP" name="fileUpload[]"   accept=".zip" multiple>
                                             <small class="form-text text-muted">Selecciona un archivo ZIP con los certificados a importar.</small>
                                         </div>
                                         <div class="form-group mt-3">

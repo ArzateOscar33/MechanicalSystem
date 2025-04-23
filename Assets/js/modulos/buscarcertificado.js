@@ -82,6 +82,22 @@ document.addEventListener("DOMContentLoaded", function () {
         option.textContent = estado.state;
         estadoSelect.appendChild(option);
       });
+      // Lógica de desactivación mutua entre ciudad y estado
+ciudadSelect.addEventListener("change", function () {
+  if (this.value !== "") {
+    estadoSelect.disabled = true;
+  } else {
+    estadoSelect.disabled = false;
+  }
+});
+
+estadoSelect.addEventListener("change", function () {
+  if (this.value !== "") {
+    ciudadSelect.disabled = true;
+  } else {
+    ciudadSelect.disabled = false;
+  }
+});
     });
 });
 
