@@ -174,5 +174,18 @@ public function getCiudades()
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
     }
+    public function lugarInspector()
+{
+    if (empty($_SESSION['nombre_usuario'])) {
+        header('Location: ' . BASE_URL . 'admin');
+        exit;
+    }
+
+    $inspector = isset($_POST['inspector']) ? $_POST['inspector'] : '';
+    $data = $this->model->lugarInspector($inspector);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    die();
+}
+
     
 }

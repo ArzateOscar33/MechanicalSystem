@@ -182,6 +182,18 @@ class AdminModel extends Query
         return $this->selectAll($sql);
     }
 
+    public function lugarInspector($inspector)
+{
+    $sql = "SELECT a.state, a.city, COUNT(*) AS total
+            FROM certificates c
+            INNER JOIN addresses a ON c.address_id = a.id
+            WHERE c.inspector_name = '$inspector'
+            GROUP BY a.state, a.city
+            ORDER BY total DESC
+            LIMIT 1";
+    return $this->select($sql);
+}
+
     
     
 }

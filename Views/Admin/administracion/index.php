@@ -142,6 +142,8 @@
                     <select id="filtroInspector" class="form-select mb-2">
                         <option value="">Selecciona Inspector</option>
                     </select>
+                    <p id="origenInspector" class="mt-2 text-muted small fst-italic">Origen: <span id="origenTexto">--</span></p>
+
                 </div>
                 <div class="chart-container-2 mt-4">
                     <canvas id="certificadosInspectorChart" height="200"></canvas>

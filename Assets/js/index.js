@@ -565,6 +565,37 @@ function aplicarFiltroInspector() {
         certificadosPorMesInspector(anio, inspector);
     }
 }
+function actualizarOrigenInspector(inspector) {
+    const url = base_url + "admin/lugarInspector";
+    const formData = new FormData();
+    formData.append("inspector", inspector);
+
+    fetch(url, {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            const origen = data && data.city && data.state 
+                ? `${data.city}, ${data.state}` 
+                : "No disponible";
+            document.getElementById("origenTexto").textContent = origen;
+        })
+        .catch(() => {
+            document.getElementById("origenTexto").textContent = "Error al obtener origen";
+        });
+}
+
+function aplicarFiltroInspector() {
+    const anio = document.getElementById("filtroAnioInspector").value;
+    const inspector = document.getElementById("filtroInspector").value;
+
+    if (inspector) {
+        certificadosPorMesInspector(anio, inspector);
+        actualizarOrigenInspector(inspector);
+    }
+}
+
 
 
 
