@@ -466,7 +466,105 @@ function configurarFiltroMes() {
     filtroMes.max = hoy;
     filtroMes.value = hoy; // setea como valor inicial el mes actual
 }
+function cargarInspectores() {
+    const url = base_url + "admin/inspectoresDisponibles";
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("filtroInspector");
+            data.forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.inspector_name;
+                option.textContent = item.inspector_name;
+                select.appendChild(option);
+            });
+        });
+}
 
+function cargarAniosInspector() {
+    const select = document.getElementById("filtroAnioInspector");
+    const anioActual = new Date().getFullYear();
+    for (let i = 2024; i <= anioActual; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        select.appendChild(option);
+    }
+    select.value = anioActual;
+}
+
+function certificadosPorMesInspector(anio, inspector) {
+    const url = base_url + "admin/certificadosPorMesInspector";
+    const formData = new FormData();
+    formData.append("anio", anio);
+    formData.append("inspector", inspector);
+
+    const http = new XMLHttpRequest();
+    http.open("POST", url, true);
+    http.send(formData);
+
+    http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            const res = JSON.parse(this.responseText);
+            const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            let datos = new Array(12).fill(0);
+
+            res.forEach(item => {
+                const index = parseInt(item.mes) - 1;
+                datos[index] = parseInt(item.total);
+            });
+
+            const ctx = document.getElementById("certificadosInspectorChart").getContext("2d");
+            if (window.inspectorChartInstance) {
+                window.inspectorChartInstance.destroy();
+            }
+
+            window.inspectorChartInstance = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: "Certificados por Mes",
+                        data: datos,
+                        borderColor: "#ffc107",
+                        backgroundColor: "rgba(255, 193, 7, 0.2)",
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: "Actividad del Inspector"
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    };
+}
+document.addEventListener("DOMContentLoaded", function () {
+    cargarAniosInspector();
+    cargarInspectores();
+
+    document.getElementById("filtroInspector").addEventListener("change", aplicarFiltroInspector);
+    document.getElementById("filtroAnioInspector").addEventListener("change", aplicarFiltroInspector);
+});
+
+function aplicarFiltroInspector() {
+    const anio = document.getElementById("filtroAnioInspector").value;
+    const inspector = document.getElementById("filtroInspector").value;
+
+    if (inspector) {
+        certificadosPorMesInspector(anio, inspector);
+    }
+}
 
 
 

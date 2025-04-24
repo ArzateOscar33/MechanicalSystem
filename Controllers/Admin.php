@@ -152,4 +152,27 @@ public function getCiudades()
         session_destroy();
         header('Location: ' . BASE_URL);
     }
+
+    public function inspectoresDisponibles()
+    {
+        $data = $this->model->inspectoresDisponibles();
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+    
+    public function certificadosPorMesInspector()
+    {
+        if (empty($_SESSION['nombre_usuario'])) {
+            header('Location: '. BASE_URL . 'admin');
+            exit;
+        }
+    
+        $anio = isset($_POST['anio']) ? $_POST['anio'] : date('Y');
+        $inspector = isset($_POST['inspector']) ? $_POST['inspector'] : '';
+    
+        $data = $this->model->certificadosPorMesInspector($anio, $inspector);
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+    
 }

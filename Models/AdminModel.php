@@ -68,10 +68,10 @@ class AdminModel extends Query
             $totalCertificados += $row['cantidad_certificados'];
         }
 
-   // Solo aseguramos que venga la cantidad, sin porcentaje
-foreach ($result as &$row) {
-    $row['cantidad'] = (int) $row['cantidad_certificados'];
-}
+            // Solo aseguramos que venga la cantidad, sin porcentaje
+        foreach ($result as &$row) {
+     $row['cantidad'] = (int) $row['cantidad_certificados'];
+        }
 
         return $result;
     }
@@ -118,9 +118,9 @@ foreach ($result as &$row) {
         YEAR(test_date) AS anio, 
         MONTH(test_date) AS mes, 
         COUNT(*) AS total
-    FROM certificates
-    GROUP BY anio, mes
-    ORDER BY anio, mes";
+        FROM certificates
+        GROUP BY anio, mes
+        ORDER BY anio, mes";
         return $this->selectAll($sql);
     }
 
@@ -140,7 +140,7 @@ foreach ($result as &$row) {
     {
         // Consulta para obtener la cantidad de certificados por ciudad
         $sql = "SELECT COUNT(DISTINCT inspector_name) AS total
-FROM certificates;
+            FROM certificates;
               ";
 
         // Ejecutar la consulta y obtener los resultados
@@ -149,24 +149,38 @@ FROM certificates;
     }
 
     public function certificadosPorDia($anio, $mes, $estado = '', $ciudad = '')
-{
-    $sql = "SELECT DATE(c.test_date) as dia, COUNT(*) as total
-            FROM certificates c
-            INNER JOIN addresses a ON c.address_id = a.id
-            WHERE YEAR(c.test_date) = $anio AND MONTH(c.test_date) = $mes";
+        {
+            $sql = "SELECT DATE(c.test_date) as dia, COUNT(*) as total
+                    FROM certificates c
+                    INNER JOIN addresses a ON c.address_id = a.id
+                    WHERE YEAR(c.test_date) = $anio AND MONTH(c.test_date) = $mes";
 
-    if (!empty($estado)) {
-        $sql .= " AND a.state = '$estado'";
+            if (!empty($estado)) {
+                $sql .= " AND a.state = '$estado'";
+            }
+
+            if (!empty($ciudad)) {
+                $sql .= " AND a.city = '$ciudad'";
+            }
+
+            $sql .= " GROUP BY dia ORDER BY dia ASC";
+
+            return $this->selectAll($sql);
+        }
+    public function inspectoresDisponibles()
+    {
+        $sql = "SELECT DISTINCT inspector_name FROM certificates WHERE inspector_name IS NOT NULL ORDER BY inspector_name";
+        return $this->selectAll($sql);
     }
 
-    if (!empty($ciudad)) {
-        $sql .= " AND a.city = '$ciudad'";
+    public function certificadosPorMesInspector($anio, $inspector)
+    {
+        $sql = "SELECT MONTH(test_date) AS mes, COUNT(*) AS total
+                FROM certificates
+                WHERE YEAR(test_date) = $anio AND inspector_name = '$inspector'
+                GROUP BY mes ORDER BY mes";
+        return $this->selectAll($sql);
     }
-
-    $sql .= " GROUP BY dia ORDER BY dia ASC";
-
-    return $this->selectAll($sql);
-}
 
     
     
