@@ -114,8 +114,39 @@ public function certificadosPorInspector()
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     die();
 
+
 }
 
+public function certificadosPorDia()
+{
+    if (empty($_SESSION['nombre_usuario'])) {
+        header('Location: '. BASE_URL . 'admin');
+        exit;
+    }
+
+    $anio = isset($_POST['anio']) ? $_POST['anio'] : date('Y');
+    $mes = isset($_POST['mes']) ? $_POST['mes'] : date('m');
+    $estado = isset($_POST['estado']) ? $_POST['estado'] : '';
+    $ciudad = isset($_POST['ciudad']) ? $_POST['ciudad'] : '';
+
+    $data = $this->model->certificadosPorDia($anio, $mes, $estado, $ciudad);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    die();
+}
+
+public function getEstados()
+{
+    $data = $this->model->estadosCertificados();
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    die();
+}
+
+public function getCiudades()
+{
+    $data = $this->model->ciudadesCertificados();
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    die();
+}
     public function salir()
     {
         session_destroy();

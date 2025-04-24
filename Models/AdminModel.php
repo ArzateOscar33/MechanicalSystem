@@ -147,6 +147,27 @@ FROM certificates;
         return $this->select($sql);
 
     }
+
+    public function certificadosPorDia($anio, $mes, $estado = '', $ciudad = '')
+{
+    $sql = "SELECT DATE(c.test_date) as dia, COUNT(*) as total
+            FROM certificates c
+            INNER JOIN addresses a ON c.address_id = a.id
+            WHERE YEAR(c.test_date) = $anio AND MONTH(c.test_date) = $mes";
+
+    if (!empty($estado)) {
+        $sql .= " AND a.state = '$estado'";
+    }
+
+    if (!empty($ciudad)) {
+        $sql .= " AND a.city = '$ciudad'";
+    }
+
+    $sql .= " GROUP BY dia ORDER BY dia ASC";
+
+    return $this->selectAll($sql);
+}
+
     
     
 }

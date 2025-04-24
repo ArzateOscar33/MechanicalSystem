@@ -135,6 +135,45 @@
             </div>
         </div>
     </div>
+ <!-- Gráfico por día con filtros -->
+
+
+</div>
+<div class="col-12 col-lg-4">
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="mb-0">Certificados por Día (filtrados)</h6>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="mt-3">
+                <label for="filtroMes" class="form-label">Mes</label>
+                <input type="month" id="filtroMes" class="form-control mb-2">
+
+                <label for="filtroEstado" class="form-label">Estado</label>
+                <select id="filtroEstado" class="form-select mb-2" onchange="bloquearCiudad()">
+                    <option value="">Selecciona Estado</option>
+                </select>
+
+                <label for="filtroCiudad" class="form-label">Ciudad</label>
+                <select id="filtroCiudad" class="form-select mb-2" onchange="bloquearEstado()">
+                    <option value="">Selecciona Ciudad</option>
+                </select>
+
+                 
+            </div>
+
+            <!-- Gráfico -->
+            <div class="chart-container-2 mt-4">
+                <canvas id="certificadosDiaChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
     </div>
 </div>
 </div>

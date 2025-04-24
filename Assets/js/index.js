@@ -2,7 +2,9 @@ fechaChart();
 ciudadesCertificados();
 estadosCertificado();
 certificadosPorInspector();
-
+document.getElementById("filtroMes").addEventListener("change", aplicarFiltro);
+document.getElementById("filtroEstado").addEventListener("change", aplicarFiltro);
+document.getElementById("filtroCiudad").addEventListener("change", aplicarFiltro);
 
 function ciudadesCertificados() {
     const url = base_url + "admin/ciudadesCertificados";
@@ -323,6 +325,146 @@ function certificadosPorInspector() {
             });
         }
     };
+}
+
+function certificadosPorDia(anio, mes, estado = '', ciudad = '') {
+    const url = base_url + "admin/certificadosPorDia";
+    const http = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append("anio", anio);
+    formData.append("mes", mes);
+    formData.append("estado", estado);
+    formData.append("ciudad", ciudad);
+
+    http.open("POST", url, true);
+    http.send(formData);
+
+    http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            const res = JSON.parse(this.responseText);
+            const dias = res.map(item => item.dia);
+            const totales = res.map(item => parseInt(item.total));
+
+            const ctx = document.getElementById("certificadosDiaChart").getContext("2d");
+
+            if (window.diaChartInstance) {
+                window.diaChartInstance.destroy();
+            }
+
+            window.diaChartInstance = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: dias,
+                    datasets: [{
+                        label: "Certificados por Día",
+                        data: totales,
+                        borderColor: "#17a2b8",
+                        backgroundColor: "rgba(23, 162, 184, 0.2)",
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 90,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: "index",
+                            intersect: false
+                        },
+                        title: {
+                            display: true,
+                            text: "Distribución Diaria de Certificados"
+                        }
+                    }
+                }
+            });
+        }
+    };
+}
+document.addEventListener("DOMContentLoaded", function () {
+    cargarEstados();
+    cargarCiudades();
+    configurarFiltroMes();
+    aplicarFiltro(); // carga inicial con mes actual
+});
+
+function cargarEstados() {
+    const url = base_url + "admin/getEstados";
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("filtroEstado");
+            data.forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.state;
+                option.textContent = item.state;
+                select.appendChild(option);
+            });
+        });
+}
+
+function cargarCiudades() {
+    const url = base_url + "admin/getCiudades";
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("filtroCiudad");
+            data.forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.city;
+                option.textContent = item.city;
+                select.appendChild(option);
+            });
+        });
+}
+function bloquearCiudad() {
+    const estado = document.getElementById("filtroEstado").value;
+    const ciudad = document.getElementById("filtroCiudad");
+
+    ciudad.disabled = estado !== "";
+    if (estado !== "") ciudad.value = "";
+}
+
+function bloquearEstado() {
+    const ciudad = document.getElementById("filtroCiudad").value;
+    const estado = document.getElementById("filtroEstado");
+
+    estado.disabled = ciudad !== "";
+    if (ciudad !== "") estado.value = "";
+}
+
+function aplicarFiltro() {
+    const fecha = document.getElementById("filtroMes").value;
+    const estado = document.getElementById("filtroEstado").value;
+    const ciudad = document.getElementById("filtroCiudad").value;
+
+    if (fecha) {
+        const [anio, mes] = fecha.split("-");
+        certificadosPorDia(anio, mes, estado, ciudad);
+    }
+}
+function configurarFiltroMes() {
+    const filtroMes = document.getElementById("filtroMes");
+    const fechaHoy = new Date();
+    const anio = fechaHoy.getFullYear();
+    const mes = String(fechaHoy.getMonth() + 1).padStart(2, '0');
+    const hoy = `${anio}-${mes}`;
+
+    filtroMes.min = "2024-12";
+    filtroMes.max = hoy;
+    filtroMes.value = hoy; // setea como valor inicial el mes actual
 }
 
 
