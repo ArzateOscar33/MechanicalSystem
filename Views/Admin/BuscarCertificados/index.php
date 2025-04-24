@@ -13,13 +13,17 @@
         <input type="text" id="filterVin" class="form-control" placeholder="Buscar por VIN">
     </div>
     <div class="col-md-3">
-        <label for="filterOwner">Propietario:</label>
-        <input type="text" id="filterOwner" class="form-control" placeholder="Buscar por dueño">
-    </div>
-    <div class="col-md-3">
-        <label for="filterInspector">Inspector:</label>
-        <input type="text" id="filterInspector" class="form-control" placeholder="Buscar por inspector">
-    </div>
+    <label for="filterOwner">Propietario:</label>
+    <select id="filterOwner" class="form-control">
+        <option value="">Todos</option>
+    </select>
+</div>
+<div class="col-md-3">
+    <label for="filterInspector">Inspector:</label>
+    <select id="filterInspector" class="form-control">
+        <option value="">Todos</option>
+    </select>
+</div>
 </div>
 <div class="row mb-3">
     <div class="col-md-3">
@@ -39,11 +43,16 @@
         </select>
     </div> 
     <div class="col-md-3">
-        <label for="filterMfgIn">Manufacturado en:</label>
-        <input type="text" id="filterMfgIn" class="form-control" placeholder="Buscar por origen">
-    </div>
+    <label for="filterMfgIn">Manufacturado en:</label>
+    <select id="filterMfgIn" class="form-control">
+        <option value="">Todos</option>
+    </select>
 </div>
- 
+</div>
+
+
+
+
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-hover" style="width: 100%;" id="tblCertificados">
                 <thead>

@@ -1,4 +1,3 @@
-const btnAccion = document.querySelector("#btnAccion");
 let tblCertificados;
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -26,48 +25,52 @@ document.addEventListener("DOMContentLoaded", function () {
     buttons,
   });
 
-        // Filtros por columnas (excepto zip_file_path y accion)
-        $("#filterCertNumber").on("keyup change", function () {
-            tblCertificados.column(0).search(this.value).draw();
-        });
+  // Filtros por columnas
+  $("#filterCertNumber").on("keyup change", function () {
+    tblCertificados.column(0).search(this.value).draw();
+  });
 
-        $("#filterVin").on("keyup change", function () {
-            tblCertificados.column(1).search(this.value).draw();
-        });
+  $("#filterVin").on("keyup change", function () {
+    tblCertificados.column(1).search(this.value).draw();
+  });
 
-        $("#filterOwner").on("keyup change", function () {
-            tblCertificados.column(2).search(this.value).draw();
-        });
+  $("#filterOwner").on("change", function () {
+    tblCertificados.column(2).search(this.value).draw();
+  });
 
-        $("#filterInspector").on("keyup change", function () {
-            tblCertificados.column(3).search(this.value).draw();
-        });
+  $("#filterInspector").on("change", function () {
+    tblCertificados.column(3).search(this.value).draw();
+  });
 
-        $("#filterMake").on("keyup change", function () {
-            tblCertificados.column(4).search(this.value).draw();
-        });
+  $("#filterMake").on("keyup change", function () {
+    tblCertificados.column(4).search(this.value).draw();
+  });
 
-        $("#filterCiudad").on("change", function () {
-            tblCertificados.column(6).search(this.value).draw();
-        });
+  $("#filterCiudad").on("change", function () {
+    tblCertificados.column(6).search(this.value).draw();
+  });
 
-        $("#filterEstado").on("change", function () {
-            tblCertificados.column(7).search(this.value).draw();
-        });
+  $("#filterEstado").on("change", function () {
+    tblCertificados.column(7).search(this.value).draw();
+  });
 
-        $("#filterZip").on("keyup change", function () {
-            tblCertificados.column(8).search(this.value).draw();
-        });
+  $("#filterZip").on("keyup change", function () {
+    tblCertificados.column(8).search(this.value).draw();
+  });
 
-        $("#filterMfgIn").on("keyup change", function () {
-            tblCertificados.column(9).search(this.value).draw();
-        });
-  // Llenar dinámicamente filtros de ciudad y estado
+  $("#filterMfgIn").on("change", function () {
+    tblCertificados.column(9).search(this.value).draw();
+  });
+
+  // Llenar dinámicamente filtros de ciudad, estado, propietario, inspector y origen
   fetch(base_url + "buscarCertificados/obtenerFiltros")
     .then((res) => res.json())
     .then((data) => {
       const ciudadSelect = document.querySelector("#filterCiudad");
       const estadoSelect = document.querySelector("#filterEstado");
+      const propietarioSelect = document.querySelector("#filterOwner");
+      const inspectorSelect = document.querySelector("#filterInspector");
+      const mfgInSelect = document.querySelector("#filterMfgIn");
 
       data.ciudades.forEach((ciudad) => {
         const option = document.createElement("option");
@@ -82,54 +85,39 @@ document.addEventListener("DOMContentLoaded", function () {
         option.textContent = estado.state;
         estadoSelect.appendChild(option);
       });
-      // Lógica de desactivación mutua entre ciudad y estado
-ciudadSelect.addEventListener("change", function () {
-  if (this.value !== "") {
-    estadoSelect.disabled = true;
-  } else {
-    estadoSelect.disabled = false;
-  }
-});
 
-estadoSelect.addEventListener("change", function () {
-  if (this.value !== "") {
-    ciudadSelect.disabled = true;
-  } else {
-    ciudadSelect.disabled = false;
-  }
-});
+      data.propietarios.forEach((prop) => {
+        const option = document.createElement("option");
+        option.value = prop.owner_name;
+        option.textContent = prop.owner_name;
+        propietarioSelect.appendChild(option);
+      });
+
+      data.inspectores.forEach((insp) => {
+        const option = document.createElement("option");
+        option.value = insp.inspector_name;
+        option.textContent = insp.inspector_name;
+        inspectorSelect.appendChild(option);
+      });
+
+      data.origenes.forEach((ori) => {
+        const option = document.createElement("option");
+        option.value = ori.mfg_in;
+        option.textContent = ori.mfg_in;
+        mfgInSelect.appendChild(option);
+      });
+
+      // Lógica de desactivación mutua entre ciudad y estado
+      ciudadSelect.addEventListener("change", function () {
+        estadoSelect.disabled = this.value !== "";
+      });
+
+      estadoSelect.addEventListener("change", function () {
+        ciudadSelect.disabled = this.value !== "";
+      });
     });
 });
 
-// Función para eliminar certificado
-/*
-function eliminarCertificado(cert_number) {
-  Swal.fire({
-    title: "Aviso?",
-    text: "Esta seguro de eliminar el registro!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Si, Eliminar!",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const url = base_url + "buscarCertificados/delete/" + cert_number;
-      const http = new XMLHttpRequest();
-      http.open("GET", url, true);
-      http.send();
-      http.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-          const res = JSON.parse(this.responseText);
-          if (res.icono == "success") {
-            tblCertificados.ajax.reload();
-          }
-          Swal.fire("Aviso?", res.msg.toUpperCase(), res.icono);
-        }
-      };
-    }
-  });
-}*/
 // Función para descargar certificado
 function descargarCertificado(cert_number) {
   Swal.fire({
@@ -143,7 +131,6 @@ function descargarCertificado(cert_number) {
   }).then((result) => {
     if (result.isConfirmed) {
       const verificarUrl = base_url + "buscarCertificados/verificarArchivo/" + cert_number;
-      console.log("Verificando existencia del archivo en:", verificarUrl);
 
       const verificarHttp = new XMLHttpRequest();
       verificarHttp.open("GET", verificarUrl, true);
@@ -152,11 +139,9 @@ function descargarCertificado(cert_number) {
         if (this.readyState == 4 && this.status == 200) {
           try {
             const data = JSON.parse(this.responseText);
-            console.log("Respuesta de verificación:", data);
 
             if (data.existe) {
               const descargarUrl = base_url + "buscarCertificados/descargar/" + cert_number;
-              console.log("Iniciando descarga desde:", descargarUrl);
 
               const descargarHttp = new XMLHttpRequest();
               descargarHttp.open("GET", descargarUrl, true);
@@ -165,10 +150,8 @@ function descargarCertificado(cert_number) {
                 if (this.readyState == 4 && this.status == 200) {
                   try {
                     const res = JSON.parse(this.responseText);
-                    console.log("Respuesta de descarga:", res);
 
                     if (res.icono === "success" && res.url) {
-                      console.log("URL generada por el backend:", res.url);
                       const a = document.createElement("a");
                       a.href = res.url;
                       a.download = "";
@@ -194,6 +177,3 @@ function descargarCertificado(cert_number) {
     }
   });
 }
-
-
-

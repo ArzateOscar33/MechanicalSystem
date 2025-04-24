@@ -62,16 +62,23 @@ class BuscarCertificados extends Controller
     
     
     public function obtenerFiltros()
-{
-    $ciudades = $this->model->obtenerCiudadesUnicas();
-    $estados = $this->model->obtenerEstadosUnicos();
-
-    echo json_encode([
-        'ciudades' => $ciudades,
-        'estados' => $estados
-    ]);
-    die();
-}
+    {
+        $ciudades = $this->model->obtenerCiudadesUnicas();
+        $estados = $this->model->obtenerEstadosUnicos();
+        $propietarios = $this->model->obtenerPropietariosUnicos();
+        $inspectores = $this->model->obtenerInspectoresUnicos();
+        $origenes = $this->model->obtenerOrigenesUnicos();
+    
+        echo json_encode([
+            'ciudades' => $ciudades,
+            'estados' => $estados,
+            'propietarios' => $propietarios,
+            'inspectores' => $inspectores,
+            'origenes' => $origenes
+        ]);
+        die();
+    }
+    
 public function verificarArchivo($cert_number)
 {
     $data = $this->model->descargarCertificado($cert_number);
@@ -88,5 +95,6 @@ public function verificarArchivo($cert_number)
     }
     die();
 }
+
 
 }

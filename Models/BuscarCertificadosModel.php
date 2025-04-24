@@ -41,6 +41,22 @@ public function descargarCertificado($cert_number)
     $sql = "SELECT zip_file_path from certificates where cert_number='$cert_number'";
     return $this->select($sql);
 }
+public function obtenerPropietariosUnicos()
+{
+    $sql = "SELECT DISTINCT owner_name FROM certificates WHERE owner_name IS NOT NULL AND owner_name != '' ORDER BY owner_name ASC";
+    return $this->selectAll($sql);
+}
 
+public function obtenerInspectoresUnicos()
+{
+    $sql = "SELECT DISTINCT inspector_name FROM certificates WHERE inspector_name IS NOT NULL AND inspector_name != '' ORDER BY inspector_name ASC";
+    return $this->selectAll($sql);
+}
+
+public function obtenerOrigenesUnicos()
+{
+    $sql = "SELECT DISTINCT mfg_in FROM certificates WHERE mfg_in IS NOT NULL AND mfg_in != '' ORDER BY mfg_in ASC";
+    return $this->selectAll($sql);
+}
 }
 ?>
