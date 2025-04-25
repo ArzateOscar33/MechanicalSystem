@@ -19,7 +19,7 @@
                 <div class="card-header">
                     <h5>Dirección del Certificado</h5>
                 </div>
-               <!-- Dirección del Certificado --> 
+                <!-- Dirección del Certificado -->
                 <div class="card-body">
                     <div class="mb-3">
                         <label for="direccion_existente" class="form-label">Seleccionar Dirección Existente</label>
@@ -54,9 +54,9 @@
                             <input type="text" class="form-control" name="zip" id="zip">
                         </div>
                         <div class="mb-3">
-    <label for="telefono" class="form-label">Teléfono</label>
-    <input type="text" class="form-control" id="telefono" name="telefono" required>
-</div>
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="telefono" name="telefono" required>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -130,10 +130,10 @@
                         <label for="ubicacion_geografica" class="form-label">Ubicación Geográfica (Latitud/Longitud)</label>
                         <div class="row">
                             <div class="col">
-                            <input type="number" class="form-control" id="latitud" name="latitud" placeholder="Latitud" step="any" min="-90" max="90" required>
+                                <input type="number" class="form-control" id="latitud" name="latitud" placeholder="Latitud" step="any" min="-90" max="90" required>
                             </div>
                             <div class="col">
-                            <input type="number" class="form-control" id="longitud" name="longitud" placeholder="Longitud" step="any" min="-180" max="180" required>
+                                <input type="number" class="form-control" id="longitud" name="longitud" placeholder="Longitud" step="any" min="-180" max="180" required>
                             </div>
                         </div>
                     </div>
@@ -180,7 +180,20 @@
                     </div>
                     <div class="mb-3">
                         <label for="inspector" class="form-label">Nombre del Inspector</label>
-                        <input type="text" class="form-control" id="inspector" name="inspector" required>
+                        <select class="form-select" id="inspector" name="inspector" required>
+                            <option value="">-- Seleccionar Inspector --</option>
+                            <?php foreach ($data['inspectores'] as $inspector): ?>
+                                <option value="<?= $inspector['name']; ?>"><?= $inspector['name']; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <!-- Opción para agregar un nuevo inspector -->
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="nuevo_inspector_check">
+                            <label class="form-check-label" for="nuevo_inspector_check">
+                                Nuevo Inspector
+                            </label>
+                        </div>
+                        <input type="text" class="form-control mt-2" id="nuevo_inspector" style="display:none;" placeholder="Nombre del nuevo inspector">
                     </div>
                     <div class="mb-3">
                         <label for="firma_inspector" class="form-label">Firma del Inspector</label>
@@ -214,8 +227,8 @@
                 <div class="card-header">
                     <h5>Códigos QR</h5>
                 </div>
-                <div class="card-body" >
-                <button type="button" class="btn btn-success" id="generarQR" disabled>Generar Código QR</button>
+                <div class="card-body">
+                    <button type="button" class="btn btn-success" id="generarQR" disabled>Generar Código QR</button>
 
                     <div id="codigoQR" class="mt-3"></div>
                 </div>
@@ -225,11 +238,11 @@
         </form>
     </div>
 
-   
+
 </body>
 
 </html>
 
- 
+
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/crearcertificados.js"></script>
 <?php include_once 'Views/template/footer-admin.php'; ?>

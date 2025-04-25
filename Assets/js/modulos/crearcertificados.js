@@ -1,3 +1,26 @@
+// Agregar al inicio del document.ready
+const inspectorSelect = document.getElementById("inspector");
+const nuevoInspectorCheck = document.getElementById("nuevo_inspector_check");
+const nuevoInspectorInput = document.getElementById("nuevo_inspector");
+
+// Manejar la opción de nuevo inspector
+if (nuevoInspectorCheck) {
+  nuevoInspectorCheck.addEventListener("change", function() {
+      if (this.checked) {
+          inspectorSelect.disabled = true;
+          nuevoInspectorInput.style.display = "block";
+          nuevoInspectorInput.required = true;
+          inspectorSelect.required = false;
+      } else {
+          inspectorSelect.disabled = false;
+          nuevoInspectorInput.style.display = "none";
+          nuevoInspectorInput.required = false;
+          inspectorSelect.required = true;
+      }
+      verificarCamposCompletos();
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const frm = document.querySelector("#formularioCertificado");
     const generarQRBtn = document.querySelector("#generarQR");
@@ -99,7 +122,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Envío del formulario
     frm.addEventListener("submit", function (e) {
       e.preventDefault();
-  
+      // Establecer el valor del inspector antes de enviar
+      if (nuevoInspectorCheck && nuevoInspectorCheck.checked) {
+        inspectorSelect.value = nuevoInspectorInput.value;
+    }
       const data = new FormData(frm);
       const url = base_url + "CrearCertificados/crear";
   

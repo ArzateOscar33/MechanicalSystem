@@ -128,22 +128,19 @@ class AdminModel extends Query
     public function certificadosPorInspector()
     {
         // Consulta para obtener la cantidad de certificados por ciudad
-        $sql = "SELECT inspector_name, COUNT(*) AS total 
-        FROM certificates 
-        GROUP BY inspector_name";
+        $sql = "SELECT i.name AS inspector_name, COUNT(*) AS total 
+        FROM certificates c
+        JOIN inspectors i ON c.inspector_id = i.id
+        GROUP BY i.name";
 
-        // Ejecutar la consulta y obtener los resultados
         return $this->selectAll($sql);
 
     }
     public function inspectoresTotales()
     {
         // Consulta para obtener la cantidad de certificados por ciudad
-        $sql = "SELECT COUNT(DISTINCT inspector_name) AS total
-            FROM certificates;
-              ";
-
-        // Ejecutar la consulta y obtener los resultados
+        $sql = "SELECT COUNT(*) AS total FROM inspectors;";
+    
         return $this->select($sql);
 
     }
@@ -169,16 +166,19 @@ class AdminModel extends Query
         }
     public function inspectoresDisponibles()
     {
-        $sql = "SELECT DISTINCT inspector_name FROM certificates WHERE inspector_name IS NOT NULL ORDER BY inspector_name";
+        $sql = "SELECT id, name AS inspector_name FROM inspectors ORDER BY name";
+    
         return $this->selectAll($sql);
     }
 
     public function certificadosPorMesInspector($anio, $inspector)
     {
-        $sql = "SELECT MONTH(test_date) AS mes, COUNT(*) AS total
-                FROM certificates
-                WHERE YEAR(test_date) = $anio AND inspector_name = '$inspector'
-                GROUP BY mes ORDER BY mes";
+        $sql = "SELECT MONTH(c.test_date) AS mes, COUNT(*) AS total
+        FROM certificates c
+        JOIN inspectors i ON c.inspector_id = i.id
+        WHERE YEAR(c.test_date) = $anio AND i.name = '$inspector'
+        GROUP BY mes ORDER BY mes";
+
         return $this->selectAll($sql);
     }
 
@@ -187,10 +187,12 @@ class AdminModel extends Query
     $sql = "SELECT a.state, a.city, COUNT(*) AS total
             FROM certificates c
             INNER JOIN addresses a ON c.address_id = a.id
-            WHERE c.inspector_name = '$inspector'
+            INNER JOIN inspectors i ON c.inspector_id = i.id
+            WHERE i.name = '$inspector'
             GROUP BY a.state, a.city
             ORDER BY total DESC
             LIMIT 1";
+    
     return $this->select($sql);
 }
 

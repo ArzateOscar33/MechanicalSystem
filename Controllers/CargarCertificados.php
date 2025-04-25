@@ -64,13 +64,13 @@ class CargarCertificados extends Controller
     }
 
     private function procesarCertificados($datos)
-     {
+    {
         $importados = 0;
         $fallidos = 0;
         $error_msg = '';
         $id_usuario = isset($_SESSION['id_usuario']) ? $_SESSION['id_usuario'] : 0;
         $usuario_nombre = isset($_SESSION['nombre_usuario']) ? $_SESSION['nombre_usuario'] : 'Sistema';
-    
+
         // Crear registro de importación (intenta con la versión que incluye usuario)
         try {
             $import_id = $this->model->registrarImportacion(
@@ -87,14 +87,14 @@ class CargarCertificados extends Controller
                 $id_usuario
             );
         }
-    
+
         if (!$import_id) {
             return 0; // Si no se pudo crear el registro de importación, salimos
         }
-    
+
         // 💡 Divide el array de certificados en bloques de 500
         $bloques = array_chunk($datos, 500);
-    
+
         // Procesar por bloques
         foreach ($bloques as $bloque) {
             foreach ($bloque as $certificado) {
@@ -102,10 +102,10 @@ class CargarCertificados extends Controller
                     if (!isset($certificado['cert_number'])) {
                         throw new Exception('El certificado no tiene número');
                     }
-    
+
                     // Si no viene dirección o está vacía, usamos la dirección por defecto
                     $direccionGenericaId = 2866;
-    
+
                     if (isset($certificado['address']) && is_array($certificado['address'])) {
                         $address_id = $this->procesarDireccion($certificado['address']);
                         if (!$address_id) {
@@ -114,10 +114,10 @@ class CargarCertificados extends Controller
                     } else {
                         $address_id = $direccionGenericaId;
                     }
-    
+
                     // Verificar si ya existe el certificado
                     $cert_exists = $this->model->consultarCertificado($certificado['cert_number']);
-    
+
                     if (!empty($cert_exists)) {
                         // Actualizar certificado existente
                         $result = $this->actualizarCertificado($certificado, $address_id);
@@ -125,12 +125,12 @@ class CargarCertificados extends Controller
                         // Insertar nuevo certificado
                         $result = $this->insertarCertificado($certificado, $address_id);
                     }
-    
+
                     // Procesar monitoreo si existe
                     if (isset($certificado['monitoring']) && !empty($certificado['monitoring'])) {
                         $this->procesarMonitoreo($certificado['cert_number'], $certificado['monitoring']);
                     }
-    
+
                     if ($result) {
                         $importados++;
                     } else {
@@ -142,19 +142,19 @@ class CargarCertificados extends Controller
                     $error_msg .= $e->getMessage() . ' | ';
                 }
             }
-    
+
             // ✅ Opcional: da un respiro al servidor y libera el buffer de salida
             flush();
         }
-    
+
         // Actualizar registro de importación
         $estado_final = ($fallidos > 0) ? 'partial' : 'success';
         $mensaje_final = "Importado por: " . $usuario_nombre . " | Errores: " . $error_msg;
         $this->model->actualizarImportacion($import_id, $importados, $fallidos, $estado_final, $mensaje_final);
-    
+
         return $importados;
-     }
-    
+    }
+
 
     private function procesarDireccion($address)
     {
@@ -191,10 +191,20 @@ class CargarCertificados extends Controller
         $model = isset($certificado['model']) ? $certificado['model'] : NULL;
         $license_plate = isset($certificado['license_plate']) ? $certificado['license_plate'] : NULL;
         $odometer = isset($certificado['odometer']) ? $certificado['odometer'] : NULL;
-        $inspector_name = isset($certificado['inspector_name']) ? $certificado['inspector_name'] : NULL;
         $test_date = isset($certificado['test_date']) ? $certificado['test_date'] : NULL;
         $expires = isset($certificado['expires']) ? $certificado['expires'] : NULL;
         $source_file = isset($certificado['source_file']) ? $certificado['source_file'] : NULL;
+
+        // Procesar el inspector
+        $inspector_id = NULL;
+        if (isset($certificado['inspector_name']) && $certificado['inspector_name']) {
+            $inspector = $this->model->consultarInspector($certificado['inspector_name']);
+            if (!empty($inspector)) {
+                $inspector_id = $inspector['id'];
+            } else {
+                $inspector_id = $this->model->insertarInspector($certificado['inspector_name']);
+            }
+        }
 
         return $this->model->insertarCertificado(
             $cert_number,
@@ -208,13 +218,12 @@ class CargarCertificados extends Controller
             $model,
             $license_plate,
             $odometer,
-            $inspector_name,
+            $inspector_id,
             $test_date,
             $expires,
             $source_file
         );
     }
-
     private function actualizarCertificado($certificado, $address_id)
     {
         $cert_number = $certificado['cert_number'];
@@ -227,10 +236,20 @@ class CargarCertificados extends Controller
         $model = isset($certificado['model']) ? $certificado['model'] : NULL;
         $license_plate = isset($certificado['license_plate']) ? $certificado['license_plate'] : NULL;
         $odometer = isset($certificado['odometer']) ? $certificado['odometer'] : NULL;
-        $inspector_name = isset($certificado['inspector_name']) ? $certificado['inspector_name'] : NULL;
         $test_date = isset($certificado['test_date']) ? $certificado['test_date'] : NULL;
         $expires = isset($certificado['expires']) ? $certificado['expires'] : NULL;
         $source_file = isset($certificado['source_file']) ? $certificado['source_file'] : NULL;
+
+        // Procesar el inspector
+        $inspector_id = NULL;
+        if (isset($certificado['inspector_name']) && $certificado['inspector_name']) {
+            $inspector = $this->model->consultarInspector($certificado['inspector_name']);
+            if (!empty($inspector)) {
+                $inspector_id = $inspector['id'];
+            } else {
+                $inspector_id = $this->model->insertarInspector($certificado['inspector_name']);
+            }
+        }
 
         $result = $this->model->actualizarCertificado(
             $cert_number,
@@ -244,7 +263,7 @@ class CargarCertificados extends Controller
             $model,
             $license_plate,
             $odometer,
-            $inspector_name,
+            $inspector_id,
             $test_date,
             $expires,
             $source_file
@@ -252,7 +271,6 @@ class CargarCertificados extends Controller
 
         return ($result > 0);
     }
-
     private function procesarMonitoreo($cert_number, $monitoring)
     {
         // Eliminar los registros anteriores de monitoreo para este certificado
@@ -281,28 +299,28 @@ class CargarCertificados extends Controller
         $this->views->getView('admin/CargarCertificados', "logs", $data);
     }
     public function subirZIP()
-    { 
+    {
         if (!isset($_FILES['fileUpload'])) {
             $this->responderJSON('No se recibió ningún archivo', 'error');
             return;
         }
-    
+
         $archivo = $_FILES['fileUpload'];
         $nombreArchivo = basename($archivo['name']);
         $directorio = 'uploads/certificates/';
         $rutaDestino = $directorio . $nombreArchivo;
-    
+
         // Verifica si ya existe
         if (file_exists($rutaDestino)) {
             $this->responderJSON('El archivo ya está dentro del servidor', 'warning');
             return;
         }
-    
+
         // Crear carpeta si no existe
         if (!is_dir($directorio)) {
             mkdir($directorio, 0755, true);
         }
-    
+
         // Mover el archivo
         if (move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
             $this->responderJSON('Archivo subido correctamente', 'success');
@@ -310,6 +328,4 @@ class CargarCertificados extends Controller
             $this->responderJSON('Error al subir el archivo', 'error');
         }
     }
-    
-
 }

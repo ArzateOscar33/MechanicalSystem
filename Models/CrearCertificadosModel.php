@@ -27,7 +27,6 @@ class CrearCertificadosModel extends Query
         return $this->insertar($sql, [$number, $street, $city, $state, $zip]);
     }
 
-    // Insertar certificado en tabla real
     public function insertarCertificado(
         $cert_number,
         $vin,
@@ -40,19 +39,19 @@ class CrearCertificadosModel extends Query
         $model,
         $license_plate,
         $odometer,
-        $inspector_name,
+        $inspector_id,
         $test_date,
         $expires,
         $source_file
     ) {
         $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
-
+    
         $sql = "INSERT INTO certificates (
             cert_number, vin, address_id, phone, year, mfg_in, make,
-            owner_name, model, license_plate, odometer, inspector_name,
+            owner_name, model, license_plate, odometer, inspector_id,
             test_date, expires, source_file, zip_file_path
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
+    
         $params = [
             $cert_number,
             $vin,
@@ -65,13 +64,13 @@ class CrearCertificadosModel extends Query
             $model,
             $license_plate,
             $odometer,
-            $inspector_name,
+            $inspector_id,
             $test_date,
             $expires,
             $source_file,
             $zip_path
         ];
-
+    
         return $this->insertar($sql, $params);
     }
 
@@ -133,5 +132,36 @@ class CrearCertificadosModel extends Query
         $sql = "SELECT `number`, `street`, `city`, `state`, `zip` FROM addresses WHERE id = {$id}";
         return $this->select($sql); 
     }
+    // Obtener todos los inspectores para mostrar en formulario
+public function obtenerInspectores()
+{
+    $sql = "SELECT id, name FROM inspectors ORDER BY name ASC";
+    return $this->selectAll($sql);
+}
+
+// Obtener un inspector por ID
+public function obtenerInspectorPorId($id)
+{
+    $sql = "SELECT * FROM inspectors WHERE id = {$id}";
+    return $this->select($sql);
+}
+
+// Obtener un inspector por nombre
+public function obtenerInspectorPorNombre($nombre)
+{
+    $sql = "SELECT id FROM inspectors WHERE name = '{$nombre}'";
+    return $this->select($sql);
+}
+
+// Insertar nuevo inspector si no existe
+public function insertarInspector($nombre)
+{
+    $inspector = $this->obtenerInspectorPorNombre($nombre);
+    if ($inspector) {
+        return $inspector['id'];
+    }
     
+    $sql = "INSERT INTO inspectors (name) VALUES (?)";
+    return $this->insertar($sql, [$nombre]);
+}
 }

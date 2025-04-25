@@ -33,6 +33,7 @@ class CrearCertificados extends Controller
         $data['title'] = 'Crear Certificado';
         $data['cert_number'] = $cert_number;
         $data['direcciones'] = $this->model->obtenerDirecciones();
+        $data['inspectores'] = $this->model->obtenerInspectores();  
         $this->views->getView('admin/CrearCertificados', "index", $data);
     }
     public function crear()
@@ -41,11 +42,11 @@ class CrearCertificados extends Controller
             ini_set('display_errors', 1);
             ini_set('display_startup_errors', 1);
             error_reporting(E_ALL);
-
+    
             $id_usuario = $_SESSION['id_usuario'] ?? 0;
             $consecutivo = $this->model->contarCertificadosPorUsuario($id_usuario) + 1;
             $cert_number = 'MEX' . $id_usuario . '-' . str_pad($consecutivo, 8, "0", STR_PAD_LEFT);
-
+    
             $vin = $_POST['vin'];
             $year = $_POST['year'];
             $make = $_POST['marca'];
@@ -59,7 +60,7 @@ class CrearCertificados extends Controller
             $expires = $_POST['fecha_expiracion'];
             $source_file = 'manual';
             $phone = $_POST['telefono'] ?? null;
-
+    
             $monitoreos = [
                 'Fallo Encendido' => $_POST['monitor_fallo_encendido'],
                 'Sistema Combustible' => $_POST['monitor_sistema_combustible'],
@@ -68,7 +69,7 @@ class CrearCertificados extends Controller
                 'Sensor C2' => $_POST['monitor_sensor_c2'],
                 'Resultado General' => $_POST['resultado_prueba']
             ];
-
+    
             // Dirección
             if (!empty($_POST['direccion_existente'])) {
                 $address_id = $_POST['direccion_existente'];
@@ -78,12 +79,20 @@ class CrearCertificados extends Controller
                 $city = $_POST['ciudad'];
                 $state = $_POST['estado'];
                 $zip = $_POST['zip'];
-
+    
                 $direccion = $this->model->consultarDireccion($number, $street, $city, $state, $zip);
                 $address_id = $direccion ? $direccion['id'] : $this->model->insertarDireccion($number, $street, $city, $state, $zip);
             }
-
-            // Insertar certificado
+    
+            // Verificar si existe el inspector o crear uno nuevo
+            $inspector_id = $this->model->insertarInspector($inspector_name);
+            
+            if (!$inspector_id) {
+                $this->responderJSON("Error al registrar el inspector", "error");
+                return;
+            }
+    
+            // Insertar certificado con inspector_id
             $insert = $this->model->insertarCertificado(
                 $cert_number,
                 $vin,
@@ -96,38 +105,42 @@ class CrearCertificados extends Controller
                 $model,
                 $license_plate,
                 $odometer,
-                $inspector_name,
+                $inspector_id, // Usar inspector_id en lugar de inspector_name
                 $test_date,
                 $expires,
                 $source_file
             );
-
+    
             if ($insert === false || $insert === null) {
                 $this->responderJSON("Error al crear el certificado", "error");
+                return;
             }
-
+    
             // Monitoreos
             foreach ($monitoreos as $tipo => $resultado) {
                 $this->model->insertarMonitoreo($cert_number, $tipo, $resultado);
             }
-
+    
             // Log importación
             try {
                 $this->model->registrarImportacion('cert_manual_' . date('YmdHis'), 'success', '', $id_usuario);
             } catch (Exception $e) {
                 $this->model->registrarImportacionAlternativa('cert_manual_' . date('YmdHis'), 'success', '');
             }
-
+    
             // PDF + ZIP
             $pdf_path = 'uploads/temp/' . $cert_number . '.pdf';
             $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
-            //Generar los certificados
-            $this->generarCertificadoPDF($cert_number, $pdf_path, $_POST, $address_id);
-            //Generar el archivo zip 
+            
+            // Generar los certificados - Pasamos la información del inspector
+            $this->generarCertificadoPDF($cert_number, $pdf_path, $_POST, $address_id, $inspector_id);
+            
+            // Generar el archivo zip 
             $this->generarArchivoZIP($cert_number, $pdf_path, $_FILES['imagenes']);
+            
             // Limpieza de temporales
             $this->limpiarTemporales($cert_number);
-
+    
             // Respuesta final
             echo json_encode([
                 'msg' => 'Certificado creado exitosamente',
@@ -144,7 +157,10 @@ class CrearCertificados extends Controller
 
     private function generarCertificadoPDF($cert_number, $pdf_path, $data, $address_id)
     {
-
+    // Obtener el nombre del inspector
+    $inspector_id = $this->model->insertarInspector($data['inspector']);
+    $inspector = $this->model->obtenerInspectorPorId($inspector_id);
+    $inspector_name = $inspector ? $inspector['name'] : $data['inspector'];
 
         // Rutas de logo y QR para web
         $logoPath = BASE_URL . 'assets/images/logo.png';
@@ -310,7 +326,7 @@ class CrearCertificados extends Controller
             <div class="section"><b>Información del Inspector</b>
                 <table>
                     <tr><th>Campo</th><th>Valor</th></tr>
-                    <tr><td>Inspector</td><td>' . $data['inspector'] . '</td></tr>
+                    <tr><td>Inspector</td><td>' . $inspector_name . '</td></tr>
                     <tr><td>Firma del Inspector</td><td>' . $data['firma_inspector'] . '</td></tr>
                     <tr><td>EBITN</td><td>' . $data['ebitn'] . '</td></tr>
                     <tr><td>Fecha</td><td>' . $data['fecha'] . '</td></tr>
