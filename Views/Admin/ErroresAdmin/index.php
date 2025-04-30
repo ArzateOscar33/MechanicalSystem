@@ -1,4 +1,5 @@
 <?php include_once 'Views/template/header-admin.php'; ?>
+
 <!-- Modal para editar certificados -->
 <div id="modalError" class="modal" tabindex="-1" role="dialog" aria-labelledby="my-modal-title" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -64,7 +65,7 @@
 </div>
  
 
-<div class="card">
+<div class="card">  
     <div class="card-body">
         <div class="row mb-3">
             <div class="col-md-3">
@@ -127,10 +128,7 @@
                         <th>Valor Propuesto</th>
                         <th>Razon del Error</th>
                         <th>Estatus del Error</th>
-                        <th>Revisado por</th>
-                        <th>Revisado el</th>
-                        <th>Fecha de la Solicitud</th>
-                        <th>Fecha de Modificacion</th>
+                        <th>Fecha de la Solicitud</th>  
                         <th></th>
                     </tr>
                 </thead>

@@ -1,25 +1,23 @@
 let tblErrores;
 const myModal = new bootstrap.Modal(document.getElementById("modalError"));
 document.addEventListener("DOMContentLoaded", function () {
-    myModal.show();
+    //myModal.show();
   // Inicializar DataTable
   tblCertificados = $("#tblErrores").DataTable({
     ajax: {
-      url: base_url + "buscarCertificados/listar",
+      url: base_url + "ErroresAdmin/listar",
       dataSrc: "",
     },
     columns: [
-      { data: "cert_number" },
-      { data: "vin" },
-      { data: "owner_name" },
-      { data: "inspector_name" },
-      { data: "make" },
-      //{ data: "zip_file_path" },
-      { data: "city" },
-      { data: "state" },
-      { data: "zip" },
-      { data: "mfg_in" },
-      { data: "accion" },
+      { data: "id" },
+      { data: "certificate_id" },
+      { data: "user_id" },
+      { data: "field_name" },
+      { data: "current_value" }, 
+      { data: "proposed_value" },
+      { data: "reason" }, 
+      { data: "created_at" },
+      { data: "accion" }
     ],
     language,
     dom,
@@ -119,4 +117,27 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+function editCertificate(certificate_id) {
+  console.log(certificate_id);
+  const url = base_url + "ErroresAdmin/editCertificate/" + certificate_id;
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
+  http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+          const res = JSON.parse(this.responseText);
+         /* document.querySelector('#id').value = res.id;
+          document.querySelector('#username').value = res.username;
+          document.querySelector('#nombre').value = res.first_name;
+          document.querySelector('#apellido').value = res.last_name;
+          document.querySelector('#correo').value = res.correo;
+          document.querySelector('#phone').value = res.phone;
+          document.querySelector('#rol').value = res.role_id;  
+          document.querySelector('#clave').setAttribute('readonly', 'readonly');*/
+          btnAccion.textContent = 'Actualizar';
+          titleModal.textContent = "MODIFICAR CERTIFICADO";
+          myModal.show();
+      }
+  }
+}
 

@@ -13,21 +13,21 @@ class ErroresAdmin extends Controller
     public function index()
     {
         $data['title'] = 'Manejo de Errores de Usuario';
+      
         $this->views->getView('admin/ErroresAdmin', "index", $data); 
     }
     public function listar()
-    {
-        $data = $this->model->getUsuarios(1);
+    { 
+        $data = $this->model->getErrores('pending');
         for ($i = 0; $i < count($data); $i++) {
             $data[$i]['accion'] = '<div class="d-flex">
-            <button class="btn btn-primary" type="button" onclick="editUser(' . $data[$i]['id'] . ')"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-danger" type="button" onclick="eliminarUser(' . $data[$i]['id'] . ')"><i class="fas fa-trash"></i></button>
+            <button class="btn btn-primary" type="button" onclick="editCertificate(\'' . $data[$i]['certificate_id'] . '\')"><i class="fas fa-edit"></i></button>
         </div>';
         }
         echo json_encode($data);
         die();
     }
-    public function registrar()
+   /* public function registrar()
     {
         if (isset($_POST['nombre'])) {
             $username = $_POST['username'];
@@ -85,14 +85,14 @@ class ErroresAdmin extends Controller
         }
         echo json_encode($respuesta);
         die();
-    }
+    }*/
     //editar user
-    public function edit($idUser)
+    public function editCertificate($id_certificate)
     {
-        if (is_numeric($idUser)) {
-            $data = $this->model->getUsuario($idUser);
+        
+            $data = $this->model->obtenerCertificados($id_certificate);
             echo json_encode($data, JSON_UNESCAPED_UNICODE);
-        }
+        
         die();
     }
 }
