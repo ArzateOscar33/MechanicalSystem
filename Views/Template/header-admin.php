@@ -107,6 +107,23 @@
                         </a>
                     </li>
                 <?php endif; ?>
+                <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 2 ||$_SESSION['rol_usuario'] == 3):  // Administrador, Manager, Capturista
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'ErroresUsuario'; ?>">
+                            <div class="menu-title"><i class='fas fa-exclamation-triangle'></i> Reportar Errores de Usuario</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                <?php if ($_SESSION['rol_usuario'] == 1 ):  // Administrador
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'ErroresAdmin'; ?>">
+                            <div class="menu-title"><i class='fas fa-exclamation-circle'></i> Reportar Errores de Admin</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
+            </ul>
             </ul>
             
             <!--end navigation-->
