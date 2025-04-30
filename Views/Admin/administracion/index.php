@@ -95,6 +95,8 @@
     </div>
 
     <!-- Gráfico por Inspector General -->
+    <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
+                ?>
     <div class="col">
         <div class="card radius-10">
             <div class="card-body">
@@ -105,8 +107,10 @@
             </div>
         </div>
     </div>
-
+    <?php endif; ?>
     <!-- Gráfico por Día con Filtros -->
+    <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
+                ?>
     <div class="col">
         <div class="card radius-10">
             <div class="card-body">
@@ -129,8 +133,10 @@
             </div>
         </div>
     </div>
-
+    <?php endif; ?>
     <!-- Gráfico por Inspector con Filtros -->
+    <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
+                ?>
     <div class="col">
         <div class="card radius-10">
             <div class="card-body">
@@ -151,6 +157,29 @@
             </div>
         </div>
     </div>
+    <?php endif; ?>
+ 
+                
+    <!-- Gráfico por Ciudad Filtrado por Inspector -->
+    <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
+                ?>
+<div class="col">
+    <div class="card radius-10">
+        <div class="card-body">
+            <h6 class="mb-0">Certificados por Ciudad (Filtrado por Inspector)</h6>
+            <div class="mt-2">
+                <label for="filtroInspectorCiudad" class="form-label">Inspector</label>
+                <select id="filtroInspectorCiudad" class="form-select mb-2">
+                    <option value="">Selecciona Inspector</option>
+                </select>
+            </div>
+            <div class="chart-container-2 mt-4">
+                <canvas id="ciudadesInspectorGrafico"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 </div>
 

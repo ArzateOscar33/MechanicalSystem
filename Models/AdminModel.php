@@ -196,6 +196,17 @@ class AdminModel extends Query
     return $this->select($sql);
 }
 
+public function certificadosPorCiudadPorInspector($inspector)
+{
+    $sql = "SELECT a.city, COUNT(c.address_id) AS cantidad_certificados
+            FROM certificates c
+            JOIN addresses a ON c.address_id = a.id
+            JOIN inspectors i ON c.inspector_id = i.id
+            WHERE i.name = '$inspector'
+            GROUP BY a.city";
+    return $this->selectAll($sql);
+}
+
     
     
 }

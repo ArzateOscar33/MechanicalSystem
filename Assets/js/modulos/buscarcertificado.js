@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
       { data: "owner_name" },
       { data: "inspector_name" },
       { data: "make" },
-      { data: "zip_file_path" },
+      //{ data: "zip_file_path" },
       { data: "city" },
       { data: "state" },
       { data: "zip" },

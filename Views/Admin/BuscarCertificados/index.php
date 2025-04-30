@@ -61,8 +61,7 @@
                         <th>VIN</th>
                         <th>Propietario</th>
                         <th>Inspector</th>
-                        <th>Marca</th>
-                        <th>Ruta del ZIP</th>
+                        <th>Marca</th> 
                         <th>Ciudad</th>
                         <th>Estado</th>
                         <th>Codigo Postal</th>

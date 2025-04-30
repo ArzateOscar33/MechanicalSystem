@@ -397,6 +397,7 @@ document.addEventListener("DOMContentLoaded", function () {
     cargarEstados();
     cargarCiudades();
     configurarFiltroMes();
+    cargarInspectoresCiudad();
     aplicarFiltro(); // carga inicial con mes actual
 });
 
@@ -594,6 +595,96 @@ function aplicarFiltroInspector() {
         certificadosPorMesInspector(anio, inspector);
         actualizarOrigenInspector(inspector);
     }
+}
+
+function certificadosPorCiudadPorInspector(inspector) {
+    const url = base_url + "admin/certificadosPorCiudadPorInspector";
+    const formData = new FormData();
+    formData.append("inspector", inspector);
+
+    const http = new XMLHttpRequest();
+    http.open("POST", url, true);
+    http.send(formData);
+
+    http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            const res = JSON.parse(this.responseText);
+            const ciudades = res.map(item => item.city);
+            const cantidades = res.map(item => parseInt(item.cantidad_certificados));
+
+            const ctx = document.getElementById("ciudadesInspectorGrafico").getContext("2d");
+
+            if (window.ciudadInspectorChartInstance) {
+                window.ciudadInspectorChartInstance.destroy();
+            }
+
+            window.ciudadInspectorChartInstance = new Chart(ctx, {
+                type: "bar",  // Usamos un gráfico de barras
+                data: {
+                    labels: ciudades,  // Las ciudades en el eje X
+                    datasets: [{
+                        label: 'Certificados por Inspector',  // Nombre de la serie de datos
+                        data: cantidades,  // El número de certificados en el eje Y
+                        backgroundColor: "rgba(23, 162, 184, 0.5)",  // Color de las barras
+                        borderColor: "rgba(23, 162, 184, 1)",  // Color de los bordes de las barras
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,  // Comienza desde 0 en el eje Y
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Certificados'  // Título del eje Y
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Ciudades'  // Título del eje X
+                            },
+                            ticks: {
+                                maxRotation: 45,  // Rotación máxima de los nombres de las ciudades
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false  // No necesitamos la leyenda en este gráfico
+                        },
+                        title: {
+                            display: true,
+                            text: 'Certificados por Ciudad (Filtrado por Inspector)'  // Título del gráfico
+                        }
+                    }
+                }
+            });
+        }
+    };
+}
+document.getElementById("filtroInspectorCiudad").addEventListener("change", function() {
+    const inspector = this.value;
+    if (inspector) {
+        certificadosPorCiudadPorInspector(inspector);
+    }
+});
+function cargarInspectoresCiudad() {
+    const url = base_url + "admin/inspectoresDisponibles";
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("filtroInspectorCiudad");
+            data.forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.inspector_name;
+                option.textContent = item.inspector_name;
+                select.appendChild(option);
+            });
+        });
 }
 
 
