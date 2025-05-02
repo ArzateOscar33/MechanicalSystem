@@ -6,135 +6,153 @@
         <div class="modal-content">
             <div class="modal-header bg-primary">
                 <h5 class="modal-title" id="titleModal"></h5>
-                    <button class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    </button>
+                <button class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                </button>
             </div>
             <form id="frmEditar">
                 <div class="modal-body">
                     <input type="hidden" id="id" name="id">
-                    <div class="form-group mb-2">
+                    <input type="hidden" id="field_name" name="field_name">
+
+                    <div class="form-group mb-2 editable-field" id="group_cert_number">
                         <label for="nombre">Certificado</label>
-                        <input id="cert_number" class="form-control" type="text" name="cert_number" placeholder="Certificado">
+                        <input id="cert_number" class="form-control" type="text" name="cert_number" placeholder="Certificado" readonly>
                     </div>
-                    <div class="form-group mb-2">
-                        <label for="inspector">Inspector</label>
-                        <select id="inspector" class="form-control" name="inspector"> </select>
+                    <div class="form-group mb-2 editable-field" id="group_inspector">
+                        <label for="nombre">Inspector</label>
+                        <input id="inspector" class="form-control" type="text" name="inspector" placeholder="Inspector" readonly>   
                     </div>
-                    <div class="form-group mb-2">
+                    <div class="form-group mb-2 editable-field" id="group_vin">
                         <label for="nombre">VIN</label>
                         <input id="vin" class="form-control" type="text" name="vin" placeholder="VIN">
                     </div>
-                    <div class="form-group mb-2">
+                    <div class="form-group mb-2 editable-field" id="group_owner_name">
                         <label for="apellido">Propietario</label>
                         <input id="owner_name" class="form-control" type="text" name="owner_name" placeholder="Propietario">
                     </div>
-    
-                    <div class="form-group mb-2">
+
+                    <div class="form-group mb-2 editable-field" id="group_make">
                         <label for="make">Marca</label>
                         <input id="make" class="form-control" type="text" name="make" placeholder="Marca">
                     </div>
-                    <div class="form-group mb-2">
+                    <div class="form-group mb-2 editable-field" id="group_model">
                         <label for="correo">Modelo</label>
                         <input id="model" class="form-control" type="text" name="model" placeholder="Modelo">
                     </div>
-                    <div class="form-group mb-2">
+                    <div class="form-group mb-2 editable-field" id="group_year">
+                        <label for="correo">Año</label>
+                        <input id="year" class="form-control" type="text" name="year" placeholder="Año">
+                    </div>
+                    <div class="form-group mb-2 editable-field" id= "group_license_plate">
+                        <label for="correo">Placa</label>
+                        <input id="license_plate" class="form-control" type="text" name="license_plate" placeholder="Placa">
+                    </div>
+                    <div class="form-group mb-2 editable-field" id="group_street">
+                        <label for="ciudad">Calle</label>
+                        <input id="street" class="form-control" type="text" name="street" placeholder="Calle">
+                    </div>
+                    <div class="form-group mb-2 editable-field" id="group_city">
                         <label for="ciudad">Ciudad</label>
-                        <input id="city" class="form-control" type="text" name="city" placeholder="Ciudad">
+                        <input id="city" class="form-control" type="text" name="city" placeholder="Ciudad" readonly>
                     </div>
-                    <div class="form-group mb-2">
+                    <div class="form-group mb-2 editable-field" id="group_state">
                         <label for="state">Estado</label>
-                        <input id="state" class="form-control" type="text" name="state" placeholder="Estado">
+                        <input id="state" class="form-control" type="text" name="state" placeholder="Estado" readonly>
                     </div>
-                    <div class="form-group mb-2">
+                    <div class="form-group mb-2 editable-field" id="group_zip">
                         <label for="zip">Codigo Postal</label>
-                        <input id="zip" class="form-control" type="text" name="zip" placeholder="Código Postal">
+                        <input id="zip" class="form-control" type="text" name="zip" placeholder="Código Postal" readonly>
                     </div>
-                    <div class="form-group mb-2">
+                    <div class="form-group mb-2 editable-field" id="group_mfg_in">
                         <label for="mfg_in">Fabricado En </label>
                         <input id="mfg_in" class="form-control" type="text" name="mfg_in" placeholder="Fabricado En">
                     </div>
+                    <div class="form-group mb-2 editable-field" id="group_update_photos">
+                        <label for="mfg_in">Actualizar Fotos </label>
+                        <input type="file" name="imagenes[]" multiple class="form-control mb-2">
+                    </div>
+                    <div class="form-group mb-2 editable-field" id="group_proposed_value">
+                        <label for="proposed_value">Valor Sugerido</label>
+                        <input id="proposed_value" class="form-control" type="text" name="proposed_value" placeholder="Valor Sugerido" readonly>
+                    </div> 
+                   
                 </div>
                 <div class="modal-footer">
-            <button class="btn btn-primary" type="submit" id="btnAccion">Modificar</button>
-            <button class="btn btn-danger" type="button" data-bs-dismiss="modal">Cancelar</button>
-        </div>
+                    <button class="btn btn-primary" type="submit" id="btnAccion">Modificar</button>
+                    <button class="btn btn-danger" type="button" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+                
         </div>
 
         </form>
     </div>
 </div>
- 
 
-<div class="card">  
-    <div class="card-body">
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <label for="filterCertNumber">Certificado:</label>
-                <input type="text" id="filterCertNumber" class="form-control" placeholder="Buscar por número">
-            </div>
-            <div class="col-md-3">
-                <label for="filterVin">VIN:</label>
-                <input type="text" id="filterVin" class="form-control" placeholder="Buscar por VIN">
-            </div>
-            <div class="col-md-3">
-                <label for="filterOwner">Propietario:</label>
-                <select id="filterOwner" class="form-control">
-                    <option value="">Todos</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="filterInspector">Inspector:</label>
-                <select id="filterInspector" class="form-control">
-                    <option value="">Todos</option>
-                </select>
+<!-- navbar tabs -->
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#erroresPendientes" type="button" role="tab" aria-controls="erroresPendientes" aria-selected="true">Errores Pendientes</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#erroresResueltos" type="button" role="tab" aria-controls="erroresResueltos" aria-selected="false">Errores Resueltos</button>
+    </li>
+</ul>
+<!-- contenido navbar tabs -->
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="erroresPendientes" role="tabpanel" aria-labelledby="home-tab">
+        <!-- Contenido de la tabla -->
+        <div class="card">
+            <div class="card-body">
+                <!-- Contenido de la tabla errores pendientes -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover" style="width: 100%;" id="tblErrores">
+                        <thead>
+                            <tr>
+                                <th>Certificado</th>
+                                <th>Usuario</th>
+                                <th>Campo donde se produjo el error</th>
+                                <th>Valor actual del campo</th>
+                                <th>Valor Propuesto</th>
+                                <th>Razon del Error</th>
+                                <th>Estatus del Error</th>
+                                <th>Fecha de la Solicitud</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <label for="filterMake">Marca:</label>
-                <input type="text" id="filterMake" class="form-control" placeholder="Buscar por marca">
-            </div>
-            <div class="col-md-3">
-                <label for="filterCiudad">Ciudad:</label>
-                <select id="filterCiudad" class="form-control">
-                    <option value="">Todas</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="filterEstado">Estado:</label>
-                <select id="filterEstado" class="form-control">
-                    <option value="">Todos</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="filterMfgIn">Manufacturado en:</label>
-                <select id="filterMfgIn" class="form-control">
-                    <option value="">Todos</option>
-                </select>
-            </div>
-        </div>
+    </div>
 
 
-
-
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped table-hover" style="width: 100%;" id="tblErrores">
-                <thead>
-                    <tr>
-                        <th>Certificado</th>
-                        <th>Usuario</th>
-                        <th>Campo donde se produjo el error</th>
-                        <th>Valor actual del campo</th>
-                        <th>Valor Propuesto</th>
-                        <th>Razon del Error</th>
-                        <th>Estatus del Error</th>
-                        <th>Fecha de la Solicitud</th>  
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+    <div class="tab-pane fade" id="erroresResueltos" role="tabpanel" aria-labelledby="profile-tab">
+        <div class="tab-pane fade show active" id="erroresPendientes" role="tabpanel" aria-labelledby="home-tab">
+            <!-- Contenido de la tabla -->
+            <div class="card">
+                <div class="card-body">
+                    <!-- Contenido de la tabla errores pendientes -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover" style="width: 100%;" id="tblErroresResueltos">
+                            <thead>
+                                <tr>
+                                    <th>Certificado</th>
+                                    <th>Usuario</th>
+                                    <th>Campo donde se produjo el error</th>
+                                    <th>Valor Corregido</th>
+                                    <th>Estatus del Error</th>
+                                    <th>Fecha de la Solicitud</th>
+                                    <th>Fecha de Resolucion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

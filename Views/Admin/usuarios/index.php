@@ -15,6 +15,7 @@
                         <th>Correo</th>
                         <th>Telefono</th>
                         <th>Rol</th>
+                        <th>Direccion</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -67,6 +68,13 @@
                             <option value="1">Administrador</option>
                             <option value="2">Manager</option>
                             <option value="3">Capturista</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label for="rol">Direccion</label>
+                        <select id="address_id" class="form-control" name="address_id">
+                            <option id="" value="">Seleccione Direccion</option>
+                            
                         </select>
                     </div>
                 </div>

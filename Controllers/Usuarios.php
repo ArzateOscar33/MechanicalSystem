@@ -36,7 +36,8 @@ class Usuarios extends Controller
             $correo = $_POST['correo'];
             $clave = $_POST['clave'];
             $phone = $_POST['phone'];
-            $role_id = $_POST['rol']; // <-- ¡nuevo!
+            $role_id = $_POST['rol']; 
+            $address_id = $_POST['address_id'];
             $id = $_POST['id'];
     
             if (empty($nombre) || empty($apellido) || empty($role_id)) {
@@ -46,7 +47,7 @@ class Usuarios extends Controller
                     $result = $this->model->verificarCorreo($correo);
                     if (empty($result)) {
                         $hash = password_hash($clave, PASSWORD_DEFAULT);
-                        $data = $this->model->registrar($username, $nombre, $apellido, $correo, $hash, $phone, $role_id);
+                        $data = $this->model->registrar($username, $nombre, $apellido, $correo, $hash, $phone, $role_id,$address_id);
                         if ($data > 0) {
                             $respuesta = array('msg' => 'Usuario registrado', 'icono' => 'success');
                         } else {
@@ -57,7 +58,7 @@ class Usuarios extends Controller
                     }
                 } else {
                     // Puedes agregar aquí la lógica para modificar el rol también si lo deseas
-                    $data = $this->model->modificar($username, $nombre, $apellido, $correo, $phone, $role_id, $id);
+                    $data = $this->model->modificar($username, $nombre, $apellido, $correo, $phone, $role_id, $address_id, $id);
                     if ($data == 1) {
                         $respuesta = array('msg' => 'Usuario modificado', 'icono' => 'success');
                     } else {
@@ -95,4 +96,10 @@ class Usuarios extends Controller
         }
         die();
     }
+    public function obtenerDirecciones()
+{
+    $data = $this->model->getDirecciones();
+    echo json_encode($data);
+    die();
+}
 }

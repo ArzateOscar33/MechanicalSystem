@@ -18,14 +18,17 @@ document.addEventListener("DOMContentLoaded", function() {
             { data: "correo" },
             { data: "phone" },
             { data: "rol" },
+            { data: "address_user" },
             { data: "accion" },
         ],
         language,
         dom,
         buttons,
     });
+    
     //levantar modal
     nuevo.addEventListener("click", function() {
+        cargarDirecciones();
         document.querySelector('#id').value = '';
         titleModal.textContent = "NUEVO USUARIO";
         btnAccion.textContent = 'Registrar';
@@ -83,6 +86,26 @@ function eliminarUser(idUser) {
         }
     });
 }
+function cargarDirecciones() {
+    const url = base_url + "usuarios/obtenerDirecciones";
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.send();
+    http.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            const res = JSON.parse(this.responseText);
+            const select = document.querySelector("#address_id");
+            select.innerHTML = '<option value="">Seleccione Direccion</option>'; // reset
+            res.forEach((dir) => {
+                const option = document.createElement("option");
+                option.value = dir.id;
+                option.textContent = dir.full_address;
+                select.appendChild(option);
+            });
+        }
+    };
+}
+
 
 function editUser(idUser) {
     const url = base_url + "usuarios/edit/" + idUser;
@@ -92,17 +115,43 @@ function editUser(idUser) {
     http.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             const res = JSON.parse(this.responseText);
-            document.querySelector('#id').value = res.id;
-            document.querySelector('#username').value = res.username;
-            document.querySelector('#nombre').value = res.first_name;
-            document.querySelector('#apellido').value = res.last_name;
-            document.querySelector('#correo').value = res.correo;
-            document.querySelector('#phone').value = res.phone;
-            document.querySelector('#rol').value = res.role_id; // 👈 Aquí se selecciona el rol
-            document.querySelector('#clave').setAttribute('readonly', 'readonly');
-            btnAccion.textContent = 'Actualizar';
-            titleModal.textContent = "MODIFICAR USUARIO";
-            myModal.show();
+            
+            // Cargar direcciones primero
+            const urlDir = base_url + "usuarios/obtenerDirecciones";
+            const httpDir = new XMLHttpRequest();
+            httpDir.open("GET", urlDir, true);
+            httpDir.send();
+            httpDir.onreadystatechange = function () {
+                if (httpDir.readyState == 4 && httpDir.status == 200) {
+                    const dirRes = JSON.parse(httpDir.responseText);
+                    const select = document.querySelector("#address_id");
+                    select.innerHTML = '<option value="">Seleccione Direccion</option>'; // limpiar
+                    dirRes.forEach((dir) => {
+                        const option = document.createElement("option");
+                        option.value = dir.id;
+                        option.textContent = dir.full_address;
+                        // seleccionar si coincide con el usuario
+                        if (dir.id == res.address_id) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+
+                    // Ahora sí llenar el resto del formulario
+                    document.querySelector('#id').value = res.id;
+                    document.querySelector('#username').value = res.username;
+                    document.querySelector('#nombre').value = res.first_name;
+                    document.querySelector('#apellido').value = res.last_name;
+                    document.querySelector('#correo').value = res.correo;
+                    document.querySelector('#phone').value = res.phone;
+                    document.querySelector('#rol').value = res.role_id;
+                    document.querySelector('#clave').setAttribute('readonly', 'readonly');
+                    btnAccion.textContent = 'Actualizar';
+                    titleModal.textContent = "MODIFICAR USUARIO";
+                    myModal.show();
+                }
+            };
         }
-    }
+    };
 }
+

@@ -104,7 +104,7 @@
             </div>
     </div>
 
-    <!-- Incluye tus scripts JS aquí -->
+  
 </body>
 
 </html>
