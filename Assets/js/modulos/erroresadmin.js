@@ -3,8 +3,7 @@ let currentFieldName = '';
 const myModal = new bootstrap.Modal(document.getElementById("modalError"));
 
 document.addEventListener("DOMContentLoaded", function () {
-    //myModal.show();
-  // Inicializar DataTable
+  // Inicializar DataTable de errores pendientes
   tblCertificados = $("#tblErrores").DataTable({
     ajax: {
       url: base_url + "ErroresAdmin/listar",
@@ -26,6 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
     buttons,
   });
 
+  // Inicializar DataTable de errores corregidos
   tblCertificados = $("#tblErroresResueltos").DataTable({
     ajax: {
       url: base_url + "ErroresAdmin/listarResueltos",
@@ -39,22 +39,21 @@ document.addEventListener("DOMContentLoaded", function () {
       { data: "status" },
       { data: "reviewed_at" }, 
       { data: "updated_at" },
-    
     ],
     language,
     dom,
     buttons,
   });
-
-  
 });
+
 document.getElementById("frmEditar").addEventListener("submit", function (e) {
   e.preventDefault();
 
   const formData = new FormData(this);
   const certNumber = formData.get("cert_number");
   const field = formData.get("field_name");
-  const newValue = formData.get(field);
+
+  const newValue = (field === 'imagenes') ? '[Archivo adjunto]' : formData.get(field);
 
   Swal.fire({
     title: "¿Confirmar corrección?",
@@ -93,14 +92,14 @@ function editCertificate(certificate_id) {
     if (this.readyState == 4 && this.status == 200) {
       const res = JSON.parse(this.responseText);
 
-      // Llenar datos básicos
+      // Llenar datos generales del certificado
       document.querySelector('#id').value = res.id;
       document.querySelector('#cert_number').value = res.cert_number;
       document.querySelector('#field_name').value = res.field_name;
       currentFieldName = res.field_name;
       currentProposedValue = res.proposed_value;
-      console.log("Campo editable:", res.field_name, "Valor propuesto:", res.proposed_value);
-      // Llenar todos los campos con sus valores
+
+      // Llenar todos los campos disponibles (aunque no todos sean visibles)
       document.querySelector('#vin').value = res.vin;
       document.querySelector('#make').value = res.make;
       document.querySelector('#model').value = res.model;
@@ -121,13 +120,18 @@ function editCertificate(certificate_id) {
       });
 
       // Mostrar solo el grupo editable
-      const targetGroup = document.querySelector('#group_' + currentFieldName);
-      const proposedGroup = document.querySelector('#group_proposed_value');
-      if (targetGroup) {
-        targetGroup.classList.remove('d-none');
-        proposedGroup.classList.remove('d-none');
+      if (currentFieldName === 'imagenes') {
+        document.querySelector('#group_update_photos').classList.remove('d-none');
+        document.querySelector('#group_proposed_value').classList.add('d-none');
       } else {
-        console.warn("No se encontró el grupo para el campo:", currentFieldName);
+        const targetGroup = document.querySelector('#group_' + currentFieldName);
+        const proposedGroup = document.querySelector('#group_proposed_value');
+        if (targetGroup) {
+          targetGroup.classList.remove('d-none');
+          proposedGroup.classList.remove('d-none');
+        } else {
+          console.warn("No se encontró el grupo para el campo:", currentFieldName);
+        }
       }
 
       // Mostrar modal
@@ -136,5 +140,25 @@ function editCertificate(certificate_id) {
       myModal.show();
     }
   };
+}
+function verImagenes(cert_number) {
+  fetch(base_url + "ErroresAdmin/verImagenes/" + cert_number)
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) {
+        let html = '';
+        data.forEach(url => {
+          html += `<img src="${url}" class="img-thumbnail m-1" style="max-width: 200px;" />`;
+        });
+        Swal.fire({
+          title: 'Imágenes del Certificado',
+          html: html,
+          width: '80%',
+          showCloseButton: true
+        });
+      } else {
+        alertas(data.error, 'error');
+      }
+    });
 }
 

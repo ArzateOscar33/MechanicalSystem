@@ -68,8 +68,8 @@
                         <input id="mfg_in" class="form-control" type="text" name="mfg_in" placeholder="Fabricado En">
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_update_photos">
-                        <label for="mfg_in">Actualizar Fotos </label>
-                        <input type="file" name="imagenes[]" multiple class="form-control mb-2">
+                        <label for="mfg_in">Actualizar Fotos </label> 
+                        <input type="file" class="form-control mb-2" name="update_photos[]" id="update_photos" multiple accept="image/*">
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_proposed_value">
                         <label for="proposed_value">Valor Sugerido</label>
@@ -116,6 +116,7 @@
                                 <th>Razon del Error</th>
                                 <th>Estatus del Error</th>
                                 <th>Fecha de la Solicitud</th>
+                                <th></th> 
                                 <th></th>
                             </tr>
                         </thead>
