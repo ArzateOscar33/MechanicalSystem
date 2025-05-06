@@ -63,6 +63,12 @@
                         <label for="zip">Codigo Postal</label>
                         <input id="zip" class="form-control" type="text" name="zip" placeholder="Código Postal" readonly>
                     </div>
+                    <div class="form-group mb-2 editable-field d-none" id="group_address_id">
+                        <label for="direccion_admin">Nueva Dirección</label>
+                        <select id="direccion_admin" class="form-select" name="address_id">
+                            <option value="">-- Seleccione una dirección --</option>
+                        </select>
+                    </div>
                     <div class="form-group mb-2 editable-field" id="group_mfg_in">
                         <label for="mfg_in">Fabricado En </label>
                         <input id="mfg_in" class="form-control" type="text" name="mfg_in" placeholder="Fabricado En">
@@ -71,6 +77,12 @@
                         <label for="mfg_in">Actualizar Fotos </label>
                         <input type="file" class="form-control mb-2" name="imagenes[]" id="imagenes" multiple accept="image/*">
 
+                    </div>
+                    <div class="form-group mb-2 editable-field d-none" id="group_inspector_id">
+                        <label for="inspector_select_admin">Nuevo Inspector</label>
+                        <select id="inspector_select_admin" class="form-select" name="inspector_id">
+                            <option value="">-- Seleccione un inspector --</option>
+                        </select>
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_proposed_value">
                         <label for="proposed_value">Valor Sugerido</label>
@@ -102,6 +114,9 @@
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#erroresResueltos" type="button" role="tab" aria-controls="erroresResueltos" aria-selected="false">Errores Resueltos</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#erroresRejected" type="button" role="tab" aria-controls="erroresRejected" aria-selected="false">Errores Rechazados</button>
     </li>
 </ul>
 <!-- contenido navbar tabs -->
@@ -144,6 +159,34 @@
                     <!-- Contenido de la tabla errores pendientes -->
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-hover" style="width: 100%;" id="tblErroresResueltos">
+                            <thead>
+                                <tr>
+                                    <th>Certificado</th>
+                                    <th>Usuario</th>
+                                    <th>Campo donde se produjo el error</th>
+                                    <th>Valor Corregido</th>
+                                    <th>Estatus del Error</th>
+                                    <th>Fecha de la Solicitud</th>
+                                    <th>Fecha de Resolucion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="erroresRejected" role="tabpanel" aria-labelledby="profile-tab">
+        <div class="tab-pane fade show active" id="erroresrechazados" role="tabpanel" aria-labelledby="home-tab">
+            <!-- Contenido de la tabla -->
+            <div class="card">
+                <div class="card-body">
+                    <!-- Contenido de la tabla errores pendientes -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover" style="width: 100%;" id="tblErroresRejected">
                             <thead>
                                 <tr>
                                     <th>Certificado</th>

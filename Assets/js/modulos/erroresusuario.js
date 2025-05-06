@@ -11,14 +11,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const campo = this.value;
     campoOculto.value = campo;
 
+    // Ocultar todos los campos primero
+    imagenesInput.style.display = "none";
+    inspectorSelectDiv.style.display = "none";
+    inputPropuesto.style.display = "none";
+
+    const prevDireccionSelect = document.getElementById("direccion_select");
+    if (prevDireccionSelect) {
+      prevDireccionSelect.remove();
+    }
+
     if (campo === 'images') {
       imagenesInput.style.display = "block";
-      inspectorSelectDiv.style.display = "none";
-      inputPropuesto.style.display = "none";
     } else if (campo === 'inspector_id') {
-      imagenesInput.style.display = "none";
       inspectorSelectDiv.style.display = "block";
-      inputPropuesto.style.display = "none";
 
       // Cargar inspectores dinámicamente
       fetch(base_url + "ErroresUsuario/getInspectores")
@@ -32,9 +38,29 @@ document.addEventListener("DOMContentLoaded", function () {
             inspectorSelect.appendChild(option);
           });
         });
+    } else if (campo === 'address_id') {
+      // Crear y mostrar nuevo select de direcciones
+      let selectDireccion = document.createElement("select");
+      selectDireccion.className = "form-select mt-2";
+      selectDireccion.name = "direccion_select";
+      selectDireccion.id = "direccion_select";
+      selectDireccion.innerHTML = '<option value="">-- Seleccione una dirección --</option>';
+
+      // Insertar debajo del inputPropuesto
+      inputPropuesto.parentNode.appendChild(selectDireccion);
+
+      // Cargar direcciones dinámicamente
+      fetch(base_url + "ErroresUsuario/getDirecciones")
+        .then((res) => res.json())
+        .then((data) => {
+          data.forEach((dir) => {
+            const option = document.createElement("option");
+            option.value = dir.id;
+            option.textContent = dir.direccion;
+            selectDireccion.appendChild(option);
+          });
+        });
     } else {
-      imagenesInput.style.display = "none";
-      inspectorSelectDiv.style.display = "none";
       inputPropuesto.style.display = "block";
     }
   });
@@ -91,6 +117,12 @@ document.addEventListener("DOMContentLoaded", function () {
       inputPropuesto.value = inspectorSelect.value;
     }
 
+    // Si es dirección, pasar valor seleccionado
+    if (campo === 'address_id') {
+      const direccionSeleccionada = document.getElementById("direccion_select").value;
+      inputPropuesto.value = direccionSeleccionada;
+    }
+
     const data = new FormData(frm);
     const url = base_url + "ErroresUsuario/crear";
     const http = new XMLHttpRequest();
@@ -107,6 +139,8 @@ document.addEventListener("DOMContentLoaded", function () {
           imagenesInput.style.display = "none";
           inspectorSelectDiv.style.display = "none";
           inputPropuesto.style.display = "block";
+          const selectDir = document.getElementById("direccion_select");
+          if (selectDir) selectDir.remove();
 
           document.getElementById("error").selectedIndex = 0;
           document.getElementById("cert_number").selectedIndex = 0;

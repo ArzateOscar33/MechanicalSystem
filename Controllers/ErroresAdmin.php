@@ -29,15 +29,34 @@ class ErroresAdmin extends Controller
     public function listar()
     {
         $data = $this->model->getErrores('pending');
+    
         for ($i = 0; $i < count($data); $i++) {
+            // Mostrar nombre del inspector si el campo corregido es 'inspector_id'
+            if ($data[$i]['field_name'] === 'inspector_id') {
+                $data[$i]['current_value'] = $data[$i]['inspector_actual'] ?? '(ID: ' . $data[$i]['current_value'] . ')';
+                $data[$i]['proposed_value'] = $data[$i]['inspector_propuesto'] ?? '(ID: ' . $data[$i]['proposed_value'] . ')';
+            } elseif ($data[$i]['field_name'] === 'address_id') {
+                $data[$i]['current_value'] = $data[$i]['direccion_actual'] ?? '(ID: ' . $data[$i]['current_value'] . ')';
+                $data[$i]['proposed_value'] = $data[$i]['direccion_propuesta'] ?? '(ID: ' . $data[$i]['proposed_value'] . ')';
+            }
+            
+    
             $data[$i]['accion'] = '<div class="d-flex">
-            <button class="btn btn-primary" type="button" onclick="editCertificate(\'' . $data[$i]['id'] . '\')"><i class="fas fa-edit"></i></button>
-         
-        </div>';
+                <button class="btn btn-primary" type="button" onclick="editCertificate(\'' . $data[$i]['id'] . '\')">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-danger" type="button" onclick="errorDelete(\'' . $data[$i]['id'] . '\')">
+                  <i class="fas fa-trash"></i>
+                </button>
+            </div>';
         }
+    
         echo json_encode($data);
         die();
     }
+    
+    
+    
     public function listarResueltos()
     {
         $data = $this->model->getErroresResueltos('corrected');
@@ -50,6 +69,13 @@ class ErroresAdmin extends Controller
         die();
     }
 
+    public function listarRechazados()
+    {
+        $data = $this->model->getErroresResueltos('rejected');
+       
+        echo json_encode($data);
+        die();
+    }
     public function editCertificate($error_id)
     {
         if (!is_numeric($error_id)) {
@@ -97,19 +123,26 @@ class ErroresAdmin extends Controller
         $old_value = null;
 
         if ($field_name !== 'images') {
+            $campoSanitizado = preg_replace('/[^a-zA-Z0-9_]/', '', $field_name);
             $old_value = $this->model->obtenerValorActualCampo($cert_number, $campoSanitizado);
             if ($old_value === false) {
                 echo json_encode(['msg' => 'Certificado no encontrado', 'icono' => 'error']);
                 return;
             }
-        }
-        if ($field_name !== 'images') {
-            $this->model->actualizarCampoCertificado($cert_number, $campoSanitizado, $new_value);
+        
+            if ($field_name === 'address_id') {
+                // Usar el método especializado
+                $this->model->actualizarDireccionCertificado($cert_number, $new_value);
+            } else {
+                // Campos normales
+                $this->model->actualizarCampoCertificado($cert_number, $campoSanitizado, $new_value);
+            }
+        
+            // Registrar el log como cualquier otro campo
             $this->model->insertarLogCorreccion($correction_id, $cert_number, $field_name, $old_value, $new_value, $user_id);
-        } else {
-            // Log especial para imágenes
-            $this->model->insertarLogCorreccion($correction_id, $cert_number, 'images', 'Imágenes originales en ZIP', 'Nuevas imágenes sugeridas', $user_id);
         }
+        
+        
         $monitoreos = $this->model->obtenerMonitoreos($cert_number);
         foreach ($monitoreos as $monitor) {
             switch ($monitor['monitor_type']) {
@@ -514,4 +547,21 @@ class ErroresAdmin extends Controller
         echo json_encode($imagenes);
         die();
     }
+
+        //eliminar error
+        public function delete($id_error)
+        {
+            if (is_numeric($id_error)) {
+                $data = $this->model->eliminar($id_error);
+                if ($data == 1) {
+                    $respuesta = array('msg' => 'Error rechazado Correctamente', 'icono' => 'success');
+                } else {
+                    $respuesta = array('msg' => 'error al eliminar error', 'icono' => 'error');
+                }
+            } else {
+                $respuesta = array('msg' => 'error desconocido', 'icono' => 'error');
+            }
+            echo json_encode($respuesta);
+            die();
+        }
 }

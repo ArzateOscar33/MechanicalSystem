@@ -148,6 +148,12 @@ class ErroresUsuario extends Controller
         }
     }
     
+    public function getDirecciones()
+{
+    $direcciones = $this->model->getDirecciones();
+    echo json_encode($direcciones);
+    die();
+}
     
     public function getInspectores()
     {

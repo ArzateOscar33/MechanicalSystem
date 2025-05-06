@@ -66,4 +66,12 @@ class ErroresUsuarioModel extends Query
     return $this->selectAll($sql);
 }
 
+public function getDirecciones()
+{
+    $sql = "SELECT id, CONCAT(`number`, ' ', street, ', ', city, ', ', state, ' ', zip) AS direccion
+            FROM addresses
+            ORDER BY city, state";
+    return $this->selectAll($sql);
+}
+
 }

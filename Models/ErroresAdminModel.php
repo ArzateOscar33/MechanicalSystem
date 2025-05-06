@@ -8,22 +8,31 @@ class ErroresAdminModel extends Query
     }
     public function getErrores($estado)
     {
-        $sql = "SELECT c.id,
-        c.certificate_id,
-        CONCAT(u.first_name, ' ', u.last_name) AS user_name,
-        c.field_name,
-        c.current_value,
-        c.proposed_value,
-        c.reason,
-        c.status,
-        c.created_at
-        
-                FROM  correction_requests c
-                LEFT JOIN users u ON c.user_id = u.id
-                WHERE c.status = 'pending' 
-                ORDER BY created_at ASC";
+        $sql = "SELECT 
+                r.id,
+                r.certificate_id,
+                r.field_name,
+                r.current_value,
+                r.proposed_value,
+                r.reason,
+                r.status,
+                r.created_at,
+                u.first_name AS user_name,
+                i1.name AS inspector_actual,
+                i2.name AS inspector_propuesto,
+                CONCAT(a1.number, ' ', a1.street, ', ', a1.city, ', ', a1.state, ' ', a1.zip) AS direccion_actual,
+                CONCAT(a2.number, ' ', a2.street, ', ', a2.city, ', ', a2.state, ' ', a2.zip) AS direccion_propuesta
+                FROM correction_requests r
+                JOIN users u ON r.user_id = u.id
+                LEFT JOIN inspectors i1 ON r.field_name = 'inspector_id' AND r.current_value = i1.id
+                LEFT JOIN inspectors i2 ON r.field_name = 'inspector_id' AND r.proposed_value = i2.id
+                LEFT JOIN addresses a1 ON r.field_name = 'address_id' AND r.current_value = a1.id
+                LEFT JOIN addresses a2 ON r.field_name = 'address_id' AND r.proposed_value = a2.id
+
+                WHERE r.status = '$estado'";
         return $this->selectAll($sql);
     }
+
     public function getErroresResueltos($estado)
     {
         $sql = "SELECT 
@@ -38,7 +47,7 @@ class ErroresAdminModel extends Query
         
                 FROM  correction_requests c
                 LEFT JOIN users u ON c.user_id = u.id
-                WHERE c.status = 'corrected'
+                WHERE c.status = '$estado'
                 ORDER BY updated_at ASC";
         return $this->selectAll($sql);
     }
@@ -93,27 +102,30 @@ class ErroresAdminModel extends Query
     public function obtenerCertificadoPorError($id)
     {
         $sql = "SELECT 
-                c.cert_number, 
-                c.vin,
-                c.make, 
-                c.model,
-                c.year,
-                c.owner_name, 
-                i.name AS inspector_name, 
-                c.zip_file_path,
-                a.city, 
-                a.state, 
-                a.zip, 
-                c.mfg_in,
-                r.id,
-                r.field_name,
-                r.proposed_value
-            FROM correction_requests r
-            LEFT JOIN certificates c ON r.certificate_id = c.cert_number
-            LEFT JOIN addresses a ON c.address_id = a.id
-            LEFT JOIN inspectors i ON c.inspector_id = i.id
-            WHERE r.id = '$id'
-            LIMIT 1";
+            c.cert_number, 
+            c.vin,
+            c.make, 
+            c.model,
+            c.year,
+            c.owner_name, 
+            i.name AS inspector_name, 
+            c.zip_file_path,
+            a.city, 
+            a.state, 
+            a.zip, 
+            a.number,
+            a.street,
+            c.address_id,
+            c.mfg_in,
+            r.id,
+            r.field_name,
+            r.proposed_value
+        FROM correction_requests r
+        LEFT JOIN certificates c ON r.certificate_id = c.cert_number
+        LEFT JOIN addresses a ON c.address_id = a.id
+        LEFT JOIN inspectors i ON c.inspector_id = i.id
+        WHERE r.id = '$id'
+        LIMIT 1";
         return $this->select($sql);
     }
 
@@ -225,15 +237,27 @@ class ErroresAdminModel extends Query
     }
 
     public function obtenerDireccionPorId($id)
-{
-    $sql = "SELECT `number`, `street`, `city`, `state`, `zip` FROM addresses WHERE id = {$id}";
-    return $this->select($sql); 
-}
-public function obtenerResultadosMonitoreo($cert_number)
-{
-    $sql = "SELECT monitor_type, result FROM monitoring_results WHERE cert_number = '$cert_number'";
-    return $this->selectAll($sql);
-}
+    {
+        $sql = "SELECT `number`, `street`, `city`, `state`, `zip` FROM addresses WHERE id = {$id}";
+        return $this->select($sql);
+    }
+    public function obtenerResultadosMonitoreo($cert_number)
+    {
+        $sql = "SELECT monitor_type, result FROM monitoring_results WHERE cert_number = '$cert_number'";
+        return $this->selectAll($sql);
+    }
+    public function actualizarDireccionCertificado($cert_number, $address_id)
+    {
+        $sql = "UPDATE certificates 
+            SET address_id = ?, updated_at = NOW() 
+            WHERE cert_number = ?";
+        return $this->save($sql, [$address_id, $cert_number]);
+    }
 
-
+    public function eliminar($id_error)
+    {
+        $sql = "UPDATE correction_requests SET status = ? WHERE id = ?";
+        $array = array('rejected', $id_error);
+        return $this->save($sql, $array);
+    }
 }
