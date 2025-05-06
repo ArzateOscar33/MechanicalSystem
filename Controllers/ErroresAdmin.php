@@ -32,8 +32,7 @@ class ErroresAdmin extends Controller
         for ($i = 0; $i < count($data); $i++) {
             $data[$i]['accion'] = '<div class="d-flex">
             <button class="btn btn-primary" type="button" onclick="editCertificate(\'' . $data[$i]['id'] . '\')"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-info" type="button" onclick="verImagenes(\'' . $data[$i]['certificate_id'] . '\')">
-  <i class="fas fa-image"></i>
+         
         </div>';
         }
         echo json_encode($data);
@@ -50,66 +49,7 @@ class ErroresAdmin extends Controller
         echo json_encode($data);
         die();
     }
-    /* public function registrar()
-    {
-        if (isset($_POST['nombre'])) {
-            $username = $_POST['username'];
-            $nombre = $_POST['nombre'];
-            $apellido = $_POST['apellido'];
-            $correo = $_POST['correo'];
-            $clave = $_POST['clave'];
-            $phone = $_POST['phone'];
-            $role_id = $_POST['rol']; // <-- ¡nuevo!
-            $id = $_POST['id'];
-    
-            if (empty($nombre) || empty($apellido) || empty($role_id)) {
-                $respuesta = array('msg' => 'Todos los campos son requeridos', 'icono' => 'warning');
-            } else {
-                if (empty($id)) {
-                    $result = $this->model->verificarCorreo($correo);
-                    if (empty($result)) {
-                        $hash = password_hash($clave, PASSWORD_DEFAULT);
-                        $data = $this->model->registrar($username, $nombre, $apellido, $correo, $hash, $phone, $role_id);
-                        if ($data > 0) {
-                            $respuesta = array('msg' => 'Usuario registrado', 'icono' => 'success');
-                        } else {
-                            $respuesta = array('msg' => 'Error al registrar', 'icono' => 'error');
-                        }
-                    } else {
-                        $respuesta = array('msg' => 'Correo ya existe', 'icono' => 'warning');
-                    }
-                } else {
-                    // Puedes agregar aquí la lógica para modificar el rol también si lo deseas
-                    $data = $this->model->modificar($username, $nombre, $apellido, $correo, $phone, $role_id, $id);
-                    if ($data == 1) {
-                        $respuesta = array('msg' => 'Usuario modificado', 'icono' => 'success');
-                    } else {
-                        $respuesta = array('msg' => 'Error al modificar', 'icono' => 'error');
-                    }
-                }
-            }
-            echo json_encode($respuesta);
-        }
-        die();
-    }
-    
-    //eliminar user
-    public function delete($idUser)
-    {
-        if (is_numeric($idUser)) {
-            $data = $this->model->eliminar($idUser);
-            if ($data == 1) {
-                $respuesta = array('msg' => 'usuario dado de baja', 'icono' => 'success');
-            } else {
-                $respuesta = array('msg' => 'error al eliminar', 'icono' => 'error');
-            }
-        } else {
-            $respuesta = array('msg' => 'error desconocido', 'icono' => 'error');
-        }
-        echo json_encode($respuesta);
-        die();
-    }*/
-    //editar user
+
     public function editCertificate($error_id)
     {
         if (!is_numeric($error_id)) {
@@ -142,20 +82,34 @@ class ErroresAdmin extends Controller
         $correction_id = $_POST['id'];
         $cert_number = $_POST['cert_number'];
         $field_name = $_POST['field_name'];
-        $new_value = $_POST[$field_name];
+        $new_value = null;
+
+        if ($field_name !== 'images') {
+            if (!isset($_POST[$field_name])) {
+                echo json_encode(['msg' => 'Valor propuesto no proporcionado', 'icono' => 'error']);
+                return;
+            }
+            $new_value = $_POST[$field_name];
+        }
         $user_id = $_SESSION['id_usuario'];
 
         $campoSanitizado = preg_replace('/[^a-zA-Z0-9_]/', '', $field_name);
+        $old_value = null;
 
-        $old_value = $this->model->obtenerValorActualCampo($cert_number, $campoSanitizado);
-        if ($old_value === false) {
-            echo json_encode(['msg' => 'Certificado no encontrado', 'icono' => 'error']);
-            return;
+        if ($field_name !== 'images') {
+            $old_value = $this->model->obtenerValorActualCampo($cert_number, $campoSanitizado);
+            if ($old_value === false) {
+                echo json_encode(['msg' => 'Certificado no encontrado', 'icono' => 'error']);
+                return;
+            }
         }
-
-        $this->model->actualizarCampoCertificado($cert_number, $campoSanitizado, $new_value);
-        $this->model->insertarLogCorreccion($correction_id, $cert_number, $field_name, $old_value, $new_value, $user_id);
-        $this->model->actualizarEstadoSolicitud($correction_id, $user_id);
+        if ($field_name !== 'images') {
+            $this->model->actualizarCampoCertificado($cert_number, $campoSanitizado, $new_value);
+            $this->model->insertarLogCorreccion($correction_id, $cert_number, $field_name, $old_value, $new_value, $user_id);
+        } else {
+            // Log especial para imágenes
+            $this->model->insertarLogCorreccion($correction_id, $cert_number, 'images', 'Imágenes originales en ZIP', 'Nuevas imágenes sugeridas', $user_id);
+        }
         $monitoreos = $this->model->obtenerMonitoreos($cert_number);
         foreach ($monitoreos as $monitor) {
             switch ($monitor['monitor_type']) {
@@ -179,15 +133,36 @@ class ErroresAdmin extends Controller
                     break;
             }
         }
+        $imagenes = [];
 
-        // Regenerar ZIP y PDF
-        $this->generarPDFyZIP($cert_number);
+        if ($field_name === 'images') {
+            $rutaTemp = 'uploads/temp/' . $cert_number;
+            if (is_dir($rutaTemp)) {
+                $archivosTemp = glob($rutaTemp . '/*.{jpg,jpeg,png,JPG,JPEG,PNG}', GLOB_BRACE);
+                $imagenes = $archivosTemp ?: [];
+            }
 
+            // Si se usaron imágenes del input directamente
+            if (!empty($_FILES['imagenes']['tmp_name'][0])) {
+                $total = min(9, count($_FILES['imagenes']['tmp_name']));
+                for ($i = 0; $i < $total; $i++) {
+                    $tmpName = $_FILES['imagenes']['tmp_name'][$i];
+                    $nombre = $_FILES['imagenes']['name'][$i];
+                    $destino = $rutaTemp . '/' . uniqid("img_{$i}_") . '.' . pathinfo($nombre, PATHINFO_EXTENSION);
+                    move_uploaded_file($tmpName, $destino);
+                    $imagenes[] = $destino;
+                }
+            }
+        }
+
+        // Regenerar ZIP y PDF con nuevas imágenes si existen
+        $this->generarPDFyZIP($cert_number, $imagenes);
+        $this->model->actualizarEstadoSolicitud($correction_id, $user_id);
         echo json_encode(['msg' => 'Certificado actualizado correctamente', 'icono' => 'success']);
         return;
     }
 
-    private function generarPDFyZIP($cert_number)
+    private function generarPDFyZIP($cert_number, $imagenes = [])
     {
         // 1. Obtener datos del certificado desde el modelo
         $data = $this->model->obtenerDatosCertificado($cert_number);
@@ -211,22 +186,33 @@ class ErroresAdmin extends Controller
             $data[$key] = $m['result'];
         }
 
-        // 4. Generar PDF
+        // 4.  Definir ruta de trabajo del PDF
         $pdf_path = "uploads/temp/{$cert_number}.pdf";
-        $this->generarCertificadoPDF($cert_number, $pdf_path, $data, $data['address_id']);
 
-        // 5. Extraer imágenes originales desde ZIP (si no hay nuevas)
-        $imagenes = $this->extraerImagenesZIPExistente($cert_number);
+        // 5. Validar rutas de imágenes con path absoluto
+        $imagenesValidas = [];
 
-        // ✅ Agrega las imágenes al array $data ANTES de generar el PDF
-        $data['imagenes_zip'] = $imagenes;
+        foreach ($imagenes as $rutaRelativa) {
+            $rutaFull = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $rutaRelativa;
+            if (file_exists($rutaFull)) {
+                $imagenesValidas[] = $rutaFull;
+            }
+        }
+
+        if (empty($imagenesValidas)) {
+            // No había nuevas, extraemos las viejas del ZIP
+            $imagenes = $this->extraerImagenesZIPExistente($cert_number);
+        } else {
+            // Usamos las rutas absolutas de las nuevas
+            $imagenes = $imagenesValidas;
+        }
 
         // 6. Generar PDF con esas imágenes
-        $this->generarCertificadoPDF($cert_number, $pdf_path, $data, $data['address_id']);
+        $this->generarCertificadoPDF($cert_number, $pdf_path, $data, $data['address_id'], $imagenes);
 
         // 7. Generar ZIP con PDF e imágenes
         $this->generarArchivoZIP($cert_number, $pdf_path, $imagenes);
-
+        sleep(2);
         // 7. Limpiar archivos temporales
         $this->limpiarTemporales($cert_number);
     }
@@ -241,28 +227,15 @@ class ErroresAdmin extends Controller
             // Agregar el PDF
             $zip->addFile($pdf_path, basename($pdf_path));
 
-            // Incluir imágenes
-            if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_name']) && count($_FILES['imagenes']['tmp_name']) > 0) {
-                // Se subieron nuevas imágenes, agregar esas
-                $total = min(9, count($_FILES['imagenes']['tmp_name']));
-                for ($i = 0; $i < $total; $i++) {
-                    if (is_uploaded_file($_FILES['imagenes']['tmp_name'][$i])) {
-                        $nombreArchivo = basename($_FILES['imagenes']['name'][$i]);
-                        $zip->addFile($_FILES['imagenes']['tmp_name'][$i], "imagenes/{$nombreArchivo}");
-                    }
-                }
-            } else {
-                // No se subieron nuevas imágenes, usar las extraídas
-                foreach ($imagenes as $img) {
-                    $zip->addFile($img, 'imagenes/' . basename($img));
-                }
+            foreach ($imagenes as $img) {
+                $zip->addFile($img, 'imagenes/' . basename($img));
             }
 
             $zip->close();
         }
     }
 
-    private function generarCertificadoPDF($cert_number, $pdf_path, $data, $address_id)
+    private function generarCertificadoPDF($cert_number, $pdf_path, $data, $address_id, $imagenes = [])
     {
         // Obtener el nombre del inspector
         $inspector_id = $this->model->insertarInspector($data['inspector_name']);
@@ -295,37 +268,28 @@ class ErroresAdmin extends Controller
         $certBarcodeWeb = BASE_URL . 'uploads/temp/' . $cert_number . '_cert_barcode.png';
 
         $imagenesHTML = '';
-        $nuevasImagenes = false;
 
-        // Revisar si se subieron nuevas imágenes
-        if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_name']) && count($_FILES['imagenes']['tmp_name']) > 0 && $_FILES['imagenes']['tmp_name'][0] !== '') {
-            $total = min(9, count($_FILES['imagenes']['tmp_name']));
-            for ($i = 0; $i < $total; $i++) {
-                $nombreArchivo = basename($_FILES['imagenes']['name'][$i]);
-                $rutaTemp = $_FILES['imagenes']['tmp_name'][$i];
-                $rutaDestino = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreArchivo;
-                $rutaWeb = BASE_URL . $rutaDestino;
-                $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $rutaDestino;
+        if (!empty($imagenes)) {
+            foreach ($imagenes as $rutaFull) {
+                // rutaFull ya viene absoluta si aplicaste el paso anterior,
+                // si no, conviértela aquí también:
+                $rutaFisica = strpos($rutaFull, $_SERVER['DOCUMENT_ROOT']) === 0
+                    ? $rutaFull
+                    : $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $rutaFull;
 
-                if (is_uploaded_file($rutaTemp)) {
-                    move_uploaded_file($rutaTemp, $rutaFisica);
-                    $imagenesHTML .= '<img src="' . $rutaWeb . '" width="150" style="margin:5px;">';
-                    $nuevasImagenes = true;
+                if (file_exists($rutaFisica)) {
+                    $ext = pathinfo($rutaFisica, PATHINFO_EXTENSION);
+                    $mime = $ext === 'png' ? 'image/png' : 'image/jpeg';
+                    $imgData = base64_encode(file_get_contents($rutaFisica));
+                    $imagenesHTML .= sprintf(
+                        '<img src="data:%s;base64,%s" style="width:180px; margin:5px;">',
+                        $mime,
+                        $imgData
+                    );
                 }
             }
-        }
-
-        // Si no se subieron nuevas imágenes, usar las del ZIP
-        if (!$nuevasImagenes && isset($data['imagenes_zip']) && is_array($data['imagenes_zip'])) {
-            foreach ($data['imagenes_zip'] as $i => $imgRuta) {
-                $ext = pathinfo($imgRuta, PATHINFO_EXTENSION);
-                $nombreTemp = "{$cert_number}_zip_img_{$i}." . $ext;
-                $rutaDestino = 'uploads/temp/' . $nombreTemp;
-                $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $rutaDestino;
-                copy($imgRuta, $rutaFisica);
-                $rutaWeb = BASE_URL . $rutaDestino;
-                $imagenesHTML .= '<img src="' . $rutaWeb . '" width="150" style="margin:5px;">';
-            }
+        } else {
+            $imagenesHTML .= '<p style="color: red;">No se encontraron imágenes para mostrar.</p>';
         }
 
 
@@ -342,6 +306,8 @@ class ErroresAdmin extends Controller
         $data['fecha_expiracion'] = $data['fecha_expiracion'] ?? '';
         $data['latitud'] = $data['latitud'] ?? '';
         $data['longitud'] = $data['longitud'] ?? '';
+
+
 
         // HTML del PDF
         $html = '
@@ -474,51 +440,78 @@ class ErroresAdmin extends Controller
     }
 
     private function limpiarTemporales($cert_number)
-{
-    $temp_dir = "uploads/temp/";
-    $prefixes = [
-        "{$cert_number}.pdf",
-        "{$cert_number}_qr.png",
-        "{$cert_number}_vin_barcode.png",
-        "{$cert_number}_cert_barcode.png",
-    ];
+    {
+        $temp_dir = "uploads/temp/";
+        $prefixes = [
+            "{$cert_number}.pdf",
+            "{$cert_number}_qr.png",
+            "{$cert_number}_vin_barcode.png",
+            "{$cert_number}_cert_barcode.png",
+        ];
 
-    // 1. Eliminar archivos individuales (PDF, QR, códigos de barra)
-    foreach ($prefixes as $filename) {
-        $ruta = $temp_dir . $filename;
-        if (file_exists($ruta)) {
-            unlink($ruta);
+        // 1. Eliminar archivos individuales (PDF, QR, códigos de barra)
+        foreach ($prefixes as $filename) {
+            $ruta = $temp_dir . $filename;
+            if (file_exists($ruta)) {
+                unlink($ruta);
+            }
+        }
+
+        // 2. Eliminar imágenes temporales generadas al subir
+        $pattern_imgs = glob($temp_dir . "{$cert_number}_img_*");
+        foreach ($pattern_imgs as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+
+        // 3. Eliminar imágenes generadas desde ZIP
+        $pattern_zip_imgs = glob($temp_dir . "{$cert_number}_zip_img_*");
+        foreach ($pattern_zip_imgs as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+
+        // 4. Eliminar carpeta de imágenes extraídas del ZIP
+        $dir_zip_old = $temp_dir . "{$cert_number}_old";
+        if (is_dir($dir_zip_old)) {
+            $files = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($dir_zip_old, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach ($files as $file) {
+                ($file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname()));
+            }
+            rmdir($dir_zip_old);
+        }
+
+        // 5. Eliminar carpeta con imágenes sugeridas (uploads/temp/{cert_number}/)
+        $carpetaSugeridas = "uploads/temp/{$cert_number}/";
+        if (is_dir($carpetaSugeridas)) {
+            $archivos = glob($carpetaSugeridas . '*');
+            foreach ($archivos as $archivo) {
+                if (is_file($archivo)) {
+                    unlink($archivo);
+                }
+            }
+            rmdir($carpetaSugeridas);
         }
     }
 
-    // 2. Eliminar imágenes temporales generadas al subir
-    $pattern_imgs = glob($temp_dir . "{$cert_number}_img_*");
-    foreach ($pattern_imgs as $file) {
-        if (is_file($file)) {
-            unlink($file);
-        }
-    }
 
-    // 3. Eliminar imágenes generadas desde ZIP
-    $pattern_zip_imgs = glob($temp_dir . "{$cert_number}_zip_img_*");
-    foreach ($pattern_zip_imgs as $file) {
-        if (is_file($file)) {
-            unlink($file);
-        }
-    }
+    public function verImagenesTemporales($cert_number)
+    {
+        $ruta = 'uploads/temp/' . $cert_number . '/';
+        $imagenes = [];
 
-    // 4. Eliminar carpeta de imágenes extraídas del ZIP
-    $dir_zip_old = $temp_dir . "{$cert_number}_old";
-    if (is_dir($dir_zip_old)) {
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir_zip_old, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST
-        );
-        foreach ($files as $file) {
-            ($file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname()));
+        if (is_dir($ruta)) {
+            foreach (glob($ruta . "*.{jpg,jpeg,png,JPG,JPEG,PNG}", GLOB_BRACE) as $img) {
+                $imagenes[] = BASE_URL . str_replace('uploads/', 'uploads/', $img);
+            }
         }
-        rmdir($dir_zip_old);
-    }
-}
 
+        echo json_encode($imagenes);
+        die();
+    }
 }

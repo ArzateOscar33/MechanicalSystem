@@ -60,4 +60,10 @@ class ErroresUsuarioModel extends Query
         $sql = "SELECT * FROM correction_fields";
         return $this->selectAll($sql);
     }
+    public function getInspectores()
+{
+    $sql = "SELECT id, name FROM inspectors ORDER BY name ASC";
+    return $this->selectAll($sql);
+}
+
 }

@@ -1,43 +1,45 @@
 let tblErrores;
-let currentFieldName = '';  
+let currentFieldName = '';
+let currentProposedValue = '';
 const myModal = new bootstrap.Modal(document.getElementById("modalError"));
+const btnAccion = document.getElementById("btnAccion");
+const titleModal = document.getElementById("titleModal");
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Inicializar DataTable de errores pendientes
-  tblCertificados = $("#tblErrores").DataTable({
+  // Inicializar tablas
+  tblErrores = $("#tblErrores").DataTable({
     ajax: {
       url: base_url + "ErroresAdmin/listar",
       dataSrc: "",
     },
-    columns: [ 
+    columns: [
       { data: "certificate_id" },
       { data: "user_name" },
       { data: "field_name" },
-      { data: "current_value" }, 
+      { data: "current_value" },
       { data: "proposed_value" },
       { data: "reason" },
       { data: "status" },
       { data: "created_at" },
-      { data: "accion" }
+      { data: "accion" },
     ],
     language,
     dom,
     buttons,
   });
 
-  // Inicializar DataTable de errores corregidos
-  tblCertificados = $("#tblErroresResueltos").DataTable({
+  $("#tblErroresResueltos").DataTable({
     ajax: {
       url: base_url + "ErroresAdmin/listarResueltos",
       dataSrc: "",
     },
-    columns: [ 
+    columns: [
       { data: "certificate_id" },
       { data: "user_name" },
-      { data: "field_name" }, 
-      { data: "corregido" }, 
+      { data: "field_name" },
+      { data: "corregido" },
       { data: "status" },
-      { data: "reviewed_at" }, 
+      { data: "reviewed_at" },
       { data: "updated_at" },
     ],
     language,
@@ -46,14 +48,57 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-document.getElementById("frmEditar").addEventListener("submit", function (e) {
+document.getElementById("frmEditar").addEventListener("submit", async function (e) {
   e.preventDefault();
 
+  const field_name = document.getElementById("field_name").value;
+  const certNumber = document.getElementById("cert_number").value;
   const formData = new FormData(this);
-  const certNumber = formData.get("cert_number");
-  const field = formData.get("field_name");
 
-  const newValue = (field === 'imagenes') ? '[Archivo adjunto]' : formData.get(field);
+  if (field_name === 'images') {
+    const usarSugeridas = document.getElementById("btnUsarSugeridas").dataset.usar === "1";
+
+    Swal.fire({
+      title: "¿Reemplazar imágenes?",
+      text: usarSugeridas
+        ? "¿Deseas reemplazar con las imágenes sugeridas?"
+        : "¿Deseas reemplazar con las nuevas imágenes seleccionadas?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, reemplazar",
+      cancelButtonText: "Cancelar"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        if (usarSugeridas) {
+          const rutas = await fetch(base_url + "ErroresAdmin/verImagenesTemporales/" + certNumber)
+            .then(res => res.json());
+
+          for (let i = 0; i < rutas.length; i++) {
+            const respuesta = await fetch(rutas[i]);
+            const blob = await respuesta.blob();
+            const nombre = rutas[i].split("/").pop();
+            formData.append("imagenes[]", blob, nombre);
+          }
+        }
+
+        fetch(base_url + "ErroresAdmin/corregirCertificado", {
+          method: "POST",
+          body: formData
+        })
+          .then(response => response.json())
+          .then(res => {
+            Swal.fire(res.msg, '', res.icono);
+            tblErrores.ajax.reload();
+            myModal.hide();
+          });
+      }
+    });
+
+    return; // importante: evita envío doble
+  }
+
+  const field = formData.get("field_name");
+  const newValue = formData.get(field);
 
   Swal.fire({
     title: "¿Confirmar corrección?",
@@ -72,12 +117,12 @@ document.getElementById("frmEditar").addEventListener("submit", function (e) {
         method: "POST",
         body: formData
       })
-      .then(response => response.json())
-      .then(res => {
-        Swal.fire(res.msg, '', res.icono);
-        tblCertificados.ajax.reload();
-        myModal.hide();
-      });
+        .then(response => response.json())
+        .then(res => {
+          Swal.fire(res.msg, '', res.icono);
+          tblErrores.ajax.reload();
+          myModal.hide();
+        });
     }
   });
 });
@@ -92,14 +137,13 @@ function editCertificate(certificate_id) {
     if (this.readyState == 4 && this.status == 200) {
       const res = JSON.parse(this.responseText);
 
-      // Llenar datos generales del certificado
       document.querySelector('#id').value = res.id;
       document.querySelector('#cert_number').value = res.cert_number;
       document.querySelector('#field_name').value = res.field_name;
       currentFieldName = res.field_name;
       currentProposedValue = res.proposed_value;
 
-      // Llenar todos los campos disponibles (aunque no todos sean visibles)
+      // Llenar campos
       document.querySelector('#vin').value = res.vin;
       document.querySelector('#make').value = res.make;
       document.querySelector('#model').value = res.model;
@@ -109,20 +153,50 @@ function editCertificate(certificate_id) {
       document.querySelector('#state').value = res.state;
       document.querySelector('#zip').value = res.zip;
       document.querySelector('#inspector').value = res.inspector_name;
-      document.querySelector('#year').value = res.year; 
-      document.querySelector('#license_plate').value = res.license_plate; 
+      document.querySelector('#year').value = res.year;
+      document.querySelector('#license_plate').value = res.license_plate;
       document.querySelector('#street').value = res.street;
       document.querySelector('#proposed_value').value = res.proposed_value;
 
-      // Ocultar todos los grupos
+      // Ocultar todos
       document.querySelectorAll('.editable-field').forEach(group => {
         group.classList.add('d-none');
       });
 
-      // Mostrar solo el grupo editable
-      if (currentFieldName === 'imagenes') {
-        document.querySelector('#group_update_photos').classList.remove('d-none');
+      // Mostrar grupo correspondiente
+      if (currentFieldName === 'images') {
+        document.querySelector('#group_images').classList.remove('d-none');
         document.querySelector('#group_proposed_value').classList.add('d-none');
+
+        const contenedor = document.getElementById("imagenes_sugeridas");
+        contenedor.innerHTML = '';
+
+        fetch(base_url + "ErroresAdmin/verImagenesTemporales/" + res.cert_number)
+          .then(res => res.json())
+          .then(data => {
+            if (Array.isArray(data) && data.length > 0) {
+              data.forEach((url) => {
+                const img = document.createElement("img");
+                img.src = url;
+                img.classList.add("img-thumbnail");
+                img.style.maxWidth = "120px";
+                img.style.margin = "5px";
+                contenedor.appendChild(img);
+              });
+              document.getElementById("group_images_preview").style.display = "block";
+              document.getElementById("btnUsarSugeridas").dataset.usar = "1";
+            } else {
+              document.getElementById("group_images_preview").style.display = "none";
+              document.getElementById("btnUsarSugeridas").dataset.usar = "0";
+            }
+          });
+
+        // Botón para activar uso de sugeridas
+        document.getElementById("btnUsarSugeridas").addEventListener("click", function () {
+          Swal.fire("Imágenes sugeridas activadas", "Se usarán las imágenes temporales.", "info");
+          this.dataset.usar = "1";
+        });
+
       } else {
         const targetGroup = document.querySelector('#group_' + currentFieldName);
         const proposedGroup = document.querySelector('#group_proposed_value');
@@ -132,33 +206,12 @@ function editCertificate(certificate_id) {
         } else {
           console.warn("No se encontró el grupo para el campo:", currentFieldName);
         }
+        document.getElementById("group_images_preview").style.display = "none";
       }
 
-      // Mostrar modal
       btnAccion.textContent = 'Actualizar';
       titleModal.textContent = "CORREGIR CAMPO DEL CERTIFICADO";
       myModal.show();
     }
   };
 }
-function verImagenes(cert_number) {
-  fetch(base_url + "ErroresAdmin/verImagenes/" + cert_number)
-    .then(res => res.json())
-    .then(data => {
-      if (Array.isArray(data)) {
-        let html = '';
-        data.forEach(url => {
-          html += `<img src="${url}" class="img-thumbnail m-1" style="max-width: 200px;" />`;
-        });
-        Swal.fire({
-          title: 'Imágenes del Certificado',
-          html: html,
-          width: '80%',
-          showCloseButton: true
-        });
-      } else {
-        alertas(data.error, 'error');
-      }
-    });
-}
-

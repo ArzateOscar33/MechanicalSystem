@@ -50,40 +50,86 @@ class ErroresUsuario extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $cert_number = $_POST['cert_number'] ?? '';
             $user_id = $_SESSION['id_usuario'];
-            $field_name = $_POST['field_name'] ?? '';  // <- Aquí se captura
+            $field_name = $_POST['field_name'] ?? '';
             $proposed_value = $_POST['proposed_value'] ?? '';
             $reason = $_POST['reason'] ?? '';
     
-            // Validación básica de campos obligatorios
-            if (empty($cert_number) || empty($field_name) || empty($proposed_value)) {
+            // Validación básica
+            if (empty($cert_number) || empty($field_name)) {
                 echo json_encode(['msg' => 'Todos los campos son obligatorios', 'icono' => 'warning']);
                 return;
             }
     
-            // ✅ Aquí debes agregar la validación contra la lista blanca
+            // Validar campo permitido
             $permitidos = array_column($this->model->getCamposPermitidos(), 'field_name');
             if (!in_array($field_name, $permitidos)) {
                 echo json_encode(['msg' => 'Campo no permitido para corrección', 'icono' => 'error']);
                 return;
             }
     
-            // Verificación de certificado válido
+            // Validar existencia del certificado y plazo
             $certificado = $this->model->validarCertificadoUsuarioEnPlazo($cert_number, $user_id);
             $esEnPlazo = !empty($certificado) ? 1 : 0;
-            
-            // Aunque esté fuera de plazo, seguimos permitiendo el registro:
-            $certificadoExistente = $certificadoExistente = $this->model->validarCertificadoPorUsuario($cert_number, $user_id); // ahora sin validación de fecha
+    
+            $certificadoExistente = $this->model->validarCertificadoPorUsuario($cert_number, $user_id);
             if (empty($certificadoExistente)) {
                 echo json_encode(['msg' => 'Certificado no válido para este usuario', 'icono' => 'error']);
                 return;
             }
-            
     
-            // Obtener valor actual del campo
+            // Si el campo es "imagenes", tratamos diferente
+            if ($field_name === 'images') {
+                $imagenes = $_FILES['imagenes'] ?? null;
+            
+                if (empty($imagenes) || empty($imagenes['name'][0])) {
+                    echo json_encode(['msg' => 'Debe subir al menos una imagen', 'icono' => 'warning']);
+                    return;
+                }
+            
+                $idCorreccion = $this->model->registrarCorreccion(
+                    $cert_number,
+                    $user_id,
+                    $field_name,
+                    null,
+                    'Imagenes nuevas adjuntas',
+                    $reason,
+                    $esEnPlazo
+                );
+            
+                if ($idCorreccion > 0) {
+                    $rutaTemp = 'uploads/temp/' . $cert_number;
+                    if (!is_dir($rutaTemp)) {
+                        mkdir($rutaTemp, 0777, true);
+                    }
+            
+                    $total = count($imagenes['name']);
+                    $total = min(9, $total);
+            
+                    for ($i = 0; $i < $total; $i++) {
+                        if (is_uploaded_file($imagenes['tmp_name'][$i])) {
+                            $tmpName = $imagenes['tmp_name'][$i];
+                            $nombre = basename($imagenes['name'][$i]);
+                            move_uploaded_file($tmpName, $rutaTemp . '/' . $nombre);
+                        }
+                    }
+            
+                    echo json_encode(['msg' => 'Error en imágenes reportado correctamente', 'icono' => 'success']);
+                    return;
+                } else {
+                    echo json_encode(['msg' => 'Error al guardar el reporte', 'icono' => 'error']);
+                    return;
+                }
+            }
+    
+            // Para los campos normales
+            if (empty($proposed_value)) {
+                echo json_encode(['msg' => 'Debe indicar el valor propuesto', 'icono' => 'warning']);
+                return;
+            }
+    
             $valorActual = $this->model->getValorActualCampo($cert_number, $field_name);
             $current_value = $valorActual[$field_name] ?? null;
     
-            // Registrar corrección
             $idCorreccion = $this->model->registrarCorreccion(
                 $cert_number,
                 $user_id,
@@ -91,19 +137,25 @@ class ErroresUsuario extends Controller
                 $current_value,
                 $proposed_value,
                 $reason,
-                $esEnPlazo // 1 o 0
+                $esEnPlazo
             );
-            
+    
             if ($idCorreccion > 0) {
                 echo json_encode(['msg' => 'Error reportado correctamente', 'icono' => 'success']);
             } else {
                 echo json_encode(['msg' => 'Error al guardar el reporte', 'icono' => 'error']);
             }
         }
-        return;
     }
     
-
+    
+    public function getInspectores()
+    {
+        $inspectores = $this->model->getInspectores();
+        echo json_encode($inspectores);
+        die();
+    }
+    
 
     //eliminar user
     public function delete($idUser)
