@@ -165,15 +165,19 @@ function editCertificate(certificate_id) {
       document.querySelector("#field_name").value = res.field_name;
       currentFieldName = res.field_name;
       currentProposedValue = res.proposed_value;
+
       if (currentFieldName === "address_id") {
         document.querySelector("#group_proposed_value label").textContent =
           "Dirección actual";
+      } else if (currentFieldName === "inspector_id") {
+        document.querySelector("#group_proposed_value label").textContent =
+          "Inspector actual";
       } else {
         document.querySelector("#group_proposed_value label").textContent =
-          "Valor Sugerido";
+          "Valor Propuesto";
       }
 
-      // Llenar campos
+      // Llenar campos del certificado
       document.querySelector("#vin").value = res.vin;
       document.querySelector("#make").value = res.make;
       document.querySelector("#model").value = res.model;
@@ -182,26 +186,19 @@ function editCertificate(certificate_id) {
       document.querySelector("#city").value = res.city;
       document.querySelector("#state").value = res.state;
       document.querySelector("#zip").value = res.zip;
-      const direccionActual = `${res.number} ${res.street}, ${res.city}, ${res.state} ${res.zip}`;
-      document.querySelector("#inspector").value = res.inspector_name;
+      document.querySelector("#street").value = res.street;
       document.querySelector("#year").value = res.year;
       document.querySelector("#license_plate").value = res.license_plate;
-      document.querySelector("#street").value = res.street;
-      document.querySelector("#proposed_value").value = res.proposed_value;
-      if (currentFieldName === "address_id") {
-        document.querySelector("#proposed_value").value = direccionActual;
-      }
-      if (currentFieldName === "inspector_id") {
-        // Mostrar inspector actual legible en campo readonly
-        document.querySelector("#proposed_value").value = res.inspector_name;
-      }
+      document.querySelector("#inspector").value = res.inspector_name;
 
-      // Ocultar todos
+      const direccionActual = `${res.number} ${res.street}, ${res.city}, ${res.state} ${res.zip}`;
+
+      // Ocultar todos los grupos
       document.querySelectorAll(".editable-field").forEach((group) => {
         group.classList.add("d-none");
       });
 
-      // Mostrar grupo correspondiente
+      // Casos especiales
       if (currentFieldName === "images") {
         document.querySelector("#group_images").classList.remove("d-none");
         document.querySelector("#group_proposed_value").classList.add("d-none");
@@ -233,7 +230,6 @@ function editCertificate(certificate_id) {
             }
           });
 
-        // Botón para activar uso de sugeridas
         document
           .getElementById("btnUsarSugeridas")
           .addEventListener("click", function () {
@@ -245,13 +241,13 @@ function editCertificate(certificate_id) {
             this.dataset.usar = "1";
           });
       } else if (currentFieldName === "address_id") {
-        const grupo = document.querySelector("#group_address_id");
-        grupo.classList.remove("d-none");
-        // Mostrar dirección actual (readonly)
+        document.querySelector("#group_address_id").classList.remove("d-none");
         document
           .querySelector("#group_proposed_value")
           .classList.remove("d-none");
-        // Cargar direcciones disponibles
+
+        document.querySelector("#proposed_value").value = direccionActual;
+
         fetch(base_url + "ErroresUsuario/getDirecciones")
           .then((res) => res.json())
           .then((data) => {
@@ -265,27 +261,20 @@ function editCertificate(certificate_id) {
               select.appendChild(option);
             });
 
-            // Selecciona el valor propuesto si existe
             if (currentProposedValue) {
               select.value = currentProposedValue;
             }
           });
-
-        document.getElementById("group_images_preview").style.display = "none";
       } else if (currentFieldName === "inspector_id") {
-        const grupo = document.querySelector("#group_inspector_id");
-        grupo.classList.remove("d-none");
-
-        // Mostrar valor actual (readonly)
+        document
+          .querySelector("#group_inspector_id")
+          .classList.remove("d-none");
         document
           .querySelector("#group_proposed_value")
           .classList.remove("d-none");
 
-        // Cambiar etiqueta del label
-        document.querySelector("#group_proposed_value label").textContent =
-          "Inspector actual";
+        document.querySelector("#proposed_value").value = res.inspector_name;
 
-        // Llenar el select con inspectores
         fetch(base_url + "ErroresUsuario/getInspectores")
           .then((res) => res.json())
           .then((data) => {
@@ -303,6 +292,25 @@ function editCertificate(certificate_id) {
               select.value = currentProposedValue;
             }
           });
+      } else {
+        // Campos normales (vin, make, owner_name, etc.)
+        const grupoCampo = document.querySelector("#group_" + currentFieldName);
+        if (grupoCampo) {
+          grupoCampo.classList.remove("d-none");
+        }
+
+        document
+          .querySelector("#group_proposed_value")
+          .classList.remove("d-none");
+
+        const inputEditable = document.getElementById(currentFieldName);
+        if (inputEditable) {
+          inputEditable.value = res.current_value || "";
+        }
+
+        const inputPropuesto = document.getElementById("proposed_value");
+        inputPropuesto.value = res.proposed_value || "";
+        inputPropuesto.readOnly = true;
       }
 
       btnAccion.textContent = "Actualizar";
@@ -310,6 +318,41 @@ function editCertificate(certificate_id) {
       myModal.show();
     }
   };
+  // Limpiar todos los campos del modal al cerrarlo
+  document
+    .getElementById("modalError")
+    .addEventListener("hidden.bs.modal", function () {
+      // Ocultar todos los campos editables
+      document.querySelectorAll(".editable-field").forEach((group) => {
+        group.classList.add("d-none");
+        const input = group.querySelector("input, select");
+        if (input) {
+          input.value = "";
+        }
+      });
+
+      // Limpiar imágenes sugeridas
+      const contenedorImagenes = document.getElementById("imagenes_sugeridas");
+      if (contenedorImagenes) contenedorImagenes.innerHTML = "";
+
+      // Ocultar preview de imágenes sugeridas
+      const preview = document.getElementById("group_images_preview");
+      if (preview) preview.style.display = "none";
+
+      // Reiniciar botón de sugeridas
+      const btnUsar = document.getElementById("btnUsarSugeridas");
+      if (btnUsar) btnUsar.dataset.usar = "0";
+
+      // Reset de valores auxiliares
+      currentFieldName = "";
+      currentProposedValue = "";
+
+      // Restaurar etiqueta por defecto
+      const labelPropuesta = document.querySelector(
+        "#group_proposed_value label"
+      );
+      if (labelPropuesta) labelPropuesta.textContent = "Valor Sugerido";
+    });
 }
 
 function errorDelete(id) {
@@ -320,9 +363,7 @@ function errorDelete(id) {
 
   http.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
-      console.log(this.responseText);
       const res = JSON.parse(this.responseText);
-    
 
       if (res.icono === "success") {
         Swal.fire(res.msg, "", "success");

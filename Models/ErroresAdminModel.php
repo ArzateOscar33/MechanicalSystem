@@ -52,27 +52,8 @@ class ErroresAdminModel extends Query
         return $this->selectAll($sql);
     }
 
-
-    public function obtenerCertificados($cert_number)
-    {
-        $sql = "SELECT 
-                    c.cert_number, 
-                    c.vin,
-                    c.make, 
-                    c.owner_name, 
-                    i.name AS inspector_name, 
-                    c.zip_file_path,
-                    a.city, 
-                    a.state, 
-                    a.zip, 
-                    c.mfg_in 
-                FROM certificates c 
-                LEFT JOIN addresses a ON c.address_id = a.id 
-                LEFT JOIN inspectors i ON c.inspector_id = i.id
-                WHERE c.cert_number = '$cert_number'
-                ";
-        return $this->selectAll($sql);
-    }
+ 
+    
     public function obtenerCertificado($cert_number)
     {
         $sql = "SELECT 
@@ -99,35 +80,53 @@ class ErroresAdminModel extends Query
 
         return $this->select($sql);
     }
+
+
     public function obtenerCertificadoPorError($id)
     {
         $sql = "SELECT 
+            r.id,
+            r.field_name,
+            r.current_value,
+            r.proposed_value,
+    
             c.cert_number, 
             c.vin,
             c.make, 
             c.model,
             c.year,
+            c.license_plate,
             c.owner_name, 
-            i.name AS inspector_name, 
             c.zip_file_path,
+            c.address_id,
+            c.mfg_in,
+    
             a.city, 
             a.state, 
             a.zip, 
             a.number,
             a.street,
-            c.address_id,
-            c.mfg_in,
-            r.id,
-            r.field_name,
-            r.proposed_value
+    
+            i.name AS inspector_name, -- actual
+            ip.name AS inspector_propuesto,
+    
+            CONCAT(a.number, ' ', a.street, ', ', a.city, ', ', a.state, ' ', a.zip) AS direccion_actual,
+            CONCAT(ap.number, ' ', ap.street, ', ', ap.city, ', ', ap.state, ' ', ap.zip) AS direccion_propuesta
+    
         FROM correction_requests r
         LEFT JOIN certificates c ON r.certificate_id = c.cert_number
         LEFT JOIN addresses a ON c.address_id = a.id
         LEFT JOIN inspectors i ON c.inspector_id = i.id
+        LEFT JOIN inspectors ip ON r.field_name = 'inspector_id' AND r.proposed_value = ip.id
+        LEFT JOIN addresses ap ON r.field_name = 'address_id' AND r.proposed_value = ap.id
         WHERE r.id = '$id'
         LIMIT 1";
+        
         return $this->select($sql);
     }
+    
+    
+    
 
 
 

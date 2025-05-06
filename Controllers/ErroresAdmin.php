@@ -344,30 +344,96 @@ class ErroresAdmin extends Controller
 
         // HTML del PDF
         $html = '
-            <style>
-                body { font-family: Arial, sans-serif; font-size: 12px; }
-                .header-barcodes { display: flex; justify-content: space-between; margin-bottom: 10px; }
-                .barcode-block { text-align: center; flex: 1; }
-                .barcode-block img { max-height: 50px; }
-                .title { font-size: 20px; font-weight: bold; text-align: center; margin: 10px 0; }
-                .logo { text-align: center; margin-bottom: 15px; }
-                .section { margin-bottom: 20px; }
-                table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-                table, th, td { border: 1px solid #999; }
-                th { background-color: #f0f0f0; padding: 6px; text-align: left; }
-                td { padding: 6px; }
-            </style>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        font-size: 12px;
+                    }
+
+                    .header-barcodes {
+                        width: 100%;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 10px;
+                    }
+
+                    .barcode-block {
+                        text-align: center;
+                        flex: 1;
+                    }
+
+                    .barcode-block img {
+                        max-width: 100%;
+                        height: auto;
+                        max-height: 50px;
+                    }
+
+                    .barcode-label {
+                        font-weight: bold;
+                        margin-bottom: 5px;
+                    }
+
+                    .title {
+                        font-size: 20px;
+                        font-weight: bold;
+                        text-align: center;
+                        margin-top: 10px;
+                        margin-bottom: 10px;
+                    }
+
+                    .logo {
+                        text-align: center;
+                        margin-bottom: 15px;
+                    }
+
+                    .section {
+                        margin-bottom: 20px;
+                    }
+
+                    .label {
+                        font-weight: bold;
+                        color: #333;
+                    }
+
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 8px;
+                    }
+
+                    table, th, td {
+                        border: 1px solid #999;
+                    }
+
+                    th {
+                        background-color: #f0f0f0;
+                        padding: 6px;
+                        text-align: left;
+                    }
+
+                    td {
+                        padding: 6px;
+                    }
+                    </style>
+
+                <div style="display: flex; justify-content: center; align-items: flex-start; gap: 40px; margin-bottom: 10px;">
+                    <div style="text-align: center; display: inline-block;">
+                        <div style="font-weight: bold; margin-bottom: 4px;">VIN</div>
+                        <img src="' . $vinBarcodeWeb . '" alt="VIN Barcode" style="max-height: 50px;">
+                    </div>
+                    <div style="text-align: center; display: inline-block;">
+                        <div style="font-weight: bold; margin-bottom: 4px;">Cert Number</div>
+                        <img src="' . $certBarcodeWeb . '" alt="Cert Barcode" style="max-height: 50px;">
+                    </div>
+                </div>
+                    <!-- Nombre del Centro -->
+                    <div class="title">MECHANICAL EMISSIONS SERVICES LLC</div>
     
-            <div class="header-barcodes">
-                <div class="barcode-block"><div>VIN</div><img src="' . $vinBarcodeWeb . '"></div>
-                <div class="barcode-block"><div>Cert Number</div><img src="' . $certBarcodeWeb . '"></div>
-            </div>
-    
-            <div class="title">MECHANICAL EMISSIONS SERVICES LLC</div>
-            <div class="logo"><img src="' . $logoPath . '" height="80"></div>
+            <div style="text-align:center"><img src="' . $logoPath . '" height="80"></div>
             <div class="section"><b>Dirección:</b> ' . $direccion_texto . '</div>
             <div class="section"><b>Cert Number:</b> ' . $cert_number . '</div>
-    
+        
             <div class="section"><b>Vehicle Information</b>
                 <table>
                     <tr><th>Campo</th><th>Valor</th></tr>
@@ -381,7 +447,7 @@ class ErroresAdmin extends Controller
                     <tr><td>Propietario</td><td>' . $data['propietario'] . '</td></tr>
                 </table>
             </div>
-    
+        
             <div class="section"><b>Monitoreo & Certificación</b>
                 <table>
                     <tr><th>Tipo</th><th>Resultado</th></tr>
@@ -393,7 +459,7 @@ class ErroresAdmin extends Controller
                     <tr><td>Resultado General</td><td>' . $data['resultado_prueba'] . '</td></tr>
                 </table>
             </div>
-    
+        
             <div class="section"><b>Información del Inspector</b>
                 <table>
                     <tr><th>Campo</th><th>Valor</th></tr>
@@ -404,18 +470,20 @@ class ErroresAdmin extends Controller
                     <tr><td>Fecha Expiración</td><td>' . $data['fecha_expiracion'] . '</td></tr>
                 </table>
             </div>
-    
+        
             <div class="section"><b>Ubicación Geográfica</b><br>' . $data['latitud'] . ', ' . $data['longitud'] . '</div>
-    
-            <div class="section"><b>Código QR del Certificado</b><br><img src="' . $qrWebPath . '" width="150"></div>
-    
+        
+            <div class="section"><b>Código QR del Certificado</b><br>
+                <img src="' . $qrWebPath . '" width="150">
+            </div>
+        
             <div class="section"><b>Imágenes del vehículo</b><br>' . $imagenesHTML . '</div>
-    
+        
             <div class="section" style="text-align:center">
                 <small>Powered by -- Formula 1 Auto Repair -- (BAR NBR RC 00305923)<br>
                 To verify this certificate, go to www.mecemissions.com</small>
             </div>
-        ';
+            ';
 
         // Generar PDF
         $options = new \Dompdf\Options();
