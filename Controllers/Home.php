@@ -6,6 +6,8 @@ class Home extends Controller
     public function __construct() {
         parent::__construct();
         session_start();
+        $this->validarSesionInactividad();
+        $this->validarSesionUnica();
         $this->adminModel = new AdminModel(); // Instanciar el modelo de Admin
     }
     public function index()

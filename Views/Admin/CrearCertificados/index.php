@@ -223,11 +223,11 @@
                 </div>
             </div>
 
-            <div class="card mb-4">
+            <div class="card mb-4" hidden>
                 <div class="card-header">
                     <h5>Códigos QR</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" >
                     <button type="button" class="btn btn-success" id="generarQR" disabled>Generar Código QR</button>
 
                     <div id="codigoQR" class="mt-3"></div>

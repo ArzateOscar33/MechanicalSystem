@@ -15,6 +15,8 @@ class ErroresAdmin extends Controller
     {
         parent::__construct();
         session_start();
+        $this->validarSesionInactividad();
+        $this->validarSesionUnica();
         if (empty($_SESSION['nombre_usuario'])) {
             header('Location: ' . BASE_URL . 'admin');
             exit;
@@ -214,10 +216,29 @@ class ErroresAdmin extends Controller
 
         // 3. Obtener monitoreos desde la tabla monitoring_results
         $monitoreos = $this->model->obtenerMonitoreos($cert_number);
-        foreach ($monitoreos as $m) {
-            $key = 'monitor_' . strtolower(str_replace(' ', '_', $m['monitor_type']));
-            $data[$key] = $m['result'];
+        foreach ($monitoreos as $monitor) {
+            switch ($monitor['monitor_type']) {
+                case 'Fallo Encendido':
+                    $data['monitor_fallo_encendido'] = $monitor['result'];
+                    break;
+                case 'Sistema Combustible':
+                    $data['monitor_sistema_combustible'] = $monitor['result'];
+                    break;
+                case 'Catalizador Integral':
+                    $data['monitor_integral_catalizador'] = $monitor['result'];
+                    break;
+                case 'Catalizador':
+                    $data['monitor_catalizador'] = $monitor['result'];
+                    break;
+                case 'Sensor C2':
+                    $data['monitor_sensor_c2'] = $monitor['result'];
+                    break;
+                case 'Resultado General':
+                    $data['resultado_prueba'] = $monitor['result'];
+                    break;
+            }
         }
+        
 
         // 4.  Definir ruta de trabajo del PDF
         $pdf_path = "uploads/temp/{$cert_number}.pdf";

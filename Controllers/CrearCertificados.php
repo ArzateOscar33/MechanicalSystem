@@ -13,6 +13,8 @@ class CrearCertificados extends Controller
     {
         parent::__construct();
         session_start();
+        $this->validarSesionInactividad();
+        $this->validarSesionUnica();
         if (empty($_SESSION['nombre_usuario'])) {
             header('Location: ' . BASE_URL . 'admin');
             exit;

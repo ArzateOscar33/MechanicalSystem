@@ -9,7 +9,7 @@ class Admin extends Controller
     public function index()
     {
         if (!empty($_SESSION['nombre_usuario'])) {
-            header('Location: '. BASE_URL . 'admin/home');
+            header('Location: ' . BASE_URL . 'admin/home');
             exit;
         }
         $data['title'] = 'Acceso al sistema';
@@ -26,11 +26,17 @@ class Admin extends Controller
                     $respuesta = array('msg' => 'el correo no existe', 'icono' => 'warning');
                 } else {
                     if (password_verify($_POST['clave'], $data['clave'])) {
+                        // Generar token único
+                        $token = bin2hex(random_bytes(32));
+                        require_once 'Models/SesionModel.php';
+$sesionModel = new SesionModel();
+$sesionModel->guardarToken($data['id'], $token);
                         $_SESSION['email'] = $data['correo'];
                         $_SESSION['nombre_usuario'] = $data['first_name'];
                         $_SESSION['apellido_usuario'] = $data['last_name'];
                         $_SESSION['id_usuario'] = $data['id'];
                         $_SESSION['rol_usuario'] = $this->model->getRolUsuario($data['id']);
+                        $_SESSION['session_token'] = $token; // Guardar en sesión también
                         $respuesta = array('msg' => 'datos correcto', 'icono' => 'success');
                     } else {
                         $respuesta = array('msg' => 'contraseña incorrecta', 'icono' => 'warning');
@@ -53,105 +59,112 @@ class Admin extends Controller
     public function home()
     {
         if (empty($_SESSION['nombre_usuario'])) {
-            header('Location: '. BASE_URL . 'admin');
+            header('Location: ' . BASE_URL . 'admin');
             exit;
         }
         $data['title'] = 'Panel Administrativo';
         $data['certificadosTotales'] = $this->model->certificadosTotales();
         $data['ciudadesTotales'] = $this->model->ciudadesTotales();
-        
+
         $data['estadosTotales'] = $this->model->estadosTotales();
         $data['fechasPorMes'] = $this->model->certificadosPorMes();
-        
+
         $data['inspector_name'] = $this->model->inspectoresTotales();
         $data['certificadosPorInspector'] = $this->model->certificadosPorInspector();
-        
+
         $this->views->getView('admin/administracion', "index", $data);
     }
 
     public function ciudadesCertificados()
     {
         if (empty($_SESSION['nombre_usuario'])) {
-            header('Location: '. BASE_URL . 'admin');
+            header('Location: ' . BASE_URL . 'admin');
             exit;
         }
         $data = $this->model->ciudadesCertificados();
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
-
     }
     public function estadosCertificados()
     {
         if (empty($_SESSION['nombre_usuario'])) {
-            header('Location: '. BASE_URL . 'admin');
+            header('Location: ' . BASE_URL . 'admin');
             exit;
         }
         $data = $this->model->estadosCertificados();
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
-
     }
 
     public function certificadosPorMes()
-{
-    if (empty($_SESSION['nombre_usuario'])) {
-        header('Location: '. BASE_URL . 'admin');
-        exit;
-    }
-    $data = $this->model->certificadosPorMes();
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    die();
-}
-
-
-public function certificadosPorInspector()
-{
-    if (empty($_SESSION['nombre_usuario'])) {
-        header('Location: '. BASE_URL . 'admin');
-        exit;
-    }
-    $data = $this->model->certificadosPorInspector();
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    die();
-
-
-}
-
-public function certificadosPorDia()
-{
-    if (empty($_SESSION['nombre_usuario'])) {
-        header('Location: '. BASE_URL . 'admin');
-        exit;
+    {
+        if (empty($_SESSION['nombre_usuario'])) {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
+        $data = $this->model->certificadosPorMes();
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
     }
 
-    $anio = isset($_POST['anio']) ? $_POST['anio'] : date('Y');
-    $mes = isset($_POST['mes']) ? $_POST['mes'] : date('m');
-    $estado = isset($_POST['estado']) ? $_POST['estado'] : '';
-    $ciudad = isset($_POST['ciudad']) ? $_POST['ciudad'] : '';
 
-    $data = $this->model->certificadosPorDia($anio, $mes, $estado, $ciudad);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    die();
-}
+    public function certificadosPorInspector()
+    {
+        if (empty($_SESSION['nombre_usuario'])) {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
+        $data = $this->model->certificadosPorInspector();
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
+    }
 
-public function getEstados()
-{
-    $data = $this->model->estadosCertificados();
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    die();
-}
+    public function certificadosPorDia()
+    {
+        if (empty($_SESSION['nombre_usuario'])) {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
 
-public function getCiudades()
-{
-    $data = $this->model->ciudadesCertificados();
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    die();
-}
+        $anio = isset($_POST['anio']) ? $_POST['anio'] : date('Y');
+        $mes = isset($_POST['mes']) ? $_POST['mes'] : date('m');
+        $estado = isset($_POST['estado']) ? $_POST['estado'] : '';
+        $ciudad = isset($_POST['ciudad']) ? $_POST['ciudad'] : '';
+
+        $data = $this->model->certificadosPorDia($anio, $mes, $estado, $ciudad);
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+
+    public function getEstados()
+    {
+        $data = $this->model->estadosCertificados();
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+
+    public function getCiudades()
+    {
+        $data = $this->model->ciudadesCertificados();
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
+    }
     public function salir()
     {
-        session_destroy();
-        header('Location: ' . BASE_URL);
+        session_start();
+        require_once 'Models/SesionModel.php';
+        $sesionModel = new SesionModel();
+    
+        if (isset($_SESSION['id_usuario'])) {
+            $sesionModel->limpiarToken($_SESSION['id_usuario']);
+        }
+    
+        session_unset(); // Limpia datos
+        $_SESSION['msg_error'] = 'Has cerrado sesión correctamente.';
+        header('Location: ' . BASE_URL . 'admin');
+        exit;
     }
+    
 
     public function inspectoresDisponibles()
     {
@@ -159,45 +172,44 @@ public function getCiudades()
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
     }
-    
+
     public function certificadosPorMesInspector()
     {
         if (empty($_SESSION['nombre_usuario'])) {
-            header('Location: '. BASE_URL . 'admin');
+            header('Location: ' . BASE_URL . 'admin');
             exit;
         }
-    
+
         $anio = isset($_POST['anio']) ? $_POST['anio'] : date('Y');
         $inspector = isset($_POST['inspector']) ? $_POST['inspector'] : '';
-    
+
         $data = $this->model->certificadosPorMesInspector($anio, $inspector);
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
     }
     public function lugarInspector()
-{
-    if (empty($_SESSION['nombre_usuario'])) {
-        header('Location: ' . BASE_URL . 'admin');
-        exit;
+    {
+        if (empty($_SESSION['nombre_usuario'])) {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
+
+        $inspector = isset($_POST['inspector']) ? $_POST['inspector'] : '';
+        $data = $this->model->lugarInspector($inspector);
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
     }
 
-    $inspector = isset($_POST['inspector']) ? $_POST['inspector'] : '';
-    $data = $this->model->lugarInspector($inspector);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    die();
-}
+    public function certificadosPorCiudadPorInspector()
+    {
+        if (empty($_SESSION['nombre_usuario'])) {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
 
-public function certificadosPorCiudadPorInspector()
-{
-    if (empty($_SESSION['nombre_usuario'])) {
-        header('Location: ' . BASE_URL . 'admin');
-        exit;
+        $inspector = isset($_POST['inspector']) ? $_POST['inspector'] : '';
+        $data = $this->model->certificadosPorCiudadPorInspector($inspector);
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        die();
     }
-
-    $inspector = isset($_POST['inspector']) ? $_POST['inspector'] : '';
-    $data = $this->model->certificadosPorCiudadPorInspector($inspector);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    die();
-}
-
 }

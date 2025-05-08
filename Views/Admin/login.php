@@ -1,5 +1,3 @@
-
-
 <!doctype html>
 <html lang="en">
 
@@ -40,11 +38,19 @@
                                     <div class="text-center">
                                         <h3 class="">Sign in</h3>
                                     </div>
+                                    <?php if (!empty($_SESSION['msg_error'])): ?>
+                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            <?= $_SESSION['msg_error'] ?>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                        <?php unset($_SESSION['msg_error']); ?>
+                                    <?php endif; ?>
                                     <div class="login-separater text-center mb-4"> <span>OR SIGN IN WITH EMAIL</span>
-                                        <hr/>
+                                        <hr />
                                     </div>
                                     <div class="form-body">
                                         <form class="row g-3" id="formulario">
+
                                             <div class="col-12">
                                                 <label for="email" class="form-label">Correo Electrónico</label>
                                                 <input type="email" class="form-control" id="email" name="email" value="arzateoscar33@gmail.com" placeholder="Correo Electronico">
