@@ -60,7 +60,7 @@
                     </li>
                 <?php endif; ?>
 
-                <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 2|| $_SESSION['rol_usuario'] == 3): // Admin,manager,capturista
+                <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 2 || $_SESSION['rol_usuario'] == 3): // Admin,manager,capturista
                 ?>
                     <li>
                         <a href="<?php echo BASE_URL . 'CrearCertificados'; ?>">
@@ -82,12 +82,19 @@
                         </a>
                     </li>
                 <?php endif; ?>
-
+                <?php if ($_SESSION['rol_usuario'] == 1):  // Administrador
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'ControlInspectores'; ?>">
+                            <div class="menu-title"><i class='fas fa-wrench'></i> Control de Inspectores</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
                 <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin 
                 ?>
                     <li>
                         <a href="<?php echo BASE_URL . 'DescargarCertificados'; ?>">
-                            <div class="menu-title"><i class='fas fa-download'></i> Control de  Certificados</div>
+                            <div class="menu-title"><i class='fas fa-download'></i> Control de Certificados</div>
                         </a>
                     </li>
                 <?php endif; ?>
@@ -107,7 +114,7 @@
                         </a>
                     </li>
                 <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 2 ||$_SESSION['rol_usuario'] == 3):  // Administrador, Manager, Capturista
+                <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 2 || $_SESSION['rol_usuario'] == 3):  // Administrador, Manager, Capturista
                 ?>
                     <li>
                         <a href="<?php echo BASE_URL . 'ErroresUsuario'; ?>">
@@ -115,7 +122,7 @@
                         </a>
                     </li>
                 <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1 ):  // Administrador
+                <?php if ($_SESSION['rol_usuario'] == 1):  // Administrador
                 ?>
                     <li>
                         <a href="<?php echo BASE_URL . 'ErroresAdmin'; ?>">
@@ -125,7 +132,7 @@
                 <?php endif; ?>
             </ul>
             </ul>
-            
+
             <!--end navigation-->
         </div>
         <!--end sidebar wrapper -->
@@ -147,7 +154,7 @@
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                           
+
                             <li><a class="dropdown-item" href="<?php echo BASE_URL . 'admin/salir'; ?>"><i class='bx bx-log-out-circle'></i><span>Logout</span></a>
                             </li>
                         </ul>

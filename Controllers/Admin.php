@@ -29,8 +29,8 @@ class Admin extends Controller
                         // Generar token único
                         $token = bin2hex(random_bytes(32));
                         require_once 'Models/SesionModel.php';
-$sesionModel = new SesionModel();
-$sesionModel->guardarToken($data['id'], $token);
+                        $sesionModel = new SesionModel();
+                        $sesionModel->guardarToken($data['id'], $token);
                         $_SESSION['email'] = $data['correo'];
                         $_SESSION['nombre_usuario'] = $data['first_name'];
                         $_SESSION['apellido_usuario'] = $data['last_name'];
@@ -154,17 +154,17 @@ $sesionModel->guardarToken($data['id'], $token);
         session_start();
         require_once 'Models/SesionModel.php';
         $sesionModel = new SesionModel();
-    
+
         if (isset($_SESSION['id_usuario'])) {
             $sesionModel->limpiarToken($_SESSION['id_usuario']);
         }
-    
+
         session_unset(); // Limpia datos
         $_SESSION['msg_error'] = 'Has cerrado sesión correctamente.';
         header('Location: ' . BASE_URL . 'admin');
         exit;
     }
-    
+
 
     public function inspectoresDisponibles()
     {
