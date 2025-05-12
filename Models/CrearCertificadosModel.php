@@ -127,11 +127,12 @@ class CrearCertificadosModel extends Query
         return $res ? $res['total'] : 0;
     }
 
-    public function obtenerDireccionPorId($id)
-    {
-        $sql = "SELECT `number`, `street`, `city`, `state`, `zip` FROM addresses WHERE id = {$id}";
-        return $this->select($sql); 
-    }
+public function obtenerDireccionPorId($id)
+{
+    $sql = "SELECT `number`, `street`, `city`, `state`, `zip`, `latitude`, `longitude` FROM addresses WHERE id = {$id}";
+    return $this->select($sql);
+}
+
     // Obtener todos los inspectores para mostrar en formulario
 public function obtenerInspectores()
 {
@@ -164,4 +165,18 @@ public function insertarInspector($nombre)
     $sql = "INSERT INTO inspectors (name) VALUES (?)";
     return $this->insertar($sql, [$nombre]);
 }
+public function insertarDireccionConCoordenadas($number, $street, $city, $state, $zip, $lat, $lon)
+{
+    $sql = "INSERT INTO addresses (`number`, `street`, `city`, `state`, `zip`, `latitude`, `longitude`) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
+    return $this->insertar($sql, [$number, $street, $city, $state, $zip, $lat, $lon]);
+}
+public function consultarDireccionConCoordenadas($number, $street, $city, $state, $zip, $lat, $lon)
+{
+    $sql = "SELECT id FROM addresses 
+            WHERE `number` = ? AND `street` = ? AND `city` = ? 
+              AND `state` = ? AND `zip` = ? AND `latitude` = ? AND `longitude` = ?";
+    return $this->select($sql, [$number, $street, $city, $state, $zip, $lat, $lon]);
+}
+
 }

@@ -47,11 +47,11 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   $("#filterCiudad").on("change", function () {
-    tblCertificados.column(6).search(this.value).draw();
+    tblCertificados.column(5).search(this.value).draw();
   });
 
   $("#filterEstado").on("change", function () {
-    tblCertificados.column(7).search(this.value).draw();
+    tblCertificados.column(6).search(this.value).draw();
   });
 
   $("#filterZip").on("keyup change", function () {

@@ -72,7 +72,9 @@ class CrearCertificados extends Controller
                 'Resultado General' => $_POST['resultado_prueba']
             ];
 
-            // Dirección
+            $latitud = $_POST['latitud'] ?? null;
+            $longitud = $_POST['longitud'] ?? null;
+
             if (!empty($_POST['direccion_existente'])) {
                 $address_id = $_POST['direccion_existente'];
             } else {
@@ -82,9 +84,14 @@ class CrearCertificados extends Controller
                 $state = $_POST['estado'];
                 $zip = $_POST['zip'];
 
-                $direccion = $this->model->consultarDireccion($number, $street, $city, $state, $zip);
-                $address_id = $direccion ? $direccion['id'] : $this->model->insertarDireccion($number, $street, $city, $state, $zip);
+                $direccion = $this->model->consultarDireccionConCoordenadas($number, $street, $city, $state, $zip, $latitud, $longitud);
+                if ($direccion) {
+                    $address_id = $direccion['id'];
+                } else {
+                    $address_id = $this->model->insertarDireccionConCoordenadas($number, $street, $city, $state, $zip, $latitud, $longitud);
+                }
             }
+
 
             // Verificar si existe el inspector o crear uno nuevo
             $inspector_id = $this->model->insertarInspector($inspector_name);
@@ -160,9 +167,17 @@ class CrearCertificados extends Controller
     private function generarCertificadoPDF($cert_number, $pdf_path, $data, $address_id)
     {
         // Obtener el nombre del inspector
-        $inspector_id = $this->model->insertarInspector($data['inspector']);
+        $inspector_id = is_numeric($data['inspector'])
+            ? $data['inspector']
+            : $this->model->insertarInspector($data['inspector']);
         $inspector = $this->model->obtenerInspectorPorId($inspector_id);
         $inspector_name = $inspector ? $inspector['name'] : $data['inspector'];
+        $firmaRelPath = $inspector['direccion_firma'] ?? '';
+        $firmaFullPath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $firmaRelPath;
+        $firmaWebPath = BASE_URL . $firmaRelPath;
+
+        $firma_path = (file_exists($firmaFullPath)) ? $firmaWebPath : '';
+
 
         // Rutas de logo y QR para web
         $logoPath = BASE_URL . 'assets/images/logo.png';
@@ -329,7 +344,12 @@ class CrearCertificados extends Controller
                 <table>
                     <tr><th>Campo</th><th>Valor</th></tr>
                     <tr><td>Inspector</td><td>' . $inspector_name . '</td></tr>
-                    <tr><td>Firma del Inspector</td><td>' . $data['firma_inspector'] . '</td></tr>
+                    <tr>
+                    <td>Firma del Inspector</td>
+                    <td style="text-align:center;">
+                        ' . ($firma_path ? '<img src="' . $firma_path . '" style="height:40px; max-width:100px;">' : 'Sin firma') . '
+                    </td>
+                    </tr>
                     <tr><td>EBITN</td><td>' . $data['ebitn'] . '</td></tr>
                     <tr><td>Fecha</td><td>' . $data['fecha'] . '</td></tr>
                     <tr><td>Fecha Expiración</td><td>' . $data['fecha_expiracion'] . '</td></tr>
@@ -359,6 +379,18 @@ class CrearCertificados extends Controller
         $dompdf->render();
 
         file_put_contents($pdf_path, $dompdf->output());
+    }
+
+    public function obtenerFirmaInspector($id)
+    {
+        $inspector = $this->model->obtenerInspectorPorId($id);
+
+        if ($inspector && !empty($inspector['direccion_firma'])) {
+            echo json_encode(['firma' => BASE_URL . $inspector['direccion_firma']], JSON_UNESCAPED_UNICODE);
+        } else {
+            echo json_encode(['firma' => ''], JSON_UNESCAPED_UNICODE);
+        }
+        exit;
     }
 
 
@@ -398,6 +430,15 @@ class CrearCertificados extends Controller
                 unlink($archivo);
             }
         }
+    }
+    public function obtenerLatLon($id)
+    {
+        $data = $this->model->obtenerDireccionPorId($id);
+        echo json_encode([
+            'latitude' => $data['latitude'] ?? '',
+            'longitude' => $data['longitude'] ?? ''
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
     private function responderJSON($mensaje, $icono)

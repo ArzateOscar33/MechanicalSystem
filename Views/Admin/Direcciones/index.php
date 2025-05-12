@@ -13,6 +13,8 @@
                         <th>Ciudad</th> 
                         <th>Estado</th>
                         <th>Codigo Postal</th>
+                        <th>Latitude</th>
+                        <th>Longitud</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -53,6 +55,16 @@
                         <label for="clave">Codigo Postal</label>
                         <input id="zip" class="form-control" type="text" name="zip" placeholder="#####">
                     </div>
+                    <div class="form-group mb-2">
+                        <label for="clave">Latitud</label>
+                        <input id="latitude" class="form-control" type="text" name="latitude" placeholder="Latitud">
+                    </div>
+                    
+                         <div class="form-group mb-2">
+                        <label for="clave">Longitud</label>
+                        <input id="longitude" class="form-control" type="text" name="longitude" placeholder="Longitud">
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-primary" type="submit" id="btnAccion">Registrar</button>

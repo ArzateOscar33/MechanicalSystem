@@ -17,6 +17,8 @@ document.addEventListener("DOMContentLoaded", function () {
       { data: "city" },
       { data: "state" },
       { data: "zip" },
+      { data: "latitude" },
+      { data: "longitude" }, 
       { data: "accion" },
     ],
     language,
@@ -34,8 +36,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const city = document.querySelector("#city").value;
     const state = document.querySelector("#state").value;
     const zip = document.querySelector("#zip").value;
+    const latitude = document.querySelector("#latitude").value;
+    const longitude = document.querySelector("#longitude").value;
 
-    if (number === "" || street===""|| city === "" || state === "" || zip === "") {
+    if (number === "" || street===""|| city === "" || state === "" || zip === ""  || latitude === "" || longitude === "") {
       Swal.fire("Advertencia", "Todos los campos son obligatorios", "warning");
       return;
     }
@@ -48,14 +52,17 @@ document.addEventListener("DOMContentLoaded", function () {
     formData.append("city", city);
     formData.append("state", state);
     formData.append("zip", zip);
+    formData.append("latitude", latitude);
+    formData.append("longitude", longitude);
 
     const http = new XMLHttpRequest();
     http.open("POST", url, true);
     http.send(formData);
     http.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
-        const res = JSON.parse(this.responseText);
         console.log(this.responseText);
+        const res = JSON.parse(this.responseText);
+        
         Swal.fire("Mensaje", res.msg, res.icono);
         if (res.icono === "success") {
           modalDirecciones.hide();
@@ -78,7 +85,7 @@ function editarDireccion(idPro) {
   http.send();
   http.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
-      
+      console.log(this.responseText);
       const res = JSON.parse(this.responseText);
       document.querySelector("#id").value = res.id;
       document.querySelector("#number").value = res.number;
@@ -86,6 +93,8 @@ function editarDireccion(idPro) {
       document.querySelector("#city").value = res.city;
       document.querySelector("#state").value = res.state;
       document.querySelector("#zip").value = res.zip;
+      document.querySelector("#latitude").value = res.latitude;
+      document.querySelector("#longitude").value = res.longitude;
       btnAccion.textContent = "Actualizar";
     }
   };

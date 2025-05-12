@@ -29,7 +29,9 @@
                                 <option value="<?= $dir['id']; ?>"><?= $dir['nombre']; ?></option>
                             <?php endforeach; ?>
                         </select>
+
                     </div>
+
 
                     <!-- Campos para nueva dirección -->
                     <div id="nuevaDireccionCampos">
@@ -56,6 +58,18 @@
                         <div class="mb-3">
                             <label for="telefono" class="form-label">Teléfono</label>
                             <input type="text" class="form-control" id="telefono" name="telefono" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="ubicacion_geografica" class="form-label">Ubicación Geográfica (Latitud/Longitud)</label>
+                            <div class="row mb-3">
+                                <div class="col mb-3">
+                                    <input type="number" class="form-control" id="latitud" name="latitud" placeholder="Latitud" step="any" min="-180" max="180" required>
+                                </div>
+                                <div class="col mb-3">
+                                    <input type="number" class="form-control" id="longitud" name="longitud" placeholder="Longitud" step="any" min="-180" max="180" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -126,17 +140,7 @@
                         <label for="numero_certificado" class="form-label">Número de Certificado</label>
                         <input type="text" class="form-control" id="numero_certificado" name="numero_certificado" value="<?= $data['cert_number']; ?>" readonly>
                     </div>
-                    <div class="mb-3">
-                        <label for="ubicacion_geografica" class="form-label">Ubicación Geográfica (Latitud/Longitud)</label>
-                        <div class="row">
-                            <div class="col">
-                                <input type="number" class="form-control" id="latitud" name="latitud" placeholder="Latitud" step="any" min="-90" max="90" required>
-                            </div>
-                            <div class="col">
-                                <input type="number" class="form-control" id="longitud" name="longitud" placeholder="Longitud" step="any" min="-180" max="180" required>
-                            </div>
-                        </div>
-                    </div>
+
                     <div class="mb-3">
                         <label for="monitor_integral_catalizador" class="form-label">Monitor Integral del Catalizador</label>
                         <select class="form-select" id="monitor_integral_catalizador" name="monitor_integral_catalizador" required>
@@ -183,22 +187,14 @@
                         <select class="form-select" id="inspector" name="inspector" required>
                             <option value="">-- Seleccionar Inspector --</option>
                             <?php foreach ($data['inspectores'] as $inspector): ?>
-                                <option value="<?= $inspector['name']; ?>"><?= $inspector['name']; ?></option>
+                                <option value="<?= $inspector['id']; ?>"><?= $inspector['name']; ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <!-- Opción para agregar un nuevo inspector -->
-                        <div class="form-check mt-2">
-                            <input class="form-check-input" type="checkbox" id="nuevo_inspector_check">
-                            <label class="form-check-label" for="nuevo_inspector_check">
-                                Nuevo Inspector
-                            </label>
+                        <div id="firmaPreview" class="mt-3" style="display: none; text-align: center;">
+                            <p><strong>Firma del Inspector:</strong></p>
+                            <img id="imagenFirma" src="" alt="Firma del inspector" style="height: 50px; max-width: 120px;">
                         </div>
-                        <input type="text" class="form-control mt-2" id="nuevo_inspector" style="display:none;" placeholder="Nombre del nuevo inspector">
-                    </div>
-                    <div class="mb-3">
-                        <label for="firma_inspector" class="form-label">Firma del Inspector</label>
-                        <input type="text" class="form-control" id="firma_inspector" name="firma_inspector" required>
-                    </div>
+ 
                     <div class="mb-3">
                         <label for="fecha" class="form-label">Fecha</label>
                         <input type="date" class="form-control" id="fecha" name="fecha" required>
@@ -227,7 +223,7 @@
                 <div class="card-header">
                     <h5>Códigos QR</h5>
                 </div>
-                <div class="card-body" >
+                <div class="card-body">
                     <button type="button" class="btn btn-success" id="generarQR" disabled>Generar Código QR</button>
 
                     <div id="codigoQR" class="mt-3"></div>

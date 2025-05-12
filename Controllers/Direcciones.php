@@ -56,11 +56,13 @@ class Direcciones extends Controller
         $city = trim($_POST['city']);
         $state = trim($_POST['state']);
         $zip = trim($_POST['zip']);
+        $latitude = trim($_POST['latitude']);
+        $longitude = trim($_POST['longitude']);
 
-        if (empty($id) || empty($number) ||  empty($street) || empty($city) || empty($state) || empty($zip)) {
+        if (empty($id) || empty($number) ||  empty($street) || empty($city) || empty($state) || empty($zip) || empty($latitude) || empty($longitude)) {
             $res = ['msg' => 'Todos los campos son obligatorios', 'icono' => 'warning'];
         } else {
-            $result = $this->model->modificar($number,$street, $city, $state, $zip, $id);
+            $result = $this->model->modificar($number,$street, $city, $state, $zip, $latitude, $longitude, $id);
             if ($result) {
                 $res = ['msg' => 'Dirección actualizada correctamente', 'icono' => 'success'];
             } else {
