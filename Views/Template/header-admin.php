@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -51,103 +52,74 @@
                     </a>
                 </li>
 
-                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
-                ?>
+                <!-- Certificados -->
+                <li>
+                    <a href="javascript:;" class="has-arrow">
+                        <div class="parent-icon"><i class='fas fa-file-alt'></i></div>
+                        <div class="menu-title">Certificados</div>
+                    </a>
+                    <ul>
+                        <?php if ($_SESSION['rol_usuario'] == 1): ?>
+                            <li><a href="<?php echo BASE_URL . 'CargarCertificados'; ?>"><i class='fas fa-upload '></i>Cargar Certificados</a></li>
+                        <?php endif; ?>
+                        <?php if ($_SESSION['rol_usuario'] <= 3): ?>
+                            <li><a href="<?php echo BASE_URL . 'CrearCertificados'; ?>"><i class='fas fa-plus-circle'></i>Crear Nuevo</a></li>
+                            <li><a href="<?php echo BASE_URL . 'BuscarCertificados'; ?>"><i class='fas fa-search'></i>Buscar Certificados</a></li>
+                        <?php endif; ?>
+                        <?php if ($_SESSION['rol_usuario'] == 1): ?>
+                            <li><a href="<?php echo BASE_URL . 'DescargarCertificados'; ?>"><i class='fas fa-download'></i>Control de Certificados</a></li>
+                        <?php endif; ?>
+                    </ul>
+                </li>
+
+                <!-- Errores -->
+                <li>
+                    <a href="javascript:;" class="has-arrow">
+                        <div class="parent-icon"><i class='fas fa-bug'></i></div>
+                        <div class="menu-title">Errores</div>
+                    </a>
+                    <ul>
+                        <?php if ($_SESSION['rol_usuario'] <= 3): ?>
+                            <li><a href="<?php echo BASE_URL . 'ErroresUsuario'; ?>"><i class='fas fa-exclamation-triangle'></i>Reportar Errores (Usuario)</a></li>
+                        <?php endif; ?>
+                        <?php if ($_SESSION['rol_usuario'] == 1): ?>
+                            <li><a href="<?php echo BASE_URL . 'ErroresAdmin'; ?>"><i class='fas fa-exclamation-circle'></i>Revisión de Errores (Admin)</a></li>
+                        <?php endif; ?>
+                    </ul>
+                </li>
+
+                <!-- Administración -->
+                <?php if ($_SESSION['rol_usuario'] == 1): ?>
                     <li>
-                        <a href="<?php echo BASE_URL . 'CargarCertificados'; ?>">
-                            <div class="menu-title"><i class='fas fa-upload'></i> Cargar Certificados</div>
+                        <a href="javascript:;" class="has-arrow">
+                            <div class="parent-icon"><i class='fas fa-cogs'></i></div>
+                            <div class="menu-title">Administración</div>
                         </a>
+                        <ul>
+                            <li><a href="<?php echo BASE_URL . 'Usuarios'; ?>"><i class='mb-1 fas fa-user'></i>Usuarios</a></li>
+                            <li><a href="<?php echo BASE_URL . 'ControlInspectores'; ?>"><i class='fas fa-wrench'></i>Inspectores</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Direcciones'; ?>"><i class='fas fa-map-marked-alt'></i>Direcciones</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Importaciones'; ?>"><i class='fas fa-file-import'></i>Importaciones</a></li>
+                        </ul>
                     </li>
                 <?php endif; ?>
 
-                <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 2 || $_SESSION['rol_usuario'] == 3): // Admin,manager,capturista
-                ?>
+                <!-- Empleados -->
+                <?php if ($_SESSION['rol_usuario'] == 1): ?>
                     <li>
-                        <a href="<?php echo BASE_URL . 'CrearCertificados'; ?>">
-                            <div class="menu-title"><i class='fas fa-plus-circle'></i> Crear Nuevo Certificado</div>
+                        <a href="javascript:;" class="has-arrow">
+                            <div class="parent-icon"><i class='fas fa-user-tie'></i></div>
+                            <div class="menu-title">Personal</div>
                         </a>
-                    </li>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'BuscarCertificados'; ?>">
-                            <div class="menu-title"><i class='fas fa-search'></i> Busqueda de Certificados</div>
-                        </a>
+                        <ul>
+                            <li><a href="<?php echo BASE_URL . 'Departamentos'; ?>"><i class='fas fa-book'></i>Departamentos</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Empleados'; ?>"><i class='fas fa-user-tie'></i>Empleados</a></li>
+                        </ul>
                     </li>
                 <?php endif; ?>
+            </ul>
 
-                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin 
-                ?>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'Usuarios'; ?>">
-                            <div class="menu-title"><i class='fas fa-user'></i> Usuarios</div>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1):  // Administrador
-                ?>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'ControlInspectores'; ?>">
-                            <div class="menu-title"><i class='fas fa-wrench'></i> Control de Inspectores</div>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin 
-                ?>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'DescargarCertificados'; ?>">
-                            <div class="menu-title"><i class='fas fa-download'></i> Control de Certificados</div>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin 
-                ?>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'Direcciones'; ?>">
-                            <div class="menu-title"><i class='fas fa-map-marked-alt'></i> Control de Direcciones</div>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin 
-                ?>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'Importaciones'; ?>">
-                            <div class="menu-title"><i class='fas fa-file-import'></i> Registro de Importaciones</div>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1 || $_SESSION['rol_usuario'] == 2 || $_SESSION['rol_usuario'] == 3):  // Administrador, Manager, Capturista
-                ?>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'ErroresUsuario'; ?>">
-                            <div class="menu-title"><i class='fas fa-exclamation-triangle'></i> Reportar Errores de Usuario</div>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1):  // Administrador
-                ?>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'ErroresAdmin'; ?>">
-                            <div class="menu-title"><i class='fas fa-exclamation-circle'></i> Reportar Errores de Admin</div>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1):  // Administrador
-                ?>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'Departamentos'; ?>">
-                            <div class="menu-title"><i class='fas fa-exclamation-circle'></i> Control Departamentos</div>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($_SESSION['rol_usuario'] == 1):  // Administrador
-                ?>
-                    <li>
-                        <a href="<?php echo BASE_URL . 'Empleados'; ?>">
-                            <div class="menu-title"><i class='fas fa-user-tie'></i> Control de Empleados</div>
-                        </a>
-                    </li>
-                <?php endif; ?>
-            </ul>
-            </ul>
+
 
             <!--end navigation-->
         </div>
