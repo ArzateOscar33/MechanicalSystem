@@ -130,6 +130,22 @@
                         </a>
                     </li>
                 <?php endif; ?>
+                <?php if ($_SESSION['rol_usuario'] == 1):  // Administrador
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'Departamentos'; ?>">
+                            <div class="menu-title"><i class='fas fa-exclamation-circle'></i> Control Departamentos</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                <?php if ($_SESSION['rol_usuario'] == 1):  // Administrador
+                ?>
+                    <li>
+                        <a href="<?php echo BASE_URL . 'Empleados'; ?>">
+                            <div class="menu-title"><i class='fas fa-user-tie'></i> Control de Empleados</div>
+                        </a>
+                    </li>
+                <?php endif; ?>
             </ul>
             </ul>
 
