@@ -94,12 +94,15 @@ class CrearCertificados extends Controller
 
 
             // Verificar si existe el inspector o crear uno nuevo
-            $inspector_id = $this->model->insertarInspector($inspector_name);
+            $inspector_input = $_POST['inspector'];
 
-            if (!$inspector_id) {
-                $this->responderJSON("Error al registrar el inspector", "error");
+            if (!is_numeric($inspector_input)) {
+                $this->responderJSON("Inspector no válido: debe seleccionar uno existente", "error");
                 return;
             }
+
+            $inspector_id = intval($inspector_input);
+
 
             // Insertar certificado con inspector_id
             $insert = $this->model->insertarCertificado(
