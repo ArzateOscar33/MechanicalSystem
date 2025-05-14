@@ -36,27 +36,66 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelector("#position_id").innerHTML = '<option value="">Seleccione un departamento primero</option>';
     });
 
-    // Submit del formulario
-    frm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        const url = base_url + "Empleados/registrar";
-        const data = new FormData(frm);
+frm.addEventListener("submit", function (e) {
+    e.preventDefault();
 
-        const http = new XMLHttpRequest();
-        http.open("POST", url, true);
-        http.send(data);
-        http.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
-                const res = JSON.parse(this.responseText);
-                Swal.fire("Aviso", res.msg.toUpperCase(), res.icono);
-                if (res.icono === "success") {
-                    tblEmpleados.ajax.reload();
-                    frm.reset();
-                    generarNumeroEmpleado(); // genera nuevo número para el siguiente
-                }
-            }
-        };
+    // Validar campos requeridos
+    const camposRequeridos = [
+        "first_name",
+        "last_name",
+        "curp",
+        "rfc",
+        "employee_number",
+        "phone",
+        "email",
+        "birth_date",
+        "gender",
+        "department_id",
+        "position_id"
+    ];
+
+    let camposVacios = [];
+
+    camposRequeridos.forEach(id => {
+        const campo = frm.querySelector(`#${id}`);
+        if (!campo || campo.value.trim() === "") {
+            camposVacios.push(id);
+            campo.classList.add("is-invalid");
+        } else {
+            campo.classList.remove("is-invalid");
+        }
     });
+
+    if (camposVacios.length > 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Campos requeridos",
+            text: "Por favor completa todos los campos obligatorios antes de continuar.",
+        });
+        return;
+    }
+
+    // Continuar con el envío si todo está bien
+    const url = base_url + "Empleados/registrar";
+    const data = new FormData(frm);
+
+    const http = new XMLHttpRequest();
+    http.open("POST", url, true);
+    http.send(data);
+    http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+           console.log(this.responseText); // debug
+            const res = JSON.parse(this.responseText);
+            Swal.fire("Aviso", res.msg.toUpperCase(), res.icono);
+            if (res.icono === "success") {
+                tblEmpleados.ajax.reload();
+                frm.reset();
+                generarNumeroEmpleado(); // genera nuevo número para el siguiente
+            }
+        }
+    };
+});
+
 
     // Cuando se selecciona un departamento, cargar sus puestos
     document.querySelector("#department_id").addEventListener("change", function () {
@@ -148,7 +187,43 @@ function eliminarEmpleado(id) {
     });
 }
 
-// (Preparado para futuro uso)
-function editarEmpleado(id) {
-    // Implementar para cargar datos en pestaña DetalleEmpleado si se activa edición
+ 
+const inputCurpNuevo = document.querySelector("#curp");
+const inputRfcNuevo = document.querySelector("#rfc");
+
+inputCurpNuevo?.addEventListener("blur", function () {
+    validarCampoUnicoNuevo("curp", this.value);
+});
+
+inputRfcNuevo?.addEventListener("blur", function () {
+    validarCampoUnicoNuevo("rfc", this.value);
+});
+
+function validarCampoUnicoNuevo(tipo, valor) {
+    const url = base_url + `Empleados/validar${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
+    const data = new FormData();
+    data.append(tipo, valor);
+    data.append("id", 0); // en nuevo empleado no hay ID
+
+    const http = new XMLHttpRequest();
+    http.open("POST", url, true);
+    http.send(data);
+    http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+          console.log(this.responseText);
+            const res = JSON.parse(this.responseText);
+            if (res.existe) {
+                Swal.fire({
+                    icon: "warning",
+                    title: `El ${tipo.toUpperCase()} ya está registrado`,
+                    text: "Por favor ingresa uno diferente",
+                });
+                document.querySelector(`#${tipo}`).classList.add("is-invalid");
+                frm.querySelector('button[type="submit"]').disabled = true;
+            } else {
+                document.querySelector(`#${tipo}`).classList.remove("is-invalid");
+                frm.querySelector('button[type="submit"]').disabled = false;
+            }
+        }
+    };
 }

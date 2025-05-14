@@ -76,9 +76,70 @@ class EmpleadosModel extends Query {
 }
 public function buscarEmpleadoPorNumero($numero)
 {
-    $sql = "SELECT * FROM employees WHERE employee_number = '$numero'";
+    $sql = "SELECT 
+    e.id,
+    e.employee_number,
+    e.department_id,
+    d.name AS department_name,
+    CONCAT(e.first_name, ' ', e.last_name) AS nombre_completo
+FROM employees e
+JOIN departments d ON e.department_id = d.id
+WHERE e.employee_number = $numero";
     return $this->select($sql);
 }
  
+public function existeCurp($curp)
+{
+    $sql = "SELECT id FROM employees WHERE curp = '$curp'";
+    return $this->select($sql);
+}
+
+public function existeRfc($rfc)
+{
+    $sql = "SELECT id FROM employees WHERE rfc = '$rfc'";
+    return $this->select($sql);
+}
+public function existeCurpExcepto($curp, $id)
+{
+    $sql = "SELECT id FROM employees WHERE curp = '$curp' AND id != $id";
+    return $this->select($sql);
+}
+
+public function existeRfcExcepto($rfc, $id)
+{
+    $sql = "SELECT id FROM employees WHERE rfc = '$rfc' AND id != $id";
+    return $this->select($sql);
+}
+public function actualizarEmpleado($datos)
+{
+    $sql = "UPDATE employees SET first_name = ?, last_name = ?, second_last_name = ?, curp = ?, rfc = ?, 
+            employee_number = ?, phone = ?, email = ?, birth_date = ?, gender = ?, photo_path = ?, 
+            department_id = ?, position_id = ? WHERE id = ?";
+    return $this->save($sql, $datos);
+}
+
+public function existeNumeroEmpleadoExcepto($numero, $id)
+{
+    $sql = "SELECT id FROM employees WHERE employee_number = '$numero' AND id != $id";
+    return $this->select($sql);
+}
+public function existeNumeroEmpleado($numero)
+{
+    $sql = "SELECT id FROM employees WHERE employee_number = '$numero'";
+    return $this->select($sql);
+}
+public function obtenerUltimoNumeroEmpleadoDelDia($fecha)
+{
+    $prefijo = date('Ymd'); // ejemplo: 20250514
+    $sql = "SELECT MAX(employee_number) AS ultimo FROM employees WHERE employee_number LIKE '" . $prefijo . "%'";
+    return $this->select($sql);
+}
+
+public function obtenerFotoEmpleado($id)
+{
+    $sql = "SELECT photo_path FROM employees WHERE id = $id";
+    return $this->select($sql);
+}
+
 
 }

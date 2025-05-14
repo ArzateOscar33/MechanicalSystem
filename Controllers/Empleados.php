@@ -31,10 +31,11 @@ class Empleados extends Controller
         $data['title'] = 'Control de Departamentos';
         $this->views->getView('admin/empleados', 'index', $data);
     }
-
     public function registrar()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+            // PRIMERO: Recolectar los datos del formulario
             $campos = [
                 'first_name',
                 'last_name',
@@ -55,7 +56,23 @@ class Empleados extends Controller
                 $datos[$campo] = isset($_POST[$campo]) ? trim($_POST[$campo]) : null;
             }
 
-            // Procesar foto
+            // VALIDACIONES: CURP, RFC y número de empleado duplicado
+            if ($this->model->existeCurp($datos['curp'])) {
+                echo json_encode(['msg' => 'CURP ya registrada', 'icono' => 'warning']);
+                return;
+            }
+
+            if ($this->model->existeRfc($datos['rfc'])) {
+                echo json_encode(['msg' => 'RFC ya registrado', 'icono' => 'warning']);
+                return;
+            }
+
+            if ($this->model->existeNumeroEmpleado($datos['employee_number'])) {
+                echo json_encode(['msg' => 'Número de empleado ya registrado. Recarga e intenta de nuevo.', 'icono' => 'warning']);
+                return;
+            }
+
+            // PROCESAR FOTO
             $fotoRuta = null;
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
                 $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
@@ -70,6 +87,7 @@ class Empleados extends Controller
                 }
             }
 
+            // REGISTRO FINAL
             $registro = [
                 $datos['first_name'],
                 $datos['last_name'],
@@ -88,29 +106,29 @@ class Empleados extends Controller
             ];
 
             $res = $this->model->registrarEmpleado($registro);
-            echo json_encode($res ? ['msg' => 'Empleado registrado correctamente', 'icono' => 'success']
+
+            echo json_encode($res
+                ? ['msg' => 'Empleado registrado correctamente', 'icono' => 'success']
                 : ['msg' => 'Error al registrar', 'icono' => 'error']);
         }
         die();
     }
 
 
+
+
     public function actualizar()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = intval($_POST['id']);
-    
-            if ($id <= 0) {
-                echo json_encode(['msg' => 'ID de empleado inválido', 'icono' => 'warning']);
-                return;
-            }
-    
+            $id = $_POST['id'];
+
             $campos = [
                 'first_name',
                 'last_name',
                 'second_last_name',
                 'curp',
                 'rfc',
+                'employee_number',
                 'phone',
                 'email',
                 'birth_date',
@@ -118,39 +136,58 @@ class Empleados extends Controller
                 'department_id',
                 'position_id'
             ];
-    
+
             $datos = [];
             foreach ($campos as $campo) {
                 $datos[$campo] = isset($_POST[$campo]) ? trim($_POST[$campo]) : null;
             }
-    
-            // Validación de claves foráneas
-            if (!is_numeric($datos['department_id']) || !is_numeric($datos['position_id'])) {
-                echo json_encode(['msg' => 'Departamento o puesto inválido', 'icono' => 'warning']);
+
+            // VALIDAR DUPLICADOS
+            if ($this->model->existeCurpExcepto($datos['curp'], $id)) {
+                echo json_encode(['msg' => 'CURP ya registrada por otro empleado', 'icono' => 'warning']);
                 return;
             }
-    
-            // Manejo de foto
-            $fotoRuta = $_POST['foto_actual'] ?? null;
+
+            if ($this->model->existeRfcExcepto($datos['rfc'], $id)) {
+                echo json_encode(['msg' => 'RFC ya registrado por otro empleado', 'icono' => 'warning']);
+                return;
+            }
+
+            if ($this->model->existeNumeroEmpleadoExcepto($datos['employee_number'], $id)) {
+                echo json_encode(['msg' => 'Número de empleado ya registrado por otro', 'icono' => 'warning']);
+                return;
+            }
+
+            // PROCESAR FOTO
+            $fotoRuta = $_POST['foto_actual'];
+
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
                 $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
                 $nombreFoto = 'empleado_' . uniqid() . '.' . $ext;
                 $destino = 'assets/empleados/fotografia/' . $nombreFoto;
-    
+
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], $destino)) {
+                    // ✅ Borra la imagen anterior si existe y es diferente de la nueva
+                    if (!empty($_POST['foto_actual']) && file_exists($_POST['foto_actual'])) {
+                        unlink($_POST['foto_actual']);
+                    }
+
+                    // Asigna nueva ruta
                     $fotoRuta = $destino;
                 } else {
-                    echo json_encode(['msg' => 'Error al subir la nueva foto', 'icono' => 'error']);
+                    echo json_encode(['msg' => 'Error al subir la nueva fotografía', 'icono' => 'error']);
                     return;
                 }
             }
-    
-            $datosParaActualizar = [
+
+
+            $registro = [
                 $datos['first_name'],
                 $datos['last_name'],
                 $datos['second_last_name'],
                 strtoupper($datos['curp']),
                 strtoupper($datos['rfc']),
+                $datos['employee_number'],
                 $datos['phone'],
                 $datos['email'],
                 $datos['birth_date'],
@@ -160,16 +197,32 @@ class Empleados extends Controller
                 $datos['position_id'],
                 $id
             ];
-    
-            $res = $this->model->modificarEmpleado($datosParaActualizar);
-    
+
+            $res = $this->model->actualizarEmpleado($registro);
+
             echo json_encode($res
                 ? ['msg' => 'Empleado actualizado correctamente', 'icono' => 'success']
-                : ['msg' => 'Error al actualizar empleado', 'icono' => 'error']);
+                : ['msg' => 'Error al actualizar', 'icono' => 'error']);
         }
         die();
     }
-    
+
+    public function validarCurp()
+    {
+        $curp = strtoupper(trim($_POST['curp']));
+        $id = isset($_POST['id']) ? $_POST['id'] : 0;
+        $existe = $this->model->existeCurpExcepto($curp, $id);
+        echo json_encode(['existe' => $existe ? true : false]);
+    }
+
+    public function validarRfc()
+    {
+        $rfc = strtoupper(trim($_POST['rfc']));
+        $id = isset($_POST['id']) ? $_POST['id'] : 0;
+        $existe = $this->model->existeRfcExcepto($rfc, $id);
+        echo json_encode(['existe' => $existe ? true : false]);
+    }
+
 
     public function editar($id)
     {
@@ -180,25 +233,47 @@ class Empleados extends Controller
         die();
     }
 
-    public function eliminar($id)
-    {
-        if (is_numeric($id)) {
-            $res = $this->model->eliminarEmpleado($id);
-            echo json_encode($res
-                ? ['msg' => 'Empleado eliminado correctamente', 'icono' => 'success']
-                : ['msg' => 'Error al eliminar empleado', 'icono' => 'error']);
+public function eliminar($id)
+{
+    if (is_numeric($id)) {
+        // Obtener la ruta de la foto antes de eliminar
+        $empleado = $this->model->obtenerFotoEmpleado($id);
+        $fotoRuta = $empleado['photo_path'] ?? null;
+
+        // Eliminar el registro
+        $res = $this->model->eliminarEmpleado($id);
+
+        if ($res) {
+            // Eliminar físicamente la foto si existe
+            if (!empty($fotoRuta) && file_exists($fotoRuta)) {
+                unlink($fotoRuta);
+            }
+
+            echo json_encode(['msg' => 'Empleado eliminado correctamente', 'icono' => 'success']);
+        } else {
+            echo json_encode(['msg' => 'Error al eliminar empleado', 'icono' => 'error']);
         }
-        die();
     }
+    die();
+}
+
 
     public function generarNumeroEmpleado()
     {
-        $fecha = date('Y-m-d');
-        $totalHoy = $this->model->contarEmpleadosHoy($fecha) + 1;
-        $numero = date('Ymd') . str_pad($totalHoy, 3, '0', STR_PAD_LEFT);
+        $res = $this->model->obtenerUltimoNumeroEmpleadoDelDia(date('Y-m-d'));
+
+        if (!empty($res['ultimo'])) {
+            $ultimo = (int)substr($res['ultimo'], 8); // extrae el consecutivo (los últimos 3 dígitos)
+            $siguiente = $ultimo + 1;
+        } else {
+            $siguiente = 1;
+        }
+
+        $numero = date('Ymd') . str_pad($siguiente, 3, '0', STR_PAD_LEFT);
         echo json_encode(['numero' => $numero]);
         die();
     }
+
 
     public function obtenerPuestos($id)
     {

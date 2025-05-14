@@ -72,9 +72,8 @@
                         <label for="buscar_numero" class="form-label">Buscar por Número</label>
                         <div class="input-group">
                             <input type="text" id="buscar_numero" class="form-control" placeholder="Ej: 20240513001">
-                            <button class="btn btn-outline-secondary" type="button" id="btnBuscarNumero">
-                                Buscar
-                            </button>
+                            <button class="btn btn-outline-secondary" type="button" id="btnBuscarNumero">Buscar</button>
+                            <button class="btn btn-outline-danger d-none" type="button" id="btnLimpiarBusqueda">Limpiar</button>
                         </div>
                     </div>
                 </div>
@@ -117,11 +116,11 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">CURP</label>
-                            <input type="text" id="detalle_curp" name="curp" class="form-control" readonly>
+                            <input type="text" id="detalle_curp" name="curp" class="form-control" oninput="this.value = this.value.toUpperCase()" readonly>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">RFC</label>
-                            <input type="text" id="detalle_rfc" name="rfc" class="form-control" readonly>
+                            <input type="text" id="detalle_rfc" name="rfc" class="form-control" oninput="this.value = this.value.toUpperCase()" readonly>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Fecha de Nacimiento</label>
