@@ -6,97 +6,72 @@ class CrearCertificadosModel extends Query
         parent::__construct();
     }
 
-    // Consultar si existe un certificado
     public function consultarCertificado($cert_number)
     {
-        $sql = "SELECT cert_number FROM certificates WHERE cert_number = '{$cert_number}'";
-        return $this->select($sql);
+        $sql = "SELECT cert_number FROM certificates WHERE cert_number = ?";
+        return $this->select($sql, [$cert_number]);
     }
 
-    // Verificar si existe una dirección
     public function consultarDireccion($number, $street, $city, $state, $zip)
     {
-        $sql = "SELECT id FROM addresses WHERE `number` = '{$number}' AND `street` = '{$street}' AND `city` = '{$city}' AND `state` = '{$state}' AND `zip` = '{$zip}'";
-        return $this->select($sql);
+        $sql = "SELECT id FROM addresses 
+                WHERE `number` = ? AND `street` = ? AND `city` = ? AND `state` = ? AND `zip` = ?";
+        return $this->select($sql, [$number, $street, $city, $state, $zip]);
     }
 
-    // Insertar nueva dirección
     public function insertarDireccion($number, $street, $city, $state, $zip)
     {
-        $sql = "INSERT INTO addresses (`number`, `street`, `city`, `state`, `zip`) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO addresses (`number`, `street`, `city`, `state`, `zip`) 
+                VALUES (?, ?, ?, ?, ?)";
         return $this->insertar($sql, [$number, $street, $city, $state, $zip]);
     }
 
     public function insertarCertificado(
-        $cert_number,
-        $vin,
-        $address_id,
-        $phone,
-        $year,
-        $mfg_in,
-        $make,
-        $owner_name,
-        $model,
-        $license_plate,
-        $odometer,
-        $inspector_id,
-        $test_date,
-        $expires,
-        $source_file
+        $cert_number, $vin, $address_id, $phone, $year, $mfg_in, $make,
+        $owner_name, $model, $license_plate, $odometer, $inspector_id,
+        $test_date, $expires, $source_file
     ) {
         $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
-    
+
         $sql = "INSERT INTO certificates (
             cert_number, vin, address_id, phone, year, mfg_in, make,
             owner_name, model, license_plate, odometer, inspector_id,
             test_date, expires, source_file, zip_file_path
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    
-        $params = [
-            $cert_number,
-            $vin,
-            $address_id,
-            $phone,
-            $year,
-            $mfg_in,
-            $make,
-            $owner_name,
-            $model,
-            $license_plate,
-            $odometer,
-            $inspector_id,
-            $test_date,
-            $expires,
-            $source_file,
-            $zip_path
-        ];
-    
-        return $this->insertar($sql, $params);
+
+        return $this->insertar($sql, [
+            $cert_number, $vin, $address_id, $phone, $year, $mfg_in, $make,
+            $owner_name, $model, $license_plate, $odometer, $inspector_id,
+            $test_date, $expires, $source_file, $zip_path
+        ]);
     }
 
-    // Insertar registros de monitoreo
     public function insertarMonitoreo($cert_number, $tipo, $resultado)
     {
-        $sql = "INSERT INTO monitoring_results (cert_number, monitor_type, result) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO monitoring_results (cert_number, monitor_type, result) 
+                VALUES (?, ?, ?)";
         return $this->insertar($sql, [$cert_number, $tipo, $resultado]);
     }
 
-    // Registrar log de importación (manual en este caso)
     public function registrarImportacion($file_name, $status, $error_message, $id_usuario)
     {
-        $sql = "INSERT INTO import_logs (file_name, status, error_message, imported_by) VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO import_logs (file_name, status, error_message, imported_by) 
+                VALUES (?, ?, ?, ?)";
         return $this->insertar($sql, [$file_name, $status, $error_message, $id_usuario]);
     }
 
     public function registrarImportacionAlternativa($file_name, $status, $error_message)
     {
-        $sql = "INSERT INTO import_logs (file_name, status, error_message) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO import_logs (file_name, status, error_message) 
+                VALUES (?, ?, ?)";
         return $this->insertar($sql, [$file_name, $status, $error_message]);
     }
 
     public function actualizarImportacion($import_id, $records_imported, $records_failed, $status, $error_message)
     {
-        $sql = "UPDATE import_logs SET records_imported = ?, records_failed = ?, status = ?, error_message = ? WHERE id = ?";
+        $sql = "UPDATE import_logs 
+                SET records_imported = ?, records_failed = ?, status = ?, error_message = ? 
+                WHERE id = ?";
         return $this->save($sql, [$records_imported, $records_failed, $status, $error_message, $import_id]);
     }
 
@@ -108,75 +83,75 @@ class CrearCertificadosModel extends Query
 
     public function obtenerIdUsuarioPorNombre($nombre_usuario)
     {
-        $sql = "SELECT id FROM usuarios WHERE nombre_usuario = '{$nombre_usuario}'";
-        $resultado = $this->select($sql);
-        return $resultado ? $resultado['id'] : 0;
+        $sql = "SELECT id FROM usuarios WHERE nombre_usuario = ?";
+        $res = $this->select($sql, [$nombre_usuario]);
+        return $res ? $res['id'] : 0;
     }
 
     public function obtenerDirecciones()
     {
         $sql = "SELECT id, CONCAT(`number`, ' ', `street`, ', ', `city`, ', ', `state`, ' ', `zip`) AS nombre
-            FROM addresses
-            ORDER BY id DESC";
+                FROM addresses
+                ORDER BY id DESC";
         return $this->selectAll($sql);
     }
+
     public function contarCertificadosPorUsuario($id_usuario)
     {
-        $sql = "SELECT COUNT(*) as total FROM certificates WHERE cert_number LIKE 'MEX{$id_usuario}-%'";
-        $res = $this->select($sql);
+        $sql = "SELECT COUNT(*) AS total FROM certificates WHERE cert_number LIKE ?";
+        $like = 'MEX' . $id_usuario . '-%';
+        $res = $this->select($sql, [$like]);
         return $res ? $res['total'] : 0;
     }
 
-public function obtenerDireccionPorId($id)
-{
-    $sql = "SELECT `number`, `street`, `city`, `state`, `zip`, `latitude`, `longitude` FROM addresses WHERE id = {$id}";
-    return $this->select($sql);
-}
-
-    // Obtener todos los inspectores para mostrar en formulario
-public function obtenerInspectores()
-{
-    $sql = "SELECT id, name FROM inspectors ORDER BY name ASC";
-    return $this->selectAll($sql);
-}
-
-// Obtener un inspector por ID
-public function obtenerInspectorPorId($id)
-{
-    $sql = "SELECT * FROM inspectors WHERE id = {$id}";
-    return $this->select($sql);
-}
-
-// Obtener un inspector por nombre
-public function obtenerInspectorPorNombre($nombre)
-{
-    $sql = "SELECT id FROM inspectors WHERE name = '{$nombre}'";
-    return $this->select($sql);
-}
-
-// Insertar nuevo inspector si no existe
-public function insertarInspector($nombre)
-{
-    $inspector = $this->obtenerInspectorPorNombre($nombre);
-    if ($inspector) {
-        return $inspector['id'];
+    public function obtenerDireccionPorId($id)
+    {
+        $sql = "SELECT `number`, `street`, `city`, `state`, `zip`, `latitude`, `longitude` 
+                FROM addresses WHERE id = ?";
+        return $this->select($sql, [$id]);
     }
-    
-    $sql = "INSERT INTO inspectors (name) VALUES (?)";
-    return $this->insertar($sql, [$nombre]);
-}
-public function insertarDireccionConCoordenadas($number, $street, $city, $state, $zip, $lat, $lon)
-{
-    $sql = "INSERT INTO addresses (`number`, `street`, `city`, `state`, `zip`, `latitude`, `longitude`) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)";
-    return $this->insertar($sql, [$number, $street, $city, $state, $zip, $lat, $lon]);
-}
-public function consultarDireccionConCoordenadas($number, $street, $city, $state, $zip, $lat, $lon)
-{
-    $sql = "SELECT id FROM addresses 
-            WHERE `number` = ? AND `street` = ? AND `city` = ? 
-              AND `state` = ? AND `zip` = ? AND `latitude` = ? AND `longitude` = ?";
-    return $this->select($sql, [$number, $street, $city, $state, $zip, $lat, $lon]);
-}
 
+    public function obtenerInspectores()
+    {
+        $sql = "SELECT id, name FROM inspectors ORDER BY name ASC";
+        return $this->selectAll($sql);
+    }
+
+    public function obtenerInspectorPorId($id)
+    {
+        $sql = "SELECT * FROM inspectors WHERE id = ?";
+        return $this->select($sql, [$id]);
+    }
+
+    public function obtenerInspectorPorNombre($nombre)
+    {
+        $sql = "SELECT id FROM inspectors WHERE name = ?";
+        return $this->select($sql, [$nombre]);
+    }
+
+    public function insertarInspector($nombre)
+    {
+        $inspector = $this->obtenerInspectorPorNombre($nombre);
+        if ($inspector) {
+            return $inspector['id'];
+        }
+
+        $sql = "INSERT INTO inspectors (name) VALUES (?)";
+        return $this->insertar($sql, [$nombre]);
+    }
+
+    public function insertarDireccionConCoordenadas($number, $street, $city, $state, $zip, $lat, $lon)
+    {
+        $sql = "INSERT INTO addresses (`number`, `street`, `city`, `state`, `zip`, `latitude`, `longitude`) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        return $this->insertar($sql, [$number, $street, $city, $state, $zip, $lat, $lon]);
+    }
+
+    public function consultarDireccionConCoordenadas($number, $street, $city, $state, $zip, $lat, $lon)
+    {
+        $sql = "SELECT id FROM addresses 
+                WHERE `number` = ? AND `street` = ? AND `city` = ? 
+                  AND `state` = ? AND `zip` = ? AND `latitude` = ? AND `longitude` = ?";
+        return $this->select($sql, [$number, $street, $city, $state, $zip, $lat, $lon]);
+    }
 }

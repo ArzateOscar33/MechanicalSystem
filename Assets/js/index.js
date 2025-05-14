@@ -1,10 +1,7 @@
 fechaChart();
 ciudadesCertificados();
 estadosCertificado();
-certificadosPorInspector();
-document.getElementById("filtroMes").addEventListener("change", aplicarFiltro);
-document.getElementById("filtroEstado").addEventListener("change", aplicarFiltro);
-document.getElementById("filtroCiudad").addEventListener("change", aplicarFiltro);
+certificadosPorInspector(); 
 
 function ciudadesCertificados() {
     const url = base_url + "admin/ciudadesCertificados";
@@ -22,8 +19,10 @@ function ciudadesCertificados() {
                 ciudades.push(res[i]['city']);
                 porcentajes.push(parseFloat(res[i]['porcentaje']).toFixed(2));  // 2 decimales
             }
-
-            var ctx = document.getElementById("ciudadesGrafico").getContext("2d");
+            const canvas = document.getElementById("ciudadesGrafico");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            //var ctx = document.getElementById("ciudadesGrafico").getContext("2d");
 
             // Gradientes originales
             var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
@@ -88,8 +87,8 @@ function estadosCertificado() {
     const http = new XMLHttpRequest();
     http.open("GET", url, true);
     http.send();
-    
-    http.onreadystatechange = function() {
+
+    http.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             //console.log(this.responseText); // Esto te ayuda a ver la respuesta en la consola
             const res = JSON.parse(this.responseText);
@@ -101,8 +100,10 @@ function estadosCertificado() {
                 estados.push(res[i]['state']);  // Aquí usamos 'state' para obtener el nombre del estado
                 porcentajes.push(res[i]['cantidad']);  // Usamos 'porcentaje' para obtener el porcentaje
             }
-
-            var ctx = document.getElementById("estadosGrafico").getContext("2d");
+            const canvas = document.getElementById("estadosGrafico");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            //var ctx = document.getElementById("estadosGrafico").getContext("2d");
 
             // Crear gradientes para los colores del gráfico
             var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
@@ -128,8 +129,8 @@ function estadosCertificado() {
                         backgroundColor: backgroundColors,
                         hoverBackgroundColor: backgroundColors,
                         borderWidth: 1,
-                         
-                         
+
+
                     }]
                 },
                 options: {
@@ -153,7 +154,7 @@ function estadosCertificado() {
 }
 
 function fechaChart() {
-    const url = base_url + "admin/certificadosPorMes"; 
+    const url = base_url + "admin/certificadosPorMes";
     const http = new XMLHttpRequest();
     http.open("GET", url, true);
     http.send();
@@ -181,8 +182,10 @@ function fechaChart() {
                 }
                 datosPorAnio[anio][mes] = total;
             }
-
-            var ctx = document.getElementById("fechaChart").getContext("2d");
+            const canvas = document.getElementById("fechaChart");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            //  var ctx = document.getElementById("fechaChart").getContext("2d");
 
             const datasets = [
                 {
@@ -275,8 +278,10 @@ function certificadosPorInspector() {
                 inspectores.push(res[i]['inspector_name']);
                 cantidades.push(parseInt(res[i]['total']));
             }
-
-            var ctx = document.getElementById("inspectoresChart").getContext("2d");
+            const canvas = document.getElementById("inspectoresChart");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            // var ctx = document.getElementById("inspectoresChart").getContext("2d");
 
             // Gradientes
             var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
@@ -303,8 +308,8 @@ function certificadosPorInspector() {
                         backgroundColor: backgroundColors,
                         hoverBackgroundColor: backgroundColors,
                         borderWidth: 1,
-                         
-                         
+
+
                     }]
                 },
                 options: {
@@ -344,8 +349,10 @@ function certificadosPorDia(anio, mes, estado = '', ciudad = '') {
             const res = JSON.parse(this.responseText);
             const dias = res.map(item => item.dia);
             const totales = res.map(item => parseInt(item.total));
-
-            const ctx = document.getElementById("certificadosDiaChart").getContext("2d");
+            const canvas = document.getElementById("certificadosDiaChart");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            //const ctx = document.getElementById("certificadosDiaChart").getContext("2d");
 
             if (window.diaChartInstance) {
                 window.diaChartInstance.destroy();
@@ -393,20 +400,68 @@ function certificadosPorDia(anio, mes, estado = '', ciudad = '') {
         }
     };
 }
-document.addEventListener("DOMContentLoaded", function () {
-    cargarEstados();
-    cargarCiudades();
-    configurarFiltroMes();
-    cargarInspectoresCiudad();
-    aplicarFiltro(); // carga inicial con mes actual
+ document.addEventListener("DOMContentLoaded", function () {
+    // Comunes para todos
+    fechaChart();
+    ciudadesCertificados();
+    estadosCertificado();
+    certificadosPorInspector();
+
+    // === Condicionales por elementos ===
+
+    // filtroMes, filtroEstado, filtroCiudad
+    if (document.getElementById("filtroMes")) {
+        configurarFiltroMes();
+        aplicarFiltro();
+
+        const filtroMes = document.getElementById("filtroMes");
+        const filtroEstado = document.getElementById("filtroEstado");
+        const filtroCiudad = document.getElementById("filtroCiudad");
+
+        filtroMes.addEventListener("change", aplicarFiltro);
+        filtroEstado.addEventListener("change", aplicarFiltro);
+        filtroCiudad.addEventListener("change", aplicarFiltro);
+
+        cargarEstados();
+        cargarCiudades();
+    }
+
+    // filtros para inspector por mes
+    if (document.getElementById("filtroInspector") && document.getElementById("filtroAnioInspector")) {
+        cargarAniosInspector();
+        cargarInspectores();
+
+const filtroInspector = document.getElementById("filtroInspector");
+const filtroAnioInspector = document.getElementById("filtroAnioInspector");
+
+if (filtroInspector && filtroAnioInspector) {
+    filtroInspector.addEventListener("change", aplicarFiltroInspector);
+    filtroAnioInspector.addEventListener("change", aplicarFiltroInspector);
+}
+
+    }
+
+    // filtro inspector por ciudad
+    if (document.getElementById("filtroInspectorCiudad")) {
+        cargarInspectoresCiudad();
+        document.getElementById("filtroInspectorCiudad").addEventListener("change", function () {
+            const inspector = this.value;
+            if (inspector) certificadosPorCiudadPorInspector(inspector);
+        });
+    }
 });
 
+
+ 
+
 function cargarEstados() {
+    const select = document.getElementById("filtroEstado");
+    if (!select) return;
+
     const url = base_url + "admin/getEstados";
     fetch(url)
         .then(res => res.json())
         .then(data => {
-            const select = document.getElementById("filtroEstado");
             data.forEach(item => {
                 const option = document.createElement("option");
                 option.value = item.state;
@@ -416,12 +471,15 @@ function cargarEstados() {
         });
 }
 
+
 function cargarCiudades() {
+    const select = document.getElementById("filtroCiudad");
+    if (!select) return;
+
     const url = base_url + "admin/getCiudades";
     fetch(url)
         .then(res => res.json())
         .then(data => {
-            const select = document.getElementById("filtroCiudad");
             data.forEach(item => {
                 const option = document.createElement("option");
                 option.value = item.city;
@@ -430,6 +488,7 @@ function cargarCiudades() {
             });
         });
 }
+
 function bloquearCiudad() {
     const estado = document.getElementById("filtroEstado").value;
     const ciudad = document.getElementById("filtroCiudad");
@@ -458,6 +517,8 @@ function aplicarFiltro() {
 }
 function configurarFiltroMes() {
     const filtroMes = document.getElementById("filtroMes");
+    if (!filtroMes) return;
+
     const fechaHoy = new Date();
     const anio = fechaHoy.getFullYear();
     const mes = String(fechaHoy.getMonth() + 1).padStart(2, '0');
@@ -465,8 +526,9 @@ function configurarFiltroMes() {
 
     filtroMes.min = "2024-12";
     filtroMes.max = hoy;
-    filtroMes.value = hoy; // setea como valor inicial el mes actual
+    filtroMes.value = hoy;
 }
+
 function cargarInspectores() {
     const url = base_url + "admin/inspectoresDisponibles";
     fetch(url)
@@ -484,6 +546,8 @@ function cargarInspectores() {
 
 function cargarAniosInspector() {
     const select = document.getElementById("filtroAnioInspector");
+    if (!select) return;
+
     const anioActual = new Date().getFullYear();
     for (let i = 2024; i <= anioActual; i++) {
         const option = document.createElement("option");
@@ -493,6 +557,7 @@ function cargarAniosInspector() {
     }
     select.value = anioActual;
 }
+
 
 function certificadosPorMesInspector(anio, inspector) {
     const url = base_url + "admin/certificadosPorMesInspector";
@@ -514,8 +579,10 @@ function certificadosPorMesInspector(anio, inspector) {
                 const index = parseInt(item.mes) - 1;
                 datos[index] = parseInt(item.total);
             });
-
-            const ctx = document.getElementById("certificadosInspectorChart").getContext("2d");
+            const canvas = document.getElementById("certificadosInspectorChart");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            //  const ctx = document.getElementById("certificadosInspectorChart").getContext("2d");
             if (window.inspectorChartInstance) {
                 window.inspectorChartInstance.destroy();
             }
@@ -550,13 +617,7 @@ function certificadosPorMesInspector(anio, inspector) {
         }
     };
 }
-document.addEventListener("DOMContentLoaded", function () {
-    cargarAniosInspector();
-    cargarInspectores();
-
-    document.getElementById("filtroInspector").addEventListener("change", aplicarFiltroInspector);
-    document.getElementById("filtroAnioInspector").addEventListener("change", aplicarFiltroInspector);
-});
+ 
 
 function aplicarFiltroInspector() {
     const anio = document.getElementById("filtroAnioInspector").value;
@@ -577,8 +638,8 @@ function actualizarOrigenInspector(inspector) {
     })
         .then(res => res.json())
         .then(data => {
-            const origen = data && data.city && data.state 
-                ? `${data.city}, ${data.state}` 
+            const origen = data && data.city && data.state
+                ? `${data.city}, ${data.state}`
                 : "No disponible";
             document.getElementById("origenTexto").textContent = origen;
         })
@@ -611,8 +672,10 @@ function certificadosPorCiudadPorInspector(inspector) {
             const res = JSON.parse(this.responseText);
             const ciudades = res.map(item => item.city);
             const cantidades = res.map(item => parseInt(item.cantidad_certificados));
-
-            const ctx = document.getElementById("ciudadesInspectorGrafico").getContext("2d");
+            const canvas = document.getElementById("ciudadesInspectorGrafico");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            //const ctx = document.getElementById("ciudadesInspectorGrafico").getContext("2d");
 
             if (window.ciudadInspectorChartInstance) {
                 window.ciudadInspectorChartInstance.destroy();
@@ -666,18 +729,24 @@ function certificadosPorCiudadPorInspector(inspector) {
         }
     };
 }
-document.getElementById("filtroInspectorCiudad").addEventListener("change", function() {
-    const inspector = this.value;
-    if (inspector) {
-        certificadosPorCiudadPorInspector(inspector);
-    }
-});
+const selectInspectorCiudad = document.getElementById("filtroInspectorCiudad");
+if (selectInspectorCiudad) {
+    selectInspectorCiudad.addEventListener("change", function () {
+        const inspector = this.value;
+        if (inspector) {
+            certificadosPorCiudadPorInspector(inspector);
+        }
+    });
+}
+
 function cargarInspectoresCiudad() {
+    const select = document.getElementById("filtroInspectorCiudad");
+    if (!select) return;
+
     const url = base_url + "admin/inspectoresDisponibles";
     fetch(url)
         .then(res => res.json())
         .then(data => {
-            const select = document.getElementById("filtroInspectorCiudad");
             data.forEach(item => {
                 const option = document.createElement("option");
                 option.value = item.inspector_name;
@@ -691,4 +760,4 @@ function cargarInspectoresCiudad() {
 
 
 
- 
+

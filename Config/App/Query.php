@@ -1,51 +1,65 @@
 <?php
-class Query extends Conexion{
+class Query extends Conexion
+{
     private $pdo, $con, $sql, $datos;
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->pdo = new Conexion();
         $this->con = $this->pdo->conect();
     }
-    public function select(string $sql)
+
+    // SELECT que acepta parámetros opcionales
+    public function select(string $sql, array $params = [])
     {
-        $this->sql = $sql;
-        $resul = $this->con->prepare($this->sql);
-        $resul->execute();
-        $data = $resul->fetch(PDO::FETCH_ASSOC);
-        return $data;
+        try {
+            $resul = $this->con->prepare($sql);
+            $resul->execute($params);
+            return $resul->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error en select: " . $e->getMessage());
+            return false;
+        }
     }
-    public function selectAll(string $sql)
+
+    // SELECT ALL que acepta parámetros opcionales
+    public function selectAll(string $sql, array $params = [])
     {
-        $this->sql = $sql;
-        $resul = $this->con->prepare($this->sql);
-        $resul->execute();
-        $data = $resul->fetchAll(PDO::FETCH_ASSOC);
-        return $data;
+        try {
+            $resul = $this->con->prepare($sql);
+            $resul->execute($params);
+            return $resul->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error en selectAll: " . $e->getMessage());
+            return false;
+        }
     }
+
     public function save(string $sql, array $datos)
     {
-        $this->sql = $sql;
-        $this->datos = $datos;
-        $insert = $this->con->prepare($this->sql);
-        $data = $insert->execute($this->datos);
-        if ($data) {
-            $res = 1;
-        }else{
-            $res = 0;
+        try {
+            $this->sql = $sql;
+            $this->datos = $datos;
+            $insert = $this->con->prepare($this->sql);
+            $data = $insert->execute($this->datos);
+            return $data ? 1 : 0;
+        } catch (PDOException $e) {
+            error_log("Error en save: " . $e->getMessage());
+            return 0;
         }
-        return $res;
     }
+
     public function insertar(string $sql, array $datos)
     {
-        $this->sql = $sql;
-        $this->datos = $datos;
-        $insert = $this->con->prepare($this->sql);
-        $data = $insert->execute($this->datos);
-        if ($data) {
-            $res = $this->con->lastInsertId();
-        } else {
-            $res = 0;
+        try {
+            $this->sql = $sql;
+            $this->datos = $datos;
+            $insert = $this->con->prepare($this->sql);
+            $data = $insert->execute($this->datos);
+            return $data ? $this->con->lastInsertId() : 0;
+        } catch (PDOException $e) {
+            error_log("Error en insertar: " . $e->getMessage());
+            return 0;
         }
-        return $res;
     }
 }
-?>

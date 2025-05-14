@@ -6,49 +6,43 @@ class ControlInspectoresModel extends Query
         parent::__construct();
     }
 
-    // Obtener todos los certificados con la información de direcciones
     public function obtenerInspectores()
     {
         $sql = "SELECT 
                     id,
                     name,
-                    direccion_firma as firma
-                    from inspectors
+                    direccion_firma AS firma
+                FROM inspectors
                 ORDER BY name ASC";
         return $this->selectAll($sql);
     }
+
     public function getInspector($id)
     {
         $sql = "SELECT 
                     id,
                     name,
-                    direccion_firma as firma
-                    
-                    from inspectors
-                    where id = $id ";
-        return $this->select($sql, $id);
+                    direccion_firma AS firma
+                FROM inspectors
+                WHERE id = ?";
+        return $this->select($sql, [$id]);
     }
-
-  
- 
 
     public function modificar($name, $firma, $id)
     {
-        $sql = "UPDATE inspectors SET name=?, direccion_firma=? WHERE id=?";
-        $array = array($name, $firma, $id);
-        return $this->save($sql, $array);
+        $sql = "UPDATE inspectors SET name = ?, direccion_firma = ? WHERE id = ?";
+        return $this->save($sql, [$name, $firma, $id]);
     }
 
     public function registrarInspector($nombre, $firma_ruta)
-{
-    $sql = "INSERT INTO inspectors (name, direccion_firma) VALUES (?, ?)";
-    $datos = [$nombre, $firma_ruta];
-    return $this->insertar($sql, $datos); // Usa tu método genérico para INSERT
-}
+    {
+        $sql = "INSERT INTO inspectors (name, direccion_firma) VALUES (?, ?)";
+        return $this->insertar($sql, [$nombre, $firma_ruta]);
+    }
+
     public function registrar($name, $firma)
     {
         $sql = "INSERT INTO inspectors (name, direccion_firma) VALUES (?, ?)";
-        $array = array($name, $firma);
-        return $this->insertar($sql, $array);
+        return $this->insertar($sql, [$name, $firma]);
     }
 }
