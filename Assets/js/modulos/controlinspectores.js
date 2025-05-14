@@ -64,6 +64,31 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   });
 });
+document.getElementById("nuevo_registro").addEventListener("click", function () {
+    const nombre = document.getElementById("nombreNuevoInspector").value;
+    const firma = document.getElementById("firmaNuevoInspector").files[0];
+
+    const formData = new FormData();
+    formData.append("nombreNuevoInspector", nombre);
+    formData.append("firmaNuevoInspector", firma);
+
+    fetch(base_url + "ControlInspectores/registrar", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        Swal.fire({
+            icon: data.icono,
+            title: data.msg
+        });
+        if (data.icono === "success") {
+            document.getElementById("nombreNuevoInspector").value = "";
+            document.getElementById("firmaNuevoInspector").value = "";
+            tblInspectores.ajax.reload();
+        }
+    });
+});
 
 // Función para cargar datos en el modal y mostrarlo
 function editarInspector(idPro) {

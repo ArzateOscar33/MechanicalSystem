@@ -295,6 +295,15 @@ class ErroresAdmin extends Controller
         $inspector_id = $this->model->insertarInspector($data['inspector_name']);
         $inspector = $this->model->obtenerInspectorPorId($inspector_id);
         $inspector_name = $inspector ? $inspector['name'] : $data['inspector_name'];
+        $firmaPath = '';
+if (!empty($inspector['direccion_firma'])) {
+    $firmaFullPath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $inspector['direccion_firma'];
+    if (file_exists($firmaFullPath)) {
+        $firmaBase64 = base64_encode(file_get_contents($firmaFullPath));
+        $mime = mime_content_type($firmaFullPath);
+        $firmaPath = 'data:' . $mime . ';base64,' . $firmaBase64;
+    }
+}
 
         // Rutas de logo y QR para web
         $logoPath = BASE_URL . 'assets/images/logo.png';
@@ -485,7 +494,11 @@ class ErroresAdmin extends Controller
                 <table>
                     <tr><th>Campo</th><th>Valor</th></tr>
                     <tr><td>Inspector</td><td>' . $inspector_name . '</td></tr>
-                    <tr><td>Firma del Inspector</td><td>' . $data['firma_inspector'] . '</td></tr>
+                                        <td>Firma del Inspector</td>
+                    <td style="text-align:center;">
+                        ' . ($firmaPath ? '<img src="' . $firmaPath . '" style="height:40px; max-width:100px;">' : 'Sin firma') . '
+                    </td>
+                    </tr>
                     <tr><td>EBITN</td><td>' . $data['ebitn'] . '</td></tr>
                     <tr><td>Fecha</td><td>' . $data['fecha'] . '</td></tr>
                     <tr><td>Fecha Expiración</td><td>' . $data['fecha_expiracion'] . '</td></tr>

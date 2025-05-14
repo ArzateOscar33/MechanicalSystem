@@ -130,39 +130,42 @@ class ErroresAdminModel extends Query
 
 
 
-    public function obtenerDatosCertificado($cert_number)
-    {
-        $sql = "SELECT 
-                    c.cert_number,
-                    c.vin,
-                    c.address_id,
-                    c.phone,
-                    c.year,
-                    c.mfg_in,
-                    c.make,
-                    c.owner_name,
-                    c.model,
-                    c.license_plate,
-                    c.odometer,
-                    c.inspector_id,
-                    c.test_date,
-                    c.expires,
-                    c.source_file,
-                    c.zip_file_path,
-                    c.created_at,
-                    c.updated_at,
-                    a.number AS address_number,
-                    a.street,
-                    a.city,
-                    a.state,
-                    a.zip,
-                    i.name AS inspector_name
-                FROM certificates c
-                LEFT JOIN addresses a ON c.address_id = a.id
-                LEFT JOIN inspectors i ON c.inspector_id = i.id
-                WHERE c.cert_number = '$cert_number'";
-        return $this->select($sql);
-    }
+public function obtenerDatosCertificado($cert_number)
+{
+    $sql = "SELECT 
+                c.cert_number,
+                c.vin,
+                c.address_id,
+                c.phone,
+                c.year,
+                c.mfg_in,
+                c.make,
+                c.owner_name,
+                c.model,
+                c.license_plate,
+                c.odometer,
+                c.inspector_id,
+                c.test_date,
+                c.expires,
+                c.source_file,
+                c.zip_file_path,
+                c.created_at,
+                c.updated_at,
+                a.number AS address_number,
+                a.street,
+                a.city,
+                a.state,
+                a.zip,
+                a.latitude as latitud,
+                a.longitude as longitud,
+                i.name AS inspector_name,
+                i.direccion_firma
+            FROM certificates c
+            LEFT JOIN addresses a ON c.address_id = a.id
+            LEFT JOIN inspectors i ON c.inspector_id = i.id
+            WHERE c.cert_number = '$cert_number'";
+    return $this->select($sql);
+}
 
     public function obtenerMonitoreos($cert_number)
     {
