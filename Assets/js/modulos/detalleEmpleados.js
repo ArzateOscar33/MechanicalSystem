@@ -444,3 +444,9 @@ document.querySelector("#detalle_department_id").addEventListener("change", func
     const id = this.value;
     cargarPuestosDetalle(id);
 });
+document.querySelector("#btnGenerarCredencial").addEventListener("click", function () {
+    const id = document.querySelector("#detalle_employee_id").value; // asegúrate de tener este campo
+    if (id) {
+        window.open(base_url + "Empleados/generarCredencial/" + id, "_blank");
+    }
+});

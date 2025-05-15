@@ -1,5 +1,6 @@
 <?php
 require_once 'Config/Config.php';
+require_once __DIR__ . '/vendor/autoload.php'; 
 $ruta = !empty($_GET['url']) ? $_GET['url'] : "home/index";
 $array = explode("/", $ruta);
 $controller = ucfirst($array[0]);

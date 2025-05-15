@@ -1,6 +1,12 @@
 <?php
+
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+
 class Empleados extends Controller
 {
+
+
     public function __construct()
     {
         parent::__construct();
@@ -8,14 +14,14 @@ class Empleados extends Controller
         $this->validarSesionInactividad();
         $this->validarSesionUnica();
         if (empty($_SESSION['nombre_usuario'])) {
-            header('Location: '. BASE_URL . 'admin');
+            header('Location: ' . BASE_URL . 'admin');
             exit;
         }
-            // Validar que sea administrador (rol_id = 1)
-    if (!isset($_SESSION['rol_usuario']) || $_SESSION['rol_usuario'] != 1) {
-        header('Location: ' . BASE_URL . 'admin');   
-        exit;
-    }
+        // Validar que sea administrador (rol_id = 1)
+        if (!isset($_SESSION['rol_usuario']) || $_SESSION['rol_usuario'] != 1) {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
     }
 
     public function listar()
@@ -238,29 +244,29 @@ class Empleados extends Controller
         die();
     }
 
-public function eliminar($id)
-{
-    if (is_numeric($id)) {
-        // Obtener la ruta de la foto antes de eliminar
-        $empleado = $this->model->obtenerFotoEmpleado($id);
-        $fotoRuta = $empleado['photo_path'] ?? null;
+    public function eliminar($id)
+    {
+        if (is_numeric($id)) {
+            // Obtener la ruta de la foto antes de eliminar
+            $empleado = $this->model->obtenerFotoEmpleado($id);
+            $fotoRuta = $empleado['photo_path'] ?? null;
 
-        // Eliminar el registro
-        $res = $this->model->eliminarEmpleado($id);
+            // Eliminar el registro
+            $res = $this->model->eliminarEmpleado($id);
 
-        if ($res) {
-            // Eliminar físicamente la foto si existe
-            if (!empty($fotoRuta) && file_exists($fotoRuta)) {
-                unlink($fotoRuta);
+            if ($res) {
+                // Eliminar físicamente la foto si existe
+                if (!empty($fotoRuta) && file_exists($fotoRuta)) {
+                    unlink($fotoRuta);
+                }
+
+                echo json_encode(['msg' => 'Empleado eliminado correctamente', 'icono' => 'success']);
+            } else {
+                echo json_encode(['msg' => 'Error al eliminar empleado', 'icono' => 'error']);
             }
-
-            echo json_encode(['msg' => 'Empleado eliminado correctamente', 'icono' => 'success']);
-        } else {
-            echo json_encode(['msg' => 'Error al eliminar empleado', 'icono' => 'error']);
         }
+        die();
     }
-    die();
-}
 
 
     public function generarNumeroEmpleado()
@@ -306,12 +312,290 @@ public function eliminar($id)
         die();
     }
 
-    public function generarCredencial($id)
-    {
-        if (is_numeric($id)) {
-            // Aquí irá la lógica real para generar la credencial (PDF, imagen, etc.)
-            echo "Generando credencial para empleado ID: $id";
-        }
-        die();
+
+
+public function generarCredencial($id)
+{
+    if (!is_numeric($id) || intval($id) <= 0) {
+        die("ID inválido");
     }
+
+    $empleado = $this->model->getEmpleado($id);
+    if (!$empleado) {
+        die("Empleado no encontrado");
+    }
+
+    $empleado['nombre_completo'] = trim($empleado['first_name'] . ' ' . $empleado['last_name'] . ' ' . $empleado['second_last_name']);
+    $empleado['puesto'] = $this->model->getNombrePuesto($empleado['position_id']);
+    $empleado['departamento'] = $this->model->getNombreDepartamento($empleado['department_id']);
+
+    $rutaFolder = 'assets/empleados/credencial/';
+    if (!file_exists($rutaFolder)) {
+        mkdir($rutaFolder, 0755, true);
+    }
+
+    $qrFilename = 'qr_' . $empleado['employee_number'] . '.png';
+    $qrRelativePath = $rutaFolder . $qrFilename;
+    $qrAbsolutePath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $qrRelativePath;
+    $qrWebPath = BASE_URL . $qrRelativePath;
+
+    $contenidoQR = $empleado['employee_number'];
+    $optionsQR = new \chillerlan\QRCode\QROptions([
+        'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
+        'eccLevel' => \chillerlan\QRCode\QRCode::ECC_L
+    ]);
+    (new \chillerlan\QRCode\QRCode($optionsQR))->render($contenidoQR, $qrAbsolutePath);
+
+    $logoPath = BASE_URL . 'assets/images/logo.png';
+    $fotoWebPath = BASE_URL . $empleado['photo_path'];
+    //Conenido html para las credenciales
+    $html = "
+ 
+        <html lang='es'>
+
+        <head>
+            <meta charset='UTF-8'>
+            <title>Credencial Empleado</title>
+            <style>
+                @page {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                body {
+                    margin: 0;
+                    padding: 20px;
+                    font-family: 'Segoe UI', sans-serif;
+                    background: rgb(255, 255, 255);
+                    text-align: center;
+                }
+
+                .contenedor-credencial {
+                    display: inline-block;
+                    text-align: center;
+                }
+
+                .credencial,
+                .reverso {
+                    width: 255pt;
+                    height: 360pt;
+                    border-radius: 20px;
+                    overflow: hidden;
+                    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                    display: inline-block;
+                    vertical-align: top;
+                }
+
+                .credencial {
+                    margin-right: 30px;
+                }
+
+
+                .header {
+                    background: #1c1e74;
+                    color: white;
+                    padding: 10px 0;
+                    text-align: center;
+                    height: 90px;
+                    width: 100%;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .header img.logo {
+                    width: 70px;
+                    height: 70px;
+                    display: block;
+                    margin: 0 auto;
+                }
+
+                .body {
+                    background: #f7f7ff;
+                    padding: 0;
+                    position: absolute;
+                    top: 90px;
+                    /* Altura del header */
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    width: 100%;
+                    box-sizing: border-box;
+                    height: calc(100% - 90px);
+                    /* Altura total menos el header */
+                    overflow: hidden;
+                }
+
+
+                .foto {
+                    width: 200px;
+                    height: 200px;
+                    background: #1c1e74;
+                    border-radius: 12px;
+                    margin: 10px auto;
+                    text-align: center;
+                }
+
+                .foto img {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 12px;
+                    object-fit: cover;
+                }
+
+                .datos {
+                    font-size: 14px;
+                    margin-top: 15px;
+                    color: #1c1e74;
+                    width: 100%;
+                    box-sizing: border-box;
+                    padding: 0 10px;
+                }
+
+
+                .datos div {
+                    margin: 5px 0;
+                    width: 100%;
+                }
+
+                .footer {
+                    background: #1c1e74;
+                    color: white;
+                    padding: 8px 15px;
+                    font-size: 12px;
+                    text-align: left;
+                    height: 24px;
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+
+                .reverso {
+                    background: #1c1e74;
+                    color: white;
+                    padding: 20px;
+                    box-sizing: border-box;
+                    position: relative;
+                    height: 480px;
+                }
+
+                .reverso h4 {
+                    margin-top: 0;
+                    text-align: center;
+                }
+
+                .qr {
+                    text-align: center;
+                    margin: 40px auto;
+                }
+
+                .qr img {
+                    width: 120px;
+                    height: 120px;
+                    background: white;
+                }
+
+                .direccion {
+                    font-size: 13px;
+                    line-height: 1.6;
+                    text-align: center;
+                    margin-top: 30px;
+                }
+
+                .rfc {
+                    font-size: 13px;
+                    line-height: 1.6;
+                    text-align: center;
+                    position: absolute;
+                    bottom: 20px;
+                    left: 0;
+                    right: 0;
+                    width: 100%;
+                }
+            </style>
+        </head>
+
+        <body>
+            <div class='contenedor-credencial'>
+                <div class='reverso'>
+                    <div class='header'>
+                        <img src='{$logoPath}' class='logo' alt='Logo'>
+                    </div>
+                    <div class='body'>
+                        <div class='foto'>
+                            <img src='{$fotoWebPath}' alt='Foto'>
+                        </div>
+                        <div class='datos'>
+                        <table class='datos'>
+                            <tr>
+                                <td><strong>Nombre:</strong></td>
+                                <td>{$empleado['nombre_completo']}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Puesto:</strong></td>
+                                <td>{$empleado['puesto']}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>No.Empleado:</strong></td>
+                                <td>{$empleado['employee_number']}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Departamento:</strong></td>
+                                <td>{$empleado['departamento']}</td>
+                            </tr>
+                        </table>
+                        </div>
+                        <div class='footer'>
+                            Fecha De Emisión: " . date('d/m/Y', strtotime($empleado['issue_date'])) . "
+                        </div>
+                    </div>
+                </div>
+
+                <div class='reverso'>
+                    <h4>DIVISIÓN MÉXICO</h4>
+                    <div class='qr'>
+                        <img src='{$qrWebPath}' alt='Código QR del empleado'>
+                    </div>
+                    <div class='direccion'>
+                        Dirección: Cayetano Perez 240-I, Buena Vista,<br>
+                        Burócrata Ruiz Cortinez, 22406, Tijuana, B.C.
+                    </div>
+                    <div class='rfc'>
+                        RFC: {$empleado['rfc']}
+                    </div>
+                </div>
+            </div>
+        </body>
+
+        </html>";
+
+    // Generar PDF con Dompdf
+    $options = new Dompdf\Options();
+    $options->set('isRemoteEnabled', true);
+    $options->set('isHtml5ParserEnabled', true);
+    $dompdf = new Dompdf\Dompdf($options);
+    $dompdf->loadHtml($html);
+    
+    $dompdf->setPaper('a4','landscape');
+    $dompdf->render();
+
+    $pdfPath = $rutaFolder . 'credencial_' . $empleado['employee_number'] . '.pdf';
+    file_put_contents($pdfPath, $dompdf->output());
+
+    if (file_exists($qrAbsolutePath)) {
+        unlink($qrAbsolutePath);
+    }
+
+    $dompdf->stream('credencial_' . $empleado['employee_number'] . '.pdf', ['Attachment' => true]);
+    exit;
+}
 }

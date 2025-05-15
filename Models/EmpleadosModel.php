@@ -127,4 +127,16 @@ class EmpleadosModel extends Query {
         $sql = "SELECT photo_path FROM employees WHERE id = ?";
         return $this->select($sql, [$id]);
     }
+    public function getNombrePuesto($id) {
+    $sql = "SELECT name FROM positions WHERE id = ?";
+    $res = $this->select($sql, [$id]);
+    return $res ? $res['name'] : '';
+}
+
+public function getNombreDepartamento($id) {
+    $sql = "SELECT name FROM departments WHERE id = ?";
+    $res = $this->select($sql, [$id]);
+    return $res ? $res['name'] : '';
+}
+
 }
