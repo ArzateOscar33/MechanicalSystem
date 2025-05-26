@@ -35,17 +35,19 @@ class EmpleadosModel extends Query {
         return $this->select($sql, [$id]);
     }
 
-    public function getEmpleados() {
-        $sql = "SELECT e.id, e.employee_number, 
-                       CONCAT(e.first_name, ' ', e.last_name, ' ', e.second_last_name) AS nombre_completo,
-                       e.curp, e.rfc, e.phone, e.email, e.birth_date, e.gender,
-                       d.name AS departamento, p.name AS puesto, e.issue_date
-                FROM employees e
-                INNER JOIN departments d ON e.department_id = d.id
-                INNER JOIN positions p ON e.position_id = p.id
-                ORDER BY e.id DESC";
-        return $this->selectAll($sql);
-    }
+public function getEmpleados() {
+    $sql = "SELECT e.id, e.employee_number, 
+                   CONCAT(e.first_name, ' ', e.last_name, ' ', e.second_last_name) AS nombre_completo,
+                   e.curp, e.rfc, e.phone, e.email, e.birth_date, e.gender,
+                   d.name AS departamento, p.name AS puesto, e.issue_date,
+                   e.photo_path
+            FROM employees e
+            INNER JOIN departments d ON e.department_id = d.id
+            INNER JOIN positions p ON e.position_id = p.id
+            ORDER BY e.id DESC";
+    return $this->selectAll($sql);
+}
+
 
     public function eliminarEmpleado($id) {
         $sql = "DELETE FROM employees WHERE id = ?";

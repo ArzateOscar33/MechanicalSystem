@@ -18,10 +18,17 @@
 
 <!-- contenido navbar tabs -->
 <div class="tab-content" id="myTabContent">
+
     <div class="tab-pane fade show active" id="listadoEmpleados" role="tabpanel" aria-labelledby="home-tab">
         <!-- Contenido de la tabla -->
         <div class="card">
             <div class="card-body">
+                <div class="d-flex justify-content-end align-items-center mb-3">
+                    <button class="btn btn-primary mb-3" onclick="generarTodasLasCredenciales()">
+                        <i class="fas fa-id-card-alt"></i> Generar todas las credenciales
+                    </button>
+
+                </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-hover" style="width: 100%;"
                         id="tblEmpleados">
@@ -43,6 +50,7 @@
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </div>
     </div>

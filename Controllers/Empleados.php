@@ -598,4 +598,255 @@ public function generarCredencial($id)
     $dompdf->stream('credencial_' . $empleado['employee_number'] . '.pdf', ['Attachment' => true]);
     exit;
 }
+public function generarTodasCredenciales()
+{
+    require_once 'vendor/autoload.php';
+
+    $empleados = $this->model->getEmpleados();
+    if (empty($empleados)) {
+        echo json_encode(['status' => 'error', 'msg' => 'No hay empleados']);
+        return;
+    }
+
+    $html = '';
+    $rutaFolder = 'assets/empleados/credencial/';
+    if (!file_exists($rutaFolder)) {
+        mkdir($rutaFolder, 0755, true);
+    }
+
+    foreach ($empleados as $empleado) {
+        // Asegurarse de que tenga los datos necesarios
+        $empleado['nombre_completo'] = trim($empleado['nombre_completo']);
+        $empleado['puesto'] = $this->model->getNombrePuesto($empleado['puesto']);
+        $empleado['departamento'] = $this->model->getNombreDepartamento($empleado['departamento']);
+
+        $fotoPath = !empty($empleado['photo_path']) ? $empleado['photo_path'] : 'assets/images/default.png';
+
+        // Generar QR
+        $qrFilename = 'qr_' . $empleado['employee_number'] . '.png';
+        $qrRelativePath = $rutaFolder . $qrFilename;
+        $qrAbsolutePath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $qrRelativePath;
+        $qrWebPath = BASE_URL . $qrRelativePath;
+
+        $optionsQR = new \chillerlan\QRCode\QROptions([
+            'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
+            'eccLevel' => \chillerlan\QRCode\QRCode::ECC_L
+        ]);
+        (new \chillerlan\QRCode\QRCode($optionsQR))->render($empleado['employee_number'], $qrAbsolutePath);
+
+        $fotoWebPath = BASE_URL . $fotoPath;
+        $logoPath = BASE_URL . 'assets/images/logo.png';
+        $fechaEmision = date('d/m/Y', strtotime($empleado['issue_date']));
+
+        // HTML por empleado
+        $html .= "
+        <html lang='es'>
+        <head>
+            <meta charset='UTF-8'>
+            <style>
+                @page { margin: 0; padding: 0; }
+                body {
+                    margin: 0;
+                    padding: 20px;
+                    font-family: 'Segoe UI', sans-serif;
+                    background: rgb(255, 255, 255);
+                    text-align: center;
+                }
+                .contenedor-credencial {
+                    display: inline-block;
+                    text-align: center;
+                }
+                .credencial,
+                .reverso {
+                    width: 255pt;
+                    height: 360pt;
+                    border-radius: 20px;
+                    overflow: hidden;
+                    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                    display: inline-block;
+                    vertical-align: top;
+                }
+                .credencial { margin-right: 30px; }
+                .header {
+                    background: #1c1e74;
+                    color: white;
+                    padding: 10px 0;
+                    text-align: center;
+                    height: 90px;
+                    width: 100%;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                }
+                .header img.logo {
+                    width: 70px;
+                    height: 70px;
+                    display: block;
+                    margin: 0 auto;
+                }
+                .body {
+                    background: #f7f7ff;
+                    padding: 0;
+                    position: absolute;
+                    top: 90px;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    width: 100%;
+                    box-sizing: border-box;
+                    height: calc(100% - 90px);
+                    overflow: hidden;
+                }
+                .foto {
+                    width: 200px;
+                    height: 200px;
+                    background: #1c1e74;
+                    border-radius: 12px;
+                    margin: 10px auto;
+                    text-align: center;
+                }
+                .foto img {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 12px;
+                    object-fit: cover;
+                }
+                .datos {
+                    font-size: 14px;
+                    margin-top: 15px;
+                    color: #1c1e74;
+                    width: 100%;
+                    box-sizing: border-box;
+                    padding: 0 10px;
+                }
+                .datos div {
+                    margin: 5px 0;
+                    width: 100%;
+                }
+                .footer {
+                    background: #1c1e74;
+                    color: white;
+                    padding: 8px 15px;
+                    font-size: 12px;
+                    text-align: left;
+                    height: 24px;
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .reverso {
+                    background: #1c1e74;
+                    color: white;
+                    padding: 20px;
+                    box-sizing: border-box;
+                    position: relative;
+                    height: 480px;
+                }
+                .reverso h4 {
+                    margin-top: 0;
+                    text-align: center;
+                }
+                .qr {
+                    text-align: center;
+                    margin: 40px auto;
+                }
+                .qr img {
+                    width: 120px;
+                    height: 120px;
+                    background: white;
+                }
+                .direccion {
+                    font-size: 13px;
+                    line-height: 1.6;
+                    text-align: center;
+                    margin-top: 30px;
+                }
+                .rfc {
+                    font-size: 13px;
+                    line-height: 1.6;
+                    text-align: center;
+                    position: absolute;
+                    bottom: 20px;
+                    left: 0;
+                    right: 0;
+                    width: 100%;
+                }
+            </style>
+        </head>
+        <body>
+        <div class='contenedor-credencial'>
+            <div class='reverso'>
+                <div class='header'>
+                    <img src='{$logoPath}' class='logo' alt='Logo'>
+                </div>
+                <div class='body'>
+                    <div class='foto'>
+                        <img src='{$fotoWebPath}' alt='Foto'>
+                    </div>
+                    <div class='datos'>
+                        <table class='datos'>
+                            <tr><td><strong>Nombre:</strong></td><td>{$empleado['nombre_completo']}</td></tr>
+                            <tr><td><strong>Puesto:</strong></td><td>{$empleado['puesto']}</td></tr>
+                            <tr><td><strong>No.Empleado:</strong></td><td>{$empleado['employee_number']}</td></tr>
+                            <tr><td><strong>Departamento:</strong></td><td>{$empleado['departamento']}</td></tr>
+                        </table>
+                    </div>
+                    <div class='footer'>
+                        Fecha De Emisión: {$fechaEmision}
+                    </div>
+                </div>
+            </div>
+
+            <div class='reverso'>
+                <h4>DIVISIÓN MÉXICO</h4>
+                <div class='qr'>
+                    <img src='{$qrWebPath}' alt='Código QR del empleado'>
+                </div>
+                <div class='direccion'>
+                    Dirección: Cayetano Perez 240-I, Buena Vista,<br>
+                    Burócrata Ruiz Cortinez, 22406, Tijuana, B.C.
+                </div>
+                <div class='rfc'>
+                    RFC: {$empleado['rfc']}
+                </div>
+            </div>
+        </div>
+        </body>
+        </html>";
+
+        // Limpieza del QR al terminar el script
+        register_shutdown_function(function () use ($qrAbsolutePath) {
+            if (file_exists($qrAbsolutePath)) unlink($qrAbsolutePath);
+        });
+    }
+
+    $options = new Dompdf\Options();
+    $options->set('isRemoteEnabled', true);
+    $options->set('isHtml5ParserEnabled', true);
+    $dompdf = new Dompdf\Dompdf($options);
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('a4', 'landscape');
+    $dompdf->render();
+
+    $filename = 'credenciales_todas.pdf';
+    $outputPath = $rutaFolder . $filename;
+    file_put_contents($outputPath, $dompdf->output());
+
+    echo json_encode(['status' => 'success', 'url' => BASE_URL . $outputPath]);
+    exit;
 }
+
+
+
+
+}
+

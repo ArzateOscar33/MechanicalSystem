@@ -227,3 +227,47 @@ function validarCampoUnicoNuevo(tipo, valor) {
         }
     };
 }
+
+function generarTodasLasCredenciales() {
+    Swal.fire({
+        title: "Generando credenciales...",
+        text: "Por favor espera unos segundos.",
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+    });
+
+    const url = base_url + "Empleados/generarTodasCredenciales";
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.send();
+
+    http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            Swal.close(); // Cierra el loading
+
+            try {
+                const res = JSON.parse(this.responseText);
+                if (res.status === "success") {
+                    Swal.fire({
+                        icon: "success",
+                        title: "¡Credenciales generadas!",
+                        text: "El archivo PDF se ha creado correctamente.",
+                        confirmButtonText: "Descargar",
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.open(res.url, "_blank"); // abrir nueva pestaña o iniciar descarga
+                        }
+                    });
+                } else {
+                    Swal.fire("Error", res.msg || "Hubo un problema al generar el archivo.", "error");
+                }
+            } catch (e) {
+                Swal.fire("Error", "No se pudo procesar la respuesta del servidor.", "error");
+                console.error("Respuesta no válida:", this.responseText);
+            }
+        }
+    };
+}
+
