@@ -1,3 +1,7 @@
+
+
+ 
+
 <!doctype html>
 <html lang="en">
 
@@ -36,80 +40,57 @@
                             <div class="card-body">
                                 <div class="border p-4 rounded">
                                     <div class="text-center">
-                                        <h3 class="">Sign in</h3>
+                                        <h3 class="">Restablecer Contraseña</h3>
                                     </div>
-                                    <?php if (!empty($_SESSION['msg_error'])): ?>
-                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                            <?= $_SESSION['msg_error'] ?>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                        </div>
-                                        <?php unset($_SESSION['msg_error']); ?>
-                                    <?php endif; ?>
-                                    <div class="login-separater text-center mb-4"> <span>OR SIGN IN WITH EMAIL</span>
+
+                                    <div class="login-separater text-center mb-4">
+                                        <span>Ingresa una nueva contraseña para tu cuenta</span>
                                         <hr />
                                     </div>
+
                                     <div class="form-body">
-                                        <form class="row g-3" id="formulario">
+                                        <form class="row g-3" id="formRestablecer" method="POST" action="<?php echo BASE_URL; ?>Recuperar/cambiarPassword">
+                                            <input type="hidden" name="token" value="<?php echo $data['token']; ?>">
 
                                             <div class="col-12">
-                                                <label for="email" class="form-label">Correo Electrónico</label>
-                                                <input type="email" class="form-control" id="email" name="email" value="arzateoscar33@gmail.com" placeholder="Correo Electronico">
+                                                <label for="password" class="form-label">Nueva Contraseña</label>
+                                                <input type="password" class="form-control" id="password" name="password" placeholder="Nueva contraseña" required>
                                             </div>
+
                                             <div class="col-12">
-                                                <label for="clave" class="form-label">Contraseña</label>
-                                                <div class="input-group" id="show_hide_password">
-                                                    <input type="password" class="form-control border-end-0" id="clave" name="clave" value="12345" placeholder="Contraseña"> <a href="javascript:;" class="input-group-text bg-transparent"><i class='bx bx-hide'></i></a>
-                                                </div>
+                                                <label for="confirmar" class="form-label">Confirmar Contraseña</label>
+                                                <input type="password" class="form-control" id="confirmar" name="confirmar" placeholder="Confirmar contraseña" required>
                                             </div>
-                                            <div class="col-md-12 text-end"> <a href="<?php echo BASE_URL . 'Recuperar'; ?>">Olvidaste tu contraseña ?</a>
-                                            </div>
+
                                             <div class="col-12">
                                                 <div class="d-grid">
-                                                    <button type="submit" class="btn btn-primary"><i class="bx bxs-lock-open"></i>Acceso</button>
+                                                    <button type="submit" class="btn btn-success"><i class="bx bx-check-shield"></i> Actualizar Contraseña</button>
                                                 </div>
                                             </div>
                                         </form>
-                                    </div>
+                                    </div> <!-- /.form-body -->
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <!--end row-->
+                </div> <!-- /.row -->
             </div>
         </div>
     </div>
     <!--end wrapper-->
+
     <!-- Bootstrap JS -->
     <script src="<?php echo BASE_URL; ?>assets/js/bootstrap.bundle.min.js"></script>
-    <!--plugins-->
     <script src="<?php echo BASE_URL; ?>assets/js/jquery.min.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/plugins/simplebar/js/simplebar.min.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/plugins/metismenu/js/metisMenu.min.js"></script>
-    <!--Password show & hide js -->
-    <script>
-        $(document).ready(function() {
-            $("#show_hide_password a").on('click', function(event) {
-                event.preventDefault();
-                if ($('#show_hide_password input').attr("type") == "text") {
-                    $('#show_hide_password input').attr('type', 'password');
-                    $('#show_hide_password i').addClass("bx-hide");
-                    $('#show_hide_password i').removeClass("bx-show");
-                } else if ($('#show_hide_password input').attr("type") == "password") {
-                    $('#show_hide_password input').attr('type', 'text');
-                    $('#show_hide_password i').removeClass("bx-hide");
-                    $('#show_hide_password i').addClass("bx-show");
-                }
-            });
-        });
-    </script>
-    <!--app JS-->
-    <script src="<?php echo BASE_URL; ?>assets/js/app.js"></script>
+
+    <!-- Scripts -->
     <script>
         const base_url = '<?php echo BASE_URL; ?>';
     </script>
     <script src="<?php echo BASE_URL; ?>assets/js/sweetalert2.all.min.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/modulos/login.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/modulos/restablecer.js"></script>
 </body>
 
 </html>

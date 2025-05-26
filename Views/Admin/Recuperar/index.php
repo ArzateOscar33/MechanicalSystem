@@ -1,3 +1,5 @@
+ 
+
 <!doctype html>
 <html lang="en">
 
@@ -36,7 +38,7 @@
                             <div class="card-body">
                                 <div class="border p-4 rounded">
                                     <div class="text-center">
-                                        <h3 class="">Sign in</h3>
+                                        <h3 class="">Solicitar Cambio de Contraseña</h3>
                                     </div>
                                     <?php if (!empty($_SESSION['msg_error'])): ?>
                                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -45,27 +47,20 @@
                                         </div>
                                         <?php unset($_SESSION['msg_error']); ?>
                                     <?php endif; ?>
-                                    <div class="login-separater text-center mb-4"> <span>OR SIGN IN WITH EMAIL</span>
+                                    <div class="login-separater text-center mb-4"> <span>Ingresa el correo electrónico que usaste para registrarte</span>
                                         <hr />
                                     </div>
                                     <div class="form-body">
-                                        <form class="row g-3" id="formulario">
+                                        <form class="row g-3" id="formRecuperar" method="POST" action="<?php echo BASE_URL ?>Recuperar/solicitarToken">
 
                                             <div class="col-12">
                                                 <label for="email" class="form-label">Correo Electrónico</label>
-                                                <input type="email" class="form-control" id="email" name="email" value="arzateoscar33@gmail.com" placeholder="Correo Electronico">
+                                                <input type="email" class="form-control" id="correo" name="correo" value="arzateoscar33@gmail.com" placeholder="Correo Electronico" required>
                                             </div>
-                                            <div class="col-12">
-                                                <label for="clave" class="form-label">Contraseña</label>
-                                                <div class="input-group" id="show_hide_password">
-                                                    <input type="password" class="form-control border-end-0" id="clave" name="clave" value="12345" placeholder="Contraseña"> <a href="javascript:;" class="input-group-text bg-transparent"><i class='bx bx-hide'></i></a>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-12 text-end"> <a href="<?php echo BASE_URL . 'Recuperar'; ?>">Olvidaste tu contraseña ?</a>
-                                            </div>
+ 
                                             <div class="col-12">
                                                 <div class="d-grid">
-                                                    <button type="submit" class="btn btn-primary"><i class="bx bxs-lock-open"></i>Acceso</button>
+                                                    <button type="submit" class="btn btn-primary"><i class="bx bxs-lock-open"></i>Enviar Solicitud de cambio de Contraseña</button>
                                                 </div>
                                             </div>
                                         </form>
@@ -109,7 +104,7 @@
         const base_url = '<?php echo BASE_URL; ?>';
     </script>
     <script src="<?php echo BASE_URL; ?>assets/js/sweetalert2.all.min.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/modulos/login.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/modulos/recuperar.js"></script>
 </body>
 
 </html>
