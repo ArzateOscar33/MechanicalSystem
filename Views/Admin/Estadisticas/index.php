@@ -41,14 +41,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- estadisticas por estado y ciudad -->
-    <div class="tab-pane fade " id="estadisticasPorEstado" role="tabpanel" aria-labelledby="home-tab">
-        <div class="card">
-            <div class="card-body">
                 <!-- Gráfico por Estado -->
                 <div class="col">
                     <div class="card radius-10">
@@ -60,55 +52,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Gráfico por Ciudad Filtrado por Inspector -->
-                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
-                ?>
-                <div class="col">
-                    <div class="card radius-10">
-                        <div class="card-body">
-                            <h6 class="mb-0">Certificados por Ciudad (Filtrado por Inspector)</h6>
-                            <div class="mt-2">
-                                <label for="filtroInspectorCiudad" class="form-label">Inspector</label>
-                                <select id="filtroInspectorCiudad" class="form-select mb-2">
-                                    <option value="">Selecciona Inspector</option>
-                                </select>
-                            </div>
-                            <div class="chart-container-2 mt-4">
-                                <canvas id="ciudadesInspectorGrafico"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endif; ?>
-                <!-- Gráfico por Ciudad Filtrado por Inspector -->
-                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
-                ?>
-                <div class="col">
-                    <div class="card radius-10">
-                        <div class="card-body">
-                            <h6 class="mb-0">Certificados por Ciudad (Filtrado por Inspector)</h6>
-                            <div class="mt-2">
-                                <label for="filtroInspectorCiudad" class="form-label">Inspector</label>
-                                <select id="filtroInspectorCiudad" class="form-select mb-2">
-                                    <option value="">Selecciona Inspector</option>
-                                </select>
-                            </div>
-                            <div class="chart-container-2 mt-4">
-                                <canvas id="ciudadesInspectorGrafico"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-            </div>
-        </div>
-    </div>
-    <!-- estadisticas por Fecha -->
-    <div class="tab-pane fade " id="estadisticasPorFecha" role="tabpanel" aria-labelledby="home-tab">
-        <div class="card">
-            <div class="card-body">
-
                 <!-- Gráfico Mensual por Fecha -->
                 <div class="col">
                     <div class="card radius-10">
@@ -120,6 +63,59 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Gráfico por Inspector General -->
+                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
+                ?>
+                <div class="col">
+                    <div class="card radius-10">
+                        <div class="card-body">
+                            <h6 class="mb-0">Certificados por Inspector</h6>
+                            <div class="chart-container-2 mt-4">
+                                <canvas id="inspectoresChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- estadisticas por estado y ciudad -->
+    <div class="tab-pane fade " id="estadisticasPorEstado" role="tabpanel" aria-labelledby="home-tab">
+        <div class="card">
+            <div class="card-body">
+
+                <!-- Gráfico por Ciudad Filtrado por Inspector -->
+                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
+                ?>
+                <div class="col">
+                    <div class="card radius-10">
+                        <div class="card-body">
+                            <h6 class="mb-0">Certificados por Ciudad (Filtrado por Inspector)</h6>
+                            <div class="mt-2">
+                                <label for="filtroInspectorCiudad" class="form-label">Inspector</label>
+                                <select id="filtroInspectorCiudad" class="form-select mb-2">
+                                    <option value="">Selecciona Inspector</option>
+                                </select>
+                            </div>
+                            <div class="chart-container-2 mt-4">
+                                <canvas id="ciudadesInspectorGrafico"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+ 
+
+            </div>
+        </div>
+    </div>
+    <!-- estadisticas por Fecha -->
+    <div class="tab-pane fade " id="estadisticasPorFecha" role="tabpanel" aria-labelledby="home-tab">
+        <div class="card">
+            <div class="card-body">
 
                 <!-- Gráfico por Día con Filtros -->
                 <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
@@ -148,7 +144,6 @@
                 </div>
                 <?php endif; ?>
 
-           
             </div>
         </div>
 
@@ -158,20 +153,7 @@
     <div class="tab-pane fade " id="estadisticasPorInspector" role="tabpanel" aria-labelledby="home-tab">
         <div class="card">
             <div class="card-body">
-                <!-- Gráfico por Inspector General -->
-                <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
-                ?>
-                <div class="col">
-                    <div class="card radius-10">
-                        <div class="card-body">
-                            <h6 class="mb-0">Certificados por Inspector</h6>
-                            <div class="chart-container-2 mt-4">
-                                <canvas id="inspectoresChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endif; ?>
+
                 <!-- Gráfico por Inspector con Filtros -->
                 <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
                 ?>
@@ -246,12 +228,5 @@
 
 <?php include_once 'Views/template/footer-admin.php'; ?>
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/estadisticas.js"></script>
- 
-<!--<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>-->
-<!-- html2canvas para capturar gráficos -->
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-<!-- jsPDF para generar el PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>

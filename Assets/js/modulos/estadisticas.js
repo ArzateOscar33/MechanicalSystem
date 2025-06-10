@@ -55,13 +55,24 @@ function ciudadesCertificados() {
                 options: {
                     maintainAspectRatio: false,
                     plugins: {
+                        datalabels: {
+                            anchor: 'inside',
+                            align: 'end',
+                            color: '#000',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function (value) {
+                                return value;
+                            }
+                        },
                         legend: {
                             position: "bottom",
                             labels: {
                                 boxWidth: 10,
                               
                             }
-                        },
+                        }, 
                         tooltip: {
                             callbacks: {
                                 label: function (context) {
@@ -131,6 +142,27 @@ function estadosCertificado() {
                     }]
                 },
                 options: {
+                    plugins: {
+                        datalabels: {
+                            anchor: 'top',
+                            align: 'inside',
+                            color: '#000',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function (value) {
+                                return value;
+                            }
+                        },
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Certificados por Ciudad (Filtrado por Inspector)'
+                        }
+                    },
+                     
                     maintainAspectRatio: false,  // Permite que el gráfico se adapte al tamaño del contenedor
                     scales: {
                         y: {
@@ -144,6 +176,7 @@ function estadosCertificado() {
                         displayColors: false,  // No mostrar los colores en el tooltip
                     },
                     responsive: true,  // Hace que el gráfico sea responsivo
+                   
                 },
             });
         }
@@ -218,6 +251,7 @@ function fechaChart() {
                     datasets: datasets
                 },
                 options: {
+                    
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
@@ -236,6 +270,17 @@ function fechaChart() {
                         }
                     },
                     plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#000',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function (value) {
+                                return value;
+                            }
+                        },
                         legend: {
                             position: "top"
                         },
@@ -310,6 +355,19 @@ function certificadosPorInspector() {
                     }]
                 },
                 options: {
+                    plugins: {  
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#000',
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: function (value) {
+                            return value;
+                        }
+                    },
+                },
                     maintainAspectRatio: false,  // Permite que el gráfico se adapte al tamaño del contenedor
                     scales: {
                         y: {
@@ -363,12 +421,13 @@ function certificadosPorDia(anio, mes, estado = '', ciudad = '') {
                         label: "Certificados por Día",
                         data: totales,
                         borderColor: "#17a2b8",
-                        backgroundColor: "rgba(23, 162, 184, 0.2)",
+                        backgroundColor: "rgba(23, 197, 17, 0.2)",
                         fill: true,
                         tension: 0.4
                     }]
                 },
                 options: {
+
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
@@ -383,6 +442,17 @@ function certificadosPorDia(anio, mes, estado = '', ciudad = '') {
                         }
                     },
                     plugins: {
+                       datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#000',
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: function (value) {
+                            return value;
+                        }
+                    },
                         tooltip: {
                             mode: "index",
                             intersect: false
@@ -592,15 +662,37 @@ function certificadosPorMesInspector(anio, inspector) {
                         label: "Certificados por Mes",
                         data: datos,
                         borderColor: "#ffc107",
-                        backgroundColor: "rgba(255, 193, 7, 0.2)",
+                        backgroundColor: "rgba(121, 175, 19, 0.2)",
                         fill: true,
                         tension: 0.4
                     }]
                 },
                 options: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#ff0',
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: function (value) {
+                            return value;
+                        }
+                    },
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#000',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function (value) {
+                                return value;
+                            }
+                        },
                         title: {
                             display: true,
                             text: "Actividad del Inspector"
@@ -691,6 +783,7 @@ function certificadosPorCiudadPorInspector(inspector) {
                     }]
                 },
                 options: {
+
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
@@ -713,6 +806,17 @@ function certificadosPorCiudadPorInspector(inspector) {
                         }
                     },
                     plugins: {
+                        datalabels: {
+                        anchor: 'bottom',
+                        align: 'inside',
+                        color: '#000',
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: function (value) {
+                            return value;
+                        }
+                    },
                         legend: {
                             display: false  // No necesitamos la leyenda en este gráfico
                         },
@@ -906,6 +1010,19 @@ function actualizarGraficoCiudadInspector() {
                     }]
                 },
                 options: {
+                    plugins:{
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'left',
+                            color: '#000',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function (value) {
+                                return value;
+                            }
+                        },
+                    },
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
@@ -972,6 +1089,26 @@ document.getElementById("btnGenerarPdfInspectores")?.addEventListener("click", g
                     }]
                 },
                 options: {
+                    plugins: {
+                        datalabels: {
+                            anchor: 'top',
+                            align: 'inside',
+                            color: '#000',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function (value) {
+                                return value;
+                            }
+                        },
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: `${inspector} - ${fecha}`
+                        }
+                    },
                     responsive: false,
                     maintainAspectRatio: false,
                     title: {
@@ -988,7 +1125,7 @@ document.getElementById("btnGenerarPdfInspectores")?.addEventListener("click", g
                 }
             });
 
-            setTimeout(callback, 700); // esperar que termine de renderizar
+            setTimeout(callback, 10); // esperar que termine de renderizar
         });
 }
 
@@ -1023,7 +1160,7 @@ function generarPdfTodosInspectores() {
             }
         });
 
-        // ⏱ Esperar al siguiente frame para que se dibuje el loading
+        //  Esperar al siguiente frame para que se dibuje el loading
         setTimeout(() => {
             const url = base_url + "estadisticas/inspectoresDisponibles";
             fetch(url)
@@ -1036,14 +1173,14 @@ function generarPdfTodosInspectores() {
 
                     const procesarSiguiente = () => {
                         if (index >= inspectores.length) {
-                            capturarGraficosEnPdf();
+                            capturarGraficosEnPdf(fecha);
                             return;
                         }
 
                         const inspector = inspectores[index].inspector_name;
                         generarGraficoCiudadInspector(inspector, fecha, () => {
                             index++;
-                            setTimeout(procesarSiguiente, 700);
+                            setTimeout(procesarSiguiente, 10);
                         });
                     };
 
@@ -1055,14 +1192,13 @@ function generarPdfTodosInspectores() {
 
 
 
-async function capturarGraficosEnPdf() {
+async function capturarGraficosEnPdf(fechaInput) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("p", "mm", "a4");
 
     const contenedor = document.getElementById("contenedorGraficosInspectores");
     contenedor.style.display = "block";
 
-    // 🔔 Mostrar alerta de carga
     Swal.fire({
         title: 'Generando PDF...',
         html: 'Esto puede tardar unos segundos',
@@ -1073,48 +1209,54 @@ async function capturarGraficosEnPdf() {
     });
 
     const children = contenedor.children;
+    const pageHeight = 297;
+    const margin = 10;
+    const spacing = 10;
+    let currentY = margin;
 
     for (let i = 0; i < children.length; i++) {
         const div = children[i];
 
-        // Forzar reflow por seguridad
         div.style.display = "block";
         div.offsetHeight;
 
         const canvas = await html2canvas(div, {
             useCORS: true,
-            scale: 2,
+            scale: 1,
             allowTaint: false
         });
 
         const imgData = canvas.toDataURL("image/png");
         const imgProps = pdf.getImageProperties(imgData);
-
         const pageWidth = 210;
-        const pdfWidth = pageWidth - 20;
+        const pdfWidth = pageWidth - 2 * margin;
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-        if (i !== 0) pdf.addPage();
-        pdf.addImage(imgData, "PNG", 10, 10, pdfWidth, pdfHeight);
+        if (currentY + pdfHeight > pageHeight - margin) {
+            pdf.addPage();
+            currentY = margin;
+        }
+
+        pdf.addImage(imgData, "PNG", margin, currentY, pdfWidth, pdfHeight);
+        currentY += pdfHeight + spacing;
     }
 
     contenedor.style.display = "none";
-
-    // ✅ Cerrar loading y mostrar confirmación
     Swal.close();
 
-    // Guardar el PDF
-    pdf.save("graficos_por_inspector.pdf");
+    // ✅ usar directamente la fecha recibida
+    pdf.save(`Graficos_${fechaInput}.pdf`);
 
-    // ✅ Mostrar alerta de éxito
     Swal.fire({
         icon: 'success',
         title: 'PDF generado',
         text: 'El archivo se ha descargado correctamente.',
-        timer: 2500,
+        timer: 1200,
         showConfirmButton: false
     });
 }
+
+
 
 
 
