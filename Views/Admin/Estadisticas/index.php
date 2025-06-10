@@ -52,17 +52,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Gráfico Mensual por Fecha -->
-                <div class="col">
-                    <div class="card radius-10">
-                        <div class="card-body">
-                            <h6 class="mb-0">Certificados por Fecha (Mensual)</h6>
-                            <div class="chart-container-2 mt-4">
-                                <canvas id="fechaChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- Gráfico por Inspector General -->
                 <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
@@ -116,7 +106,17 @@
     <div class="tab-pane fade " id="estadisticasPorFecha" role="tabpanel" aria-labelledby="home-tab">
         <div class="card">
             <div class="card-body">
-
+                 <!-- Gráfico Mensual por Fecha -->
+                <div class="col">
+                    <div class="card radius-10">
+                        <div class="card-body">
+                            <h6 class="mb-0">Certificados por Fecha (Mensual)</h6>
+                            <div class="chart-container-2 mt-4">
+                                <canvas id="fechaChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Gráfico por Día con Filtros -->
                 <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
                 ?>
@@ -144,6 +144,7 @@
                 </div>
                 <?php endif; ?>
 
+
             </div>
         </div>
 
@@ -153,7 +154,15 @@
     <div class="tab-pane fade " id="estadisticasPorInspector" role="tabpanel" aria-labelledby="home-tab">
         <div class="card">
             <div class="card-body">
+                <div class="mt-3 mb-3 d-flex justify-content-between">
+                    <button id="btnGenerarPdfInspectores" class="btn btn-primary ">
+                        Generar PDF con gráficos por Inspector
+                    </button>
 
+                    <button class="btn btn-success " onclick="generarPdfInspectoresPorRango()">
+                        Generar PDF por Rango de Fechas
+                    </button>
+                </div>
                 <!-- Gráfico por Inspector con Filtros -->
                 <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
                 ?>
@@ -215,16 +224,45 @@
                         </div>
                     </div>
                 </div>
-                <button id="btnGenerarPdfInspectores" class="btn btn-primary mt-3">
-                    Generar PDF con gráficos por Inspector
-                </button>
+
+                <div class="col mt-4">
+                    <div class="card radius-10">
+                        <div class="card-body">
+                            <h6 class="mb-0">Distribución por Ciudad (Por Rango de Fechas)</h6>
+                            <div class="mt-3">
+                                <label class="form-label">Inspector</label>
+                                <select id="filtroInspectorRango" class="form-select mb-2">
+                                    <option value="">Selecciona Inspector</option>
+                                </select>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Desde</label>
+                                        <input type="date" id="filtroDesdeRango" class="form-control mb-2"
+                                            max="<?= date('Y-m-d') ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Hasta</label>
+                                        <input type="date" id="filtroHastaRango" class="form-control mb-2"
+                                            max="<?= date('Y-m-d') ?>">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="chart-container-2 mt-4">
+                                <canvas id="graficoCiudadInspectorRango" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
                 <!-- contenedor invisible para los gráficos -->
                 <div id="contenedorGraficosInspectores" style="display:none;"></div>
             </div>
         </div>
     </div>
-</div>
+    </div>
 
 <?php include_once 'Views/template/footer-admin.php'; ?>
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/estadisticas.js"></script>

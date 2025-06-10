@@ -198,18 +198,37 @@ class EstadisticasModel extends Query
     ";
     return $this->selectAll($sql, [$fecha]);
 }
-public function certificadosPorCiudadPorInspectorYFecha($inspector, $fecha)
+public function certificadosPorCiudadPorInspectorYRango($inspector, $desde, $hasta)
 {
     $sql = "
         SELECT a.city, COUNT(*) AS total
         FROM certificates c
         INNER JOIN addresses a ON c.address_id = a.id
         INNER JOIN inspectors i ON c.inspector_id = i.id
-        WHERE i.name = ? AND DATE(c.test_date) = ?
+        WHERE i.name = ? 
+        AND DATE(c.test_date) BETWEEN ? AND ?
         GROUP BY a.city
         ORDER BY total DESC
     ";
-    return $this->selectAll($sql, [$inspector, $fecha]);
+
+    return $this->selectAll($sql, [$inspector, $desde, $hasta]);
 }
+
+
+public function inspectoresPorRango($desde, $hasta)
+{
+    $sql = "
+        SELECT DISTINCT i.name AS inspector_name
+        FROM certificates c
+        INNER JOIN inspectors i ON c.inspector_id = i.id
+        WHERE DATE(c.test_date) BETWEEN ? AND ?
+        ORDER BY i.name
+    ";
+
+    return $this->selectAll($sql, [$desde, $hasta]);
+}
+
+
+
 
 }

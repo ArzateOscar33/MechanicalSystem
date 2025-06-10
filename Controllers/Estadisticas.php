@@ -215,5 +215,39 @@ public function certificadosPorCiudadPorInspectorYFecha()
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     die();
 }
+public function inspectoresPorRango()
+{
+    if (empty($_SESSION['nombre_usuario'])) {
+        header('Location: ' . BASE_URL . 'admin');
+        exit;
+    }
+
+    $desde = $_GET['desde'] ?? '';
+    $hasta = $_GET['hasta'] ?? '';
+
+    if (empty($desde) || empty($hasta)) {
+        echo json_encode(['error' => 'Fechas inválidas'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $data = $this->model->inspectoresPorRango($desde, $hasta);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+public function certificadosPorCiudadPorInspectorYRango()
+{
+    if (empty($_SESSION['nombre_usuario'])) {
+        header('Location: ' . BASE_URL . 'admin');
+        exit;
+    }
+
+    $inspector = $_POST['inspector'] ?? '';
+    $desde = $_POST['desde'] ?? '';
+    $hasta = $_POST['hasta'] ?? '';
+
+    $data = $this->model->certificadosPorCiudadPorInspectorYRango($inspector, $desde, $hasta);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    die();
+}
 
 }

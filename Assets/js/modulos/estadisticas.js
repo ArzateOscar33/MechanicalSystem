@@ -1055,21 +1055,33 @@ function actualizarGraficoCiudadInspector() {
 
 document.getElementById("btnGenerarPdfInspectores")?.addEventListener("click", generarPdfTodosInspectores);
 
- function generarGraficoCiudadInspector(inspector, fecha, callback) {
-    const url = base_url + "estadisticas/certificadosPorCiudadPorInspectorYFecha";
+function generarGraficoCiudadInspector(inspector, fecha, hasta = null, callback) {
+    const url = hasta === null
+        ? base_url + "estadisticas/certificadosPorCiudadPorInspectorYFecha"
+        : base_url + "estadisticas/certificadosPorCiudadPorInspectorYRango";
+
     const formData = new FormData();
     formData.append("inspector", inspector);
-    formData.append("fecha", fecha);
+
+    if (hasta === null) {
+        formData.append("fecha", fecha);
+    } else {
+        formData.append("desde", fecha);
+        formData.append("hasta", hasta);
+    }
 
     fetch(url, { method: "POST", body: formData })
         .then(res => res.json())
         .then(data => {
             const contenedor = document.getElementById("contenedorGraficosInspectores");
-            const canvasId = `grafico_${inspector.replace(/\s+/g, "_")}`;
+            const safeInspector = inspector.replace(/\s+/g, "_");
+            const labelFecha = hasta === null ? fecha : `${fecha} a ${hasta}`;
+            const canvasId = `grafico_${safeInspector}_${labelFecha.replace(/[^a-zA-Z0-9]/g, "_")}`;
+
             const canvasWrapper = document.createElement("div");
             canvasWrapper.style.marginBottom = "40px";
             canvasWrapper.innerHTML = `
-                <h5>${inspector} - ${fecha}</h5>
+                <h5>${inspector} - ${labelFecha}</h5>
                 <canvas id="${canvasId}" width="600" height="300"></canvas>
             `;
             contenedor.appendChild(canvasWrapper);
@@ -1097,24 +1109,18 @@ document.getElementById("btnGenerarPdfInspectores")?.addEventListener("click", g
                             font: {
                                 weight: 'bold'
                             },
-                            formatter: function (value) {
-                                return value;
-                            }
+                            formatter: value => value
                         },
                         legend: {
                             display: false
                         },
                         title: {
                             display: true,
-                            text: `${inspector} - ${fecha}`
+                            text: `${inspector} - ${labelFecha}`
                         }
                     },
                     responsive: false,
                     maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: `${inspector} - ${fecha}`
-                    },
                     scales: {
                         yAxes: [{
                             ticks: {
@@ -1125,9 +1131,10 @@ document.getElementById("btnGenerarPdfInspectores")?.addEventListener("click", g
                 }
             });
 
-            setTimeout(callback, 10); // esperar que termine de renderizar
+            setTimeout(callback, 10);
         });
 }
+
 
 
 function generarPdfTodosInspectores() {
@@ -1256,6 +1263,172 @@ async function capturarGraficosEnPdf(fechaInput) {
     });
 }
 
+function generarPdfInspectoresPorRango() {
+    Swal.fire({
+        title: 'Selecciona el rango de fechas',
+        html: `
+            <label>Desde:</label>
+            <input type="date" id="fechaInicio" class="form-control mb-2" max="${new Date().toISOString().split('T')[0]}">
+            <label>Hasta:</label>
+            <input type="date" id="fechaFin" class="form-control" max="${new Date().toISOString().split('T')[0]}">
+        `,
+        confirmButtonText: 'Generar PDF',
+        focusConfirm: false,
+        preConfirm: () => {
+            const desde = document.getElementById('fechaInicio').value;
+            const hasta = document.getElementById('fechaFin').value;
+
+            if (!desde || !hasta) {
+                Swal.showValidationMessage('Selecciona ambas fechas');
+                return false;
+            }
+
+            if (hasta < desde) {
+                Swal.showValidationMessage('La fecha final no puede ser menor que la inicial');
+                return false;
+            }
+
+            return { desde, hasta };
+        }
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        const { desde, hasta } = result.value;
+
+        Swal.fire({
+            title: 'Generando PDF...',
+            html: 'Esto puede tardar unos segundos',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        setTimeout(() => {
+            const url = `${base_url}estadisticas/inspectoresPorRango?desde=${desde}&hasta=${hasta}`;
+            fetch(url)
+                .then(res => res.json())
+                .then(inspectores => {
+                    const contenedor = document.getElementById("contenedorGraficosInspectores");
+                    contenedor.innerHTML = "";
+
+                    let index = 0;
+
+                    const procesarSiguiente = () => {
+                        if (index >= inspectores.length) {
+                            capturarGraficosEnPdf(`${desde}_a_${hasta}`);
+                            return;
+                        }
+
+                        const inspector = inspectores[index].inspector_name;
+                        generarGraficoCiudadInspector(inspector, desde, hasta, () => {
+                            index++;
+                            setTimeout(procesarSiguiente, 10);
+                        });
+                    };
+
+                    procesarSiguiente();
+                });
+        }, 100);
+    });
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarInspectoresEnSelectRango();
+
+    const selects = [
+        document.getElementById('filtroInspectorRango'),
+        document.getElementById('filtroDesdeRango'),
+        document.getElementById('filtroHastaRango')
+    ];
+
+    selects.forEach(element => {
+        element.addEventListener('change', generarGraficoCiudadRangoIndividual);
+    });
+});
+
+function cargarInspectoresEnSelectRango() {
+    fetch(base_url + "estadisticas/inspectoresDisponibles")
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("filtroInspectorRango");
+            data.forEach(inspector => {
+                const option = document.createElement("option");
+                option.value = inspector.inspector_name;
+                option.textContent = inspector.inspector_name;
+                select.appendChild(option);
+            });
+        });
+}
+
+function generarGraficoCiudadRangoIndividual() {
+    const inspector = document.getElementById("filtroInspectorRango").value;
+    const desde = document.getElementById("filtroDesdeRango").value;
+    const hasta = document.getElementById("filtroHastaRango").value;
+
+    if (!inspector || !desde || !hasta || hasta < desde) {
+        return; // No hace nada hasta que todo esté correcto
+    }
+
+    const formData = new FormData();
+    formData.append("inspector", inspector);
+    formData.append("desde", desde);
+    formData.append("hasta", hasta);
+
+    fetch(base_url + "estadisticas/certificadosPorCiudadPorInspectorYRango", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById("graficoCiudadInspectorRango").getContext("2d");
+            if (window.graficoCiudadRango) {
+                window.graficoCiudadRango.destroy();
+            }
+
+            window.graficoCiudadRango = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.map(item => item.city),
+                    datasets: [{
+                        label: "Certificados",
+                        data: data.map(item => item.total),
+                        backgroundColor: "rgba(75, 192, 192, 0.6)",
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        datalabels: {
+                            anchor: 'top',
+                            align: 'inside',
+                            color: '#000',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: value => value
+                        },
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: `${inspector} (${desde} a ${hasta})`
+                        }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+}
 
 
 
