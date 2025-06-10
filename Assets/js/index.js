@@ -1,7 +1,7 @@
 fechaChart();
 ciudadesCertificados();
 estadosCertificado();
-certificadosPorInspector(); 
+certificadosPorInspector();
 
 function ciudadesCertificados() {
     const url = base_url + "admin/ciudadesCertificados";
@@ -400,7 +400,7 @@ function certificadosPorDia(anio, mes, estado = '', ciudad = '') {
         }
     };
 }
- document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     // Comunes para todos
     fechaChart();
     ciudadesCertificados();
@@ -431,13 +431,13 @@ function certificadosPorDia(anio, mes, estado = '', ciudad = '') {
         cargarAniosInspector();
         cargarInspectores();
 
-const filtroInspector = document.getElementById("filtroInspector");
-const filtroAnioInspector = document.getElementById("filtroAnioInspector");
+        const filtroInspector = document.getElementById("filtroInspector");
+        const filtroAnioInspector = document.getElementById("filtroAnioInspector");
 
-if (filtroInspector && filtroAnioInspector) {
-    filtroInspector.addEventListener("change", aplicarFiltroInspector);
-    filtroAnioInspector.addEventListener("change", aplicarFiltroInspector);
-}
+        if (filtroInspector && filtroAnioInspector) {
+            filtroInspector.addEventListener("change", aplicarFiltroInspector);
+            filtroAnioInspector.addEventListener("change", aplicarFiltroInspector);
+        }
 
     }
 
@@ -452,7 +452,7 @@ if (filtroInspector && filtroAnioInspector) {
 });
 
 
- 
+
 
 function cargarEstados() {
     const select = document.getElementById("filtroEstado");
@@ -617,7 +617,7 @@ function certificadosPorMesInspector(anio, inspector) {
         }
     };
 }
- 
+
 
 function aplicarFiltroInspector() {
     const anio = document.getElementById("filtroAnioInspector").value;

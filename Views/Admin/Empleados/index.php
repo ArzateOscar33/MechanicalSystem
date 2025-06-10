@@ -58,7 +58,7 @@
     <div class="tab-pane fade" id="detalleEmpleados" role="tabpanel" aria-labelledby="profile-tab">
 
         <!-- Card 1: Filtros para buscar al empleado -->
-        <div class="card mb-3">
+        <div class="card mb-3 mt-2">
             <div class="card-header bg-primary text-white">
                 Seleccionar Empleado
             </div>

@@ -16,11 +16,13 @@
 
                     <div class="form-group mb-2 editable-field" id="group_cert_number">
                         <label for="nombre">Certificado</label>
-                        <input id="cert_number" class="form-control" type="text" name="cert_number" placeholder="Certificado" readonly>
+                        <input id="cert_number" class="form-control" type="text" name="cert_number"
+                            placeholder="Certificado" readonly>
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_inspector">
                         <label for="nombre">Inspector</label>
-                        <input id="inspector" class="form-control" type="text" name="inspector" placeholder="Inspector" readonly>
+                        <input id="inspector" class="form-control" type="text" name="inspector" placeholder="Inspector"
+                            readonly>
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_vin">
                         <label for="nombre">VIN</label>
@@ -28,7 +30,8 @@
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_owner_name">
                         <label for="apellido">Propietario</label>
-                        <input id="owner_name" class="form-control" type="text" name="owner_name" placeholder="Propietario">
+                        <input id="owner_name" class="form-control" type="text" name="owner_name"
+                            placeholder="Propietario">
                     </div>
 
                     <div class="form-group mb-2 editable-field" id="group_make">
@@ -45,7 +48,8 @@
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_license_plate">
                         <label for="correo">Placa</label>
-                        <input id="license_plate" class="form-control" type="text" name="license_plate" placeholder="Placa">
+                        <input id="license_plate" class="form-control" type="text" name="license_plate"
+                            placeholder="Placa">
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_street">
                         <label for="ciudad">Calle</label>
@@ -61,7 +65,8 @@
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_zip">
                         <label for="zip">Codigo Postal</label>
-                        <input id="zip" class="form-control" type="text" name="zip" placeholder="Código Postal" readonly>
+                        <input id="zip" class="form-control" type="text" name="zip" placeholder="Código Postal"
+                            readonly>
                     </div>
                     <div class="form-group mb-2 editable-field d-none" id="group_address_id">
                         <label for="direccion_admin">Nueva Dirección</label>
@@ -75,7 +80,8 @@
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_images">
                         <label for="mfg_in">Actualizar Fotos </label>
-                        <input type="file" class="form-control mb-2" name="imagenes[]" id="imagenes" multiple accept="image/*">
+                        <input type="file" class="form-control mb-2" name="imagenes[]" id="imagenes" multiple
+                            accept="image/*">
 
                     </div>
                     <div class="form-group mb-2 editable-field d-none" id="group_inspector_id">
@@ -86,7 +92,8 @@
                     </div>
                     <div class="form-group mb-2 editable-field" id="group_proposed_value">
                         <label for="proposed_value">Valor Sugerido</label>
-                        <input id="proposed_value" class="form-control" type="text" name="proposed_value" placeholder="Valor Sugerido" readonly>
+                        <input id="proposed_value" class="form-control" type="text" name="proposed_value"
+                            placeholder="Valor Sugerido" readonly>
                     </div>
                     <div class="mb-3" id="group_images_preview" style="display: none;">
                         <label class="form-label">Imágenes Sugeridas</label>
@@ -110,13 +117,16 @@
 <!-- navbar tabs -->
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#erroresPendientes" type="button" role="tab" aria-controls="erroresPendientes" aria-selected="true">Errores Pendientes</button>
+        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#erroresPendientes"
+            type="button" role="tab" aria-controls="erroresPendientes" aria-selected="true">Errores Pendientes</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#erroresResueltos" type="button" role="tab" aria-controls="erroresResueltos" aria-selected="false">Errores Resueltos</button>
+        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#erroresResueltos" type="button"
+            role="tab" aria-controls="erroresResueltos" aria-selected="false">Errores Resueltos</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#erroresRejected" type="button" role="tab" aria-controls="erroresRejected" aria-selected="false">Errores Rechazados</button>
+        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#erroresRejected" type="button"
+            role="tab" aria-controls="erroresRejected" aria-selected="false">Errores Rechazados</button>
     </li>
 </ul>
 <!-- contenido navbar tabs -->
@@ -150,7 +160,6 @@
         </div>
     </div>
 
-
     <div class="tab-pane fade" id="erroresResueltos" role="tabpanel" aria-labelledby="profile-tab">
         <div class="tab-pane fade show active" id="erroresPendientes" role="tabpanel" aria-labelledby="home-tab">
             <!-- Contenido de la tabla -->
@@ -158,7 +167,8 @@
                 <div class="card-body">
                     <!-- Contenido de la tabla errores pendientes -->
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped table-hover" style="width: 100%;" id="tblErroresResueltos">
+                        <table class="table table-bordered table-striped table-hover" style="width: 100%;"
+                            id="tblErroresResueltos">
                             <thead>
                                 <tr>
                                     <th>Certificado</th>
@@ -186,7 +196,8 @@
                 <div class="card-body">
                     <!-- Contenido de la tabla errores pendientes -->
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped table-hover" style="width: 100%;" id="tblErroresRejected">
+                        <table class="table table-bordered table-striped table-hover" style="width: 100%;"
+                            id="tblErroresRejected">
                             <thead>
                                 <tr>
                                     <th>Certificado</th>
@@ -207,8 +218,6 @@
         </div>
     </div>
 </div>
-
-
 
 <?php include_once 'Views/template/footer-admin.php'; ?>
 

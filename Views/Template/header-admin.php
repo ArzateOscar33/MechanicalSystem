@@ -47,7 +47,7 @@
             <ul class="metismenu" id="menu">
                 <li>
                     <a href="<?php echo BASE_URL . 'admin/home'; ?>">
-                        <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
+                        <div class="parent-icon"><i class=' bx bx-home-circle  m-2'></i></div>
                         <div class="menu-title">Dashboard</div>
                     </a>
                 </li>
@@ -55,19 +55,19 @@
                 <!-- Certificados -->
                 <li>
                     <a href="javascript:;" class="has-arrow">
-                        <div class="parent-icon"><i class='fas fa-file-alt'></i></div>
+                        <div class="parent-icon"><i class=' m-2 fas fa-file-alt'></i></div>
                         <div class="menu-title">Certificados</div>
                     </a>
                     <ul>
                         <?php if ($_SESSION['rol_usuario'] == 1): ?>
-                            <li><a href="<?php echo BASE_URL . 'CargarCertificados'; ?>"><i class='fas fa-upload '></i>Cargar Certificados</a></li>
+                            <li><a href="<?php echo BASE_URL . 'CargarCertificados'; ?>"><i class='fas fa-upload m-2'></i>Cargar Certificados</a></li>
                         <?php endif; ?>
                         <?php if ($_SESSION['rol_usuario'] <= 3): ?>
-                            <li><a href="<?php echo BASE_URL . 'CrearCertificados'; ?>"><i class='fas fa-plus-circle'></i>Crear Nuevo</a></li>
-                            <li><a href="<?php echo BASE_URL . 'BuscarCertificados'; ?>"><i class='fas fa-search'></i>Buscar Certificados</a></li>
+                            <li><a href="<?php echo BASE_URL . 'CrearCertificados'; ?>"><i class='fas fa-plus-circle m-2'></i>Crear Nuevo</a></li>
+                            <li><a href="<?php echo BASE_URL . 'BuscarCertificados'; ?>"><i class='fas fa-search m-2'></i>Buscar Certificados</a></li>
                         <?php endif; ?>
                         <?php if ($_SESSION['rol_usuario'] == 1): ?>
-                            <li><a href="<?php echo BASE_URL . 'DescargarCertificados'; ?>"><i class='fas fa-download'></i>Control de Certificados</a></li>
+                            <li><a href="<?php echo BASE_URL . 'DescargarCertificados'; ?>"><i class='fas fa-download m-2'></i>Control de Certificados</a></li>
                         <?php endif; ?>
                     </ul>
                 </li>
@@ -75,15 +75,15 @@
                 <!-- Errores -->
                 <li>
                     <a href="javascript:;" class="has-arrow">
-                        <div class="parent-icon"><i class='fas fa-bug'></i></div>
+                        <div class="parent-icon"><i class='fas fa-bug  m-2'></i></div>
                         <div class="menu-title">Errores</div>
                     </a>
                     <ul>
                         <?php if ($_SESSION['rol_usuario'] <= 3): ?>
-                            <li><a href="<?php echo BASE_URL . 'ErroresUsuario'; ?>"><i class='fas fa-exclamation-triangle'></i>Reportar Errores (Usuario)</a></li>
+                            <li><a href="<?php echo BASE_URL . 'ErroresUsuario'; ?>"><i class='fas fa-exclamation-triangle m-2'></i>Reportar Errores (Usuario)</a></li>
                         <?php endif; ?>
                         <?php if ($_SESSION['rol_usuario'] == 1): ?>
-                            <li><a href="<?php echo BASE_URL . 'ErroresAdmin'; ?>"><i class='fas fa-exclamation-circle'></i>Revisión de Errores (Admin)</a></li>
+                            <li><a href="<?php echo BASE_URL . 'ErroresAdmin'; ?>"><i class='fas fa-exclamation-circle  m-2'></i>Revisión de Errores (Admin)</a></li>
                         <?php endif; ?>
                     </ul>
                 </li>
@@ -92,14 +92,14 @@
                 <?php if ($_SESSION['rol_usuario'] == 1): ?>
                     <li>
                         <a href="javascript:;" class="has-arrow">
-                            <div class="parent-icon"><i class='fas fa-cogs'></i></div>
+                            <div class="parent-icon"><i class='m-2 fas fa-cogs'></i></div>
                             <div class="menu-title">Administración</div>
                         </a>
                         <ul>
-                            <li><a href="<?php echo BASE_URL . 'Usuarios'; ?>"><i class='mb-1 fas fa-user'></i>Usuarios</a></li>
-                            <li><a href="<?php echo BASE_URL . 'ControlInspectores'; ?>"><i class='fas fa-wrench'></i>Inspectores</a></li>
-                            <li><a href="<?php echo BASE_URL . 'Direcciones'; ?>"><i class='fas fa-map-marked-alt'></i>Direcciones</a></li>
-                            <li><a href="<?php echo BASE_URL . 'Importaciones'; ?>"><i class='fas fa-file-import'></i>Importaciones</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Usuarios'; ?>"><i class='fas fa-user m-2'></i>Usuarios</a></li>
+                            <li><a href="<?php echo BASE_URL . 'ControlInspectores'; ?>"><i class='fas fa-wrench  m-2'></i>Inspectores</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Direcciones'; ?>"><i class='fas fa-map-marked-alt  m-2'></i>Direcciones</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Importaciones'; ?>"><i class='fas fa-file-import  m-2'></i>Importaciones</a></li>
                         </ul>
                     </li>
                 <?php endif; ?>
@@ -108,12 +108,25 @@
                 <?php if ($_SESSION['rol_usuario'] == 1): ?>
                     <li>
                         <a href="javascript:;" class="has-arrow">
-                            <div class="parent-icon"><i class='fas fa-user-tie'></i></div>
+                            <div class="parent-icon"><i class=' m-2 fas fa-user-tie'></i></div>
                             <div class="menu-title">Personal</div>
                         </a>
                         <ul>
-                            <li><a href="<?php echo BASE_URL . 'Departamentos'; ?>"><i class='fas fa-book'></i>Departamentos</a></li>
-                            <li><a href="<?php echo BASE_URL . 'Empleados'; ?>"><i class='fas fa-user-tie'></i>Empleados</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Departamentos'; ?>"><i class='fas fa-book  m-2'></i>Departamentos</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Empleados'; ?>"><i class='fas fa-user-tie  m-2'></i>Empleados</a></li>
+                        </ul>
+                    </li>
+                <?php endif; ?>
+
+                                <?php if ($_SESSION['rol_usuario'] == 1): ?>
+                    <li>
+                        <a href="javascript:;" class="has-arrow">
+                            <div class="parent-icon"><i class=' m-2 fa-solid  fas fa-chart-line'></i></div>
+                            <div class="menu-title">Estadisticas</div>
+                        </a>
+                        <ul>
+                            <li><a href="<?php echo BASE_URL . 'Estadisticas'; ?>"><i class='fas fa-chart-bar  m-2'></i>Graficos Estadisticos</a></li>
+                            
                         </ul>
                     </li>
                 <?php endif; ?>
