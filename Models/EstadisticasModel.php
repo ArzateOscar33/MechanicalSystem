@@ -228,6 +228,19 @@ public function inspectoresPorRango($desde, $hasta)
     return $this->selectAll($sql, [$desde, $hasta]);
 }
 
+public function certificadosPorCiudadPorInspectorYFecha($inspector, $fecha)
+{
+    $sql = "
+        SELECT a.city, COUNT(*) AS total
+        FROM certificates c
+        INNER JOIN addresses a ON c.address_id = a.id
+        INNER JOIN inspectors i ON c.inspector_id = i.id
+        WHERE i.name = ? AND DATE(c.test_date) = ?
+        GROUP BY a.city
+        ORDER BY total DESC
+    ";
+    return $this->selectAll($sql, [$inspector, $fecha]);
+}
 
 
 

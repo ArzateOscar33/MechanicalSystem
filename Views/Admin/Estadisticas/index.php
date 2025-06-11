@@ -154,15 +154,7 @@
     <div class="tab-pane fade " id="estadisticasPorInspector" role="tabpanel" aria-labelledby="home-tab">
         <div class="card">
             <div class="card-body">
-                <div class="mt-3 mb-3 d-flex justify-content-between">
-                    <button id="btnGenerarPdfInspectores" class="btn btn-primary ">
-                        Generar PDF con gráficos por Inspector
-                    </button>
 
-                    <button class="btn btn-success " onclick="generarPdfInspectoresPorRango()">
-                        Generar PDF por Rango de Fechas
-                    </button>
-                </div>
                 <!-- Gráfico por Inspector con Filtros -->
                 <?php if ($_SESSION['rol_usuario'] == 1): // Solo admin ,si quieres agregar manager || $_SESSION['rol_usuario'] == 2
                 ?>
@@ -256,7 +248,15 @@
                     </div>
                 </div>
 
+                <div class="mt-3 mb-3 d-flex justify-content-between">
+                    <button id="btnGenerarPdfInspectores" class="btn btn-primary ">
+                        Generar PDF con gráficos por Inspector
+                    </button>
 
+                    <button class="btn btn-success " onclick="generarPdfInspectoresPorRango()">
+                        Generar PDF por Rango de Fechas
+                    </button>
+                </div>
                 <!-- contenedor invisible para los gráficos -->
                 <div id="contenedorGraficosInspectores" style="display:none;"></div>
             </div>

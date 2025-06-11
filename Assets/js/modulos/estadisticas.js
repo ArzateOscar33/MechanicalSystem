@@ -985,6 +985,7 @@ function actualizarGraficoCiudadInspector() {
 
     http.onreadystatechange = function () {
         if (this.readyState === 4 && this.status === 200) {
+            console.log(this.responseText);
             const res = JSON.parse(this.responseText);
             const ciudades = res.map(item => item.city);
             const cantidades = res.map(item => parseInt(item.total));
@@ -1185,7 +1186,7 @@ function generarPdfTodosInspectores() {
                         }
 
                         const inspector = inspectores[index].inspector_name;
-                        generarGraficoCiudadInspector(inspector, fecha, () => {
+                        generarGraficoCiudadInspector(inspector, fecha,null, () => {
                             index++;
                             setTimeout(procesarSiguiente, 10);
                         });
