@@ -128,9 +128,9 @@ class ErroresUsuario extends Controller
                 echo json_encode(['msg' => 'Debe indicar el valor propuesto', 'icono' => 'warning']);
                 return;
             }
-    
-$valorActual = $this->model->getValorActualCampo($cert_number, $field_name);
-$current_value = $valorActual ?? '(No disponible)';
+                
+            $valorActual = $this->model->getValorActualCampo($cert_number, $field_name);
+            $current_value = $valorActual ?? '(No disponible)';
 
     
             $idCorreccion = $this->model->registrarCorreccion(
