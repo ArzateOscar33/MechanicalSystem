@@ -6,60 +6,43 @@ const btnAccion = document.getElementById("btnAccion");
 const titleModal = document.getElementById("titleModal");
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Inicializar tablas
+  const nombresCampos = {
+    vin: "Número de Serie",
+    make: "Marca",
+    model: "Modelo",
+    year: "Año",
+    owner_name: "Propietario",
+    address_id: "Dirección",
+    inspector_id: "Inspector",
+    ebitn: "EBITN",
+    latitud: "Latitud",
+    longitud: "Longitud",
+    test_date: "Fecha de Prueba",
+    license_plate: "Placa",
+    // Agrega aquí más equivalencias si lo necesitas
+  };
+
   tblErrores = $("#tblErrores").DataTable({
     ajax: {
       url: base_url + "ErroresAdmin/listar",
       dataSrc: "",
     },
     columns: [
-      { data: "certificate_id" },
-      { data: "user_name" },
-      { data: "field_name" },
-      { data: "current_value" },
-      { data: "proposed_value" },
-      { data: "reason" },
-      { data: "status" },
-      { data: "created_at" },
-      { data: "accion" },
-    ],
-    language,
-    dom,
-    buttons,
-  });
-
-  $("#tblErroresResueltos").DataTable({
-    ajax: {
-      url: base_url + "ErroresAdmin/listarResueltos",
-      dataSrc: "",
-    },
-    columns: [
-      { data: "certificate_id" },
-      { data: "user_name" },
-      { data: "field_name" },
-      { data: "corregido" },
-      { data: "status" },
-      { data: "reviewed_at" },
-      { data: "updated_at" },
-    ],
-    language,
-    dom,
-    buttons,
-  });
-
-  $("#tblErroresRejected").DataTable({
-    ajax: {
-      url: base_url + "ErroresAdmin/listarRechazados",
-      dataSrc: "",
-    },
-    columns: [
-      { data: "certificate_id" },
-      { data: "user_name" },
-      { data: "field_name" },
-      { data: "corregido" },
-      { data: "status" },
-      { data: "reviewed_at" },
-      { data: "updated_at" },
+      { data: "certificate_id", title: "ID Certificado" },
+      { data: "user_name", title: "Usuario" },
+      {
+        data: "field_name",
+        title: "Campo con Error",
+        render: function (data, type, row) {
+          return nombresCampos[data] || data;
+        },
+      },
+      { data: "current_value", title: "Valor Actual" },
+      { data: "proposed_value", title: "Valor Propuesto" },
+      { data: "reason", title: "Motivo" },
+      { data: "status", title: "Estado" },
+      { data: "created_at", title: "Fecha de Creación" },
+      { data: "accion", title: "Acciones" },
     ],
     language,
     dom,
@@ -123,13 +106,32 @@ document
     const field = formData.get("field_name");
     const newValue = formData.get(field);
 
+    // Diccionario de nombres legibles
+    const nombresCampos = {
+      vin: "Número de Serie",
+      make: "Marca",
+      model: "Modelo",
+      year: "Año",
+      owner_name: "Propietario",
+      address_id: "Dirección",
+      inspector_id: "Inspector",
+      ebitn: "EBITN",
+      latitud: "Latitud",
+      longitud: "Longitud",
+      test_date: "Fecha de Prueba",
+       license_plate: "Placa",
+    };
+
+    // Buscar nombre legible o mostrar el original si no está en el diccionario
+    const nombreLegible = nombresCampos[field] || field;
+
     Swal.fire({
       title: "¿Confirmar corrección?",
       html: `
-      <strong>Certificado:</strong> ${certNumber}<br>
-      <strong>Campo a corregir:</strong> ${field}<br>
-      <strong>Nuevo valor:</strong> ${newValue}
-    `,
+    <strong>Certificado:</strong> ${certNumber}<br>
+    <strong>Campo a corregir:</strong> ${nombreLegible}<br>
+    <strong>Nuevo valor:</strong> ${newValue}
+  `,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, corregir",
