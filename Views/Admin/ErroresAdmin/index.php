@@ -148,8 +148,7 @@
                                 <th>Razon del Error</th>
                                 <th>Estatus del Error</th>
                                 <th>Fecha de la Solicitud</th>
-                                <th></th>
-                                <th></th>
+                                <th></th> 
                             </tr>
                         </thead>
                         <tbody>

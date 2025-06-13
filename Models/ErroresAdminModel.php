@@ -6,31 +6,41 @@ class ErroresAdminModel extends Query
         parent::__construct();
     }
 
-    public function getErrores($estado)
-    {
-        $sql = "SELECT 
-                    r.id,
-                    r.certificate_id,
-                    r.field_name,
-                    r.current_value,
-                    r.proposed_value,
-                    r.reason,
-                    r.status,
-                    r.created_at,
-                    u.first_name AS user_name,
-                    i1.name AS inspector_actual,
-                    i2.name AS inspector_propuesto,
-                    CONCAT(a1.number, ' ', a1.street, ', ', a1.city, ', ', a1.state, ' ', a1.zip) AS direccion_actual,
-                    CONCAT(a2.number, ' ', a2.street, ', ', a2.city, ', ', a2.state, ' ', a2.zip) AS direccion_propuesta
-                FROM correction_requests r
-                JOIN users u ON r.user_id = u.id
-                LEFT JOIN inspectors i1 ON r.field_name = 'inspector_id' AND r.current_value = i1.id
-                LEFT JOIN inspectors i2 ON r.field_name = 'inspector_id' AND r.proposed_value = i2.id
-                LEFT JOIN addresses a1 ON r.field_name = 'address_id' AND r.current_value = a1.id
-                LEFT JOIN addresses a2 ON r.field_name = 'address_id' AND r.proposed_value = a2.id
-                WHERE r.status = ?";
-        return $this->selectAll($sql, [$estado]);
-    }
+public function getErrores($estado)
+{
+    $sql = "SELECT 
+                r.id,
+                r.certificate_id,
+                r.field_name,
+                r.current_value,
+                r.proposed_value,
+                r.reason,
+                r.status,
+                r.created_at,
+                u.first_name AS user_name,
+
+                -- Siempre tratamos de traer los nombres, sin condicionar por el tipo de campo
+                i1.name AS inspector_actual,
+                i2.name AS inspector_propuesto,
+
+                CONCAT(a1.number, ' ', a1.street, ', ', a1.city, ', ', a1.state, ' ', a1.zip) AS direccion_actual,
+                CONCAT(a2.number, ' ', a2.street, ', ', a2.city, ', ', a2.state, ' ', a2.zip) AS direccion_propuesta
+
+            FROM correction_requests r
+            JOIN users u ON r.user_id = u.id
+
+            -- Quitamos la condición del field_name para que los JOINs funcionen si hay match
+            LEFT JOIN inspectors i1 ON r.current_value = i1.id
+            LEFT JOIN inspectors i2 ON r.proposed_value = i2.id
+
+            LEFT JOIN addresses a1 ON r.current_value = a1.id
+            LEFT JOIN addresses a2 ON r.proposed_value = a2.id
+
+            WHERE r.status = ?";
+    
+    return $this->selectAll($sql, [$estado]);
+}
+
 
     public function getErroresResueltos($estado)
     {

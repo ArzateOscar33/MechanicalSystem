@@ -18,14 +18,14 @@ class ErroresAdmin extends Controller
         $this->validarSesionInactividad();
         $this->validarSesionUnica();
         if (empty($_SESSION['nombre_usuario'])) {
-            header('Location: '. BASE_URL . 'admin');
+            header('Location: ' . BASE_URL . 'admin');
             exit;
         }
-            // Validar que sea administrador (rol_id = 1)
-    if (!isset($_SESSION['rol_usuario']) || $_SESSION['rol_usuario'] != 1) {
-        header('Location: ' . BASE_URL . 'admin');   
-        exit;
-    }
+        // Validar que sea administrador (rol_id = 1)
+        if (!isset($_SESSION['rol_usuario']) || $_SESSION['rol_usuario'] != 1) {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
     }
     public function index()
     {
@@ -36,18 +36,26 @@ class ErroresAdmin extends Controller
     public function listar()
     {
         $data = $this->model->getErrores('pending');
-    
+
         for ($i = 0; $i < count($data); $i++) {
-            // Mostrar nombre del inspector si el campo corregido es 'inspector_id'
             if ($data[$i]['field_name'] === 'inspector_id') {
-                $data[$i]['current_value'] = $data[$i]['inspector_actual'] ?? '(ID: ' . $data[$i]['current_value'] . ')';
-                $data[$i]['proposed_value'] = $data[$i]['inspector_propuesto'] ?? '(ID: ' . $data[$i]['proposed_value'] . ')';
+                $data[$i]['current_value'] = !empty($data[$i]['inspector_actual'])
+                    ? $data[$i]['inspector_actual']
+                    : '(ID: ' . $data[$i]['current_value'] . ')';
+
+                $data[$i]['proposed_value'] = !empty($data[$i]['inspector_propuesto'])
+                    ? $data[$i]['inspector_propuesto']
+                    : '(ID: ' . $data[$i]['proposed_value'] . ')';
             } elseif ($data[$i]['field_name'] === 'address_id') {
-                $data[$i]['current_value'] = $data[$i]['direccion_actual'] ?? '(ID: ' . $data[$i]['current_value'] . ')';
-                $data[$i]['proposed_value'] = $data[$i]['direccion_propuesta'] ?? '(ID: ' . $data[$i]['proposed_value'] . ')';
+                $data[$i]['current_value'] = !empty($data[$i]['direccion_actual'])
+                    ? $data[$i]['direccion_actual']
+                    : '(ID: ' . $data[$i]['current_value'] . ')';
+
+                $data[$i]['proposed_value'] = !empty($data[$i]['direccion_propuesta'])
+                    ? $data[$i]['direccion_propuesta']
+                    : '(ID: ' . $data[$i]['proposed_value'] . ')';
             }
-            
-    
+
             $data[$i]['accion'] = '<div class="d-flex">
                 <button class="btn btn-primary" type="button" onclick="editCertificate(\'' . $data[$i]['id'] . '\')">
                   <i class="fas fa-edit"></i>
@@ -57,13 +65,13 @@ class ErroresAdmin extends Controller
                 </button>
             </div>';
         }
-    
+
         echo json_encode($data);
         die();
     }
-    
-    
-    
+
+
+
     public function listarResueltos()
     {
         $data = $this->model->getErroresResueltos('corrected');
@@ -79,7 +87,7 @@ class ErroresAdmin extends Controller
     public function listarRechazados()
     {
         $data = $this->model->getErroresResueltos('rejected');
-       
+
         echo json_encode($data);
         die();
     }
@@ -136,7 +144,7 @@ class ErroresAdmin extends Controller
                 echo json_encode(['msg' => 'Certificado no encontrado', 'icono' => 'error']);
                 return;
             }
-        
+
             if ($field_name === 'address_id') {
                 // Usar el método especializado
                 $this->model->actualizarDireccionCertificado($cert_number, $new_value);
@@ -144,12 +152,12 @@ class ErroresAdmin extends Controller
                 // Campos normales
                 $this->model->actualizarCampoCertificado($cert_number, $campoSanitizado, $new_value);
             }
-        
+
             // Registrar el log como cualquier otro campo
             $this->model->insertarLogCorreccion($correction_id, $cert_number, $field_name, $old_value, $new_value, $user_id);
         }
-        
-        
+
+
         $monitoreos = $this->model->obtenerMonitoreos($cert_number);
         foreach ($monitoreos as $monitor) {
             switch ($monitor['monitor_type']) {
@@ -243,7 +251,7 @@ class ErroresAdmin extends Controller
                     break;
             }
         }
-        
+
 
         // 4.  Definir ruta de trabajo del PDF
         $pdf_path = "uploads/temp/{$cert_number}.pdf";
@@ -301,14 +309,14 @@ class ErroresAdmin extends Controller
         $inspector = $this->model->obtenerInspectorPorId($inspector_id);
         $inspector_name = $inspector ? $inspector['name'] : $data['inspector_name'];
         $firmaPath = '';
-if (!empty($inspector['direccion_firma'])) {
-    $firmaFullPath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $inspector['direccion_firma'];
-    if (file_exists($firmaFullPath)) {
-        $firmaBase64 = base64_encode(file_get_contents($firmaFullPath));
-        $mime = mime_content_type($firmaFullPath);
-        $firmaPath = 'data:' . $mime . ';base64,' . $firmaBase64;
-    }
-}
+        if (!empty($inspector['direccion_firma'])) {
+            $firmaFullPath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $inspector['direccion_firma'];
+            if (file_exists($firmaFullPath)) {
+                $firmaBase64 = base64_encode(file_get_contents($firmaFullPath));
+                $mime = mime_content_type($firmaFullPath);
+                $firmaPath = 'data:' . $mime . ';base64,' . $firmaBase64;
+            }
+        }
 
         // Rutas de logo y QR para web
         $logoPath = BASE_URL . 'assets/images/logo.png';
@@ -665,20 +673,20 @@ if (!empty($inspector['direccion_firma'])) {
         die();
     }
 
-        //eliminar error
-        public function delete($id_error)
-        {
-            if (is_numeric($id_error)) {
-                $data = $this->model->eliminar($id_error);
-                if ($data == 1) {
-                    $respuesta = array('msg' => 'Error rechazado Correctamente', 'icono' => 'success');
-                } else {
-                    $respuesta = array('msg' => 'error al eliminar error', 'icono' => 'error');
-                }
+    //eliminar error
+    public function delete($id_error)
+    {
+        if (is_numeric($id_error)) {
+            $data = $this->model->eliminar($id_error);
+            if ($data == 1) {
+                $respuesta = array('msg' => 'Error rechazado Correctamente', 'icono' => 'success');
             } else {
-                $respuesta = array('msg' => 'error desconocido', 'icono' => 'error');
+                $respuesta = array('msg' => 'error al eliminar error', 'icono' => 'error');
             }
-            echo json_encode($respuesta);
-            die();
+        } else {
+            $respuesta = array('msg' => 'error desconocido', 'icono' => 'error');
         }
+        echo json_encode($respuesta);
+        die();
+    }
 }

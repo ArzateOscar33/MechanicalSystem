@@ -129,8 +129,9 @@ class ErroresUsuario extends Controller
                 return;
             }
     
-            $valorActual = $this->model->getValorActualCampo($cert_number, $field_name);
-            $current_value = $valorActual[$field_name] ?? null;
+$valorActual = $this->model->getValorActualCampo($cert_number, $field_name);
+$current_value = $valorActual ?? '(No disponible)';
+
     
             $idCorreccion = $this->model->registrarCorreccion(
                 $cert_number,

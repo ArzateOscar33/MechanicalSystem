@@ -29,13 +29,19 @@ class ErroresUsuarioModel extends Query
     }
 
     // Obtener el valor actual del campo indicado para ese certificado
-    public function getValorActualCampo($certNumber, $campo)
-    {
-        $campo = preg_replace('/[^a-zA-Z0-9_]/', '', $campo); // sanitizar nombre de campo
-        $sql = "SELECT `$campo` FROM certificates WHERE cert_number = ?";
-        $res = $this->select($sql, [$certNumber]);
-        return $res[$campo] ?? null;
+public function getValorActualCampo($certNumber, $campo)
+{
+    $campo = preg_replace('/[^a-zA-Z0-9_]/', '', $campo);
+    $sql = "SELECT `$campo` FROM certificates WHERE cert_number = ?";
+    $res = $this->select($sql, [$certNumber]);
+
+    if ($res && array_key_exists($campo, $res)) {
+        return $res[$campo];
     }
+
+    return null;
+}
+
 
     // Guardar solicitud de corrección
     public function registrarCorreccion($certificate_id, $user_id, $field_name, $current_value, $proposed_value, $reason, $timely)
