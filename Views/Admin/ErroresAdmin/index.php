@@ -177,6 +177,7 @@
                                     <th>Estatus del Error</th>
                                     <th>Fecha de la Solicitud</th>
                                     <th>Fecha de Resolucion</th>
+                                     
                                 </tr>
                             </thead>
                             <tbody>

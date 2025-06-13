@@ -52,7 +52,8 @@ public function getErrores($estado)
                     c.status,
                     c.proposed_value AS corregido,
                     c.updated_at,
-                    c.reviewed_at
+                    c.reviewed_at,
+                    c.created_at
                 FROM correction_requests c
                 LEFT JOIN users u ON c.user_id = u.id
                 WHERE c.status = ?

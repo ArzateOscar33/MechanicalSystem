@@ -1,4 +1,5 @@
 let tblErrores;
+
 let currentFieldName = "";
 let currentProposedValue = "";
 const myModal = new bootstrap.Modal(document.getElementById("modalError"));
@@ -19,7 +20,11 @@ document.addEventListener("DOMContentLoaded", function () {
     longitud: "Longitud",
     test_date: "Fecha de Prueba",
     license_plate: "Placa",
-    // Agrega aquí más equivalencias si lo necesitas
+  };
+  const status = {
+    pending: "Pendiente",
+    corrected: "Correcto",
+    rejected: "Rechazado",
   };
 
   tblErrores = $("#tblErrores").DataTable({
@@ -40,9 +45,76 @@ document.addEventListener("DOMContentLoaded", function () {
       { data: "current_value", title: "Valor Actual" },
       { data: "proposed_value", title: "Valor Propuesto" },
       { data: "reason", title: "Motivo" },
-      { data: "status", title: "Estado" },
+      {
+        data: "status",
+        title: "Campo con Error",
+        render: function (data, type, row) {
+          return status[data] || data;
+        },
+      },
       { data: "created_at", title: "Fecha de Creación" },
       { data: "accion", title: "Acciones" },
+    ],
+    language,
+    dom,
+    buttons,
+  });
+  $("#tblErroresResueltos").DataTable({
+    ajax: {
+      url: base_url + "ErroresAdmin/listarResueltos",
+      dataSrc: "",
+    },
+    columns: [
+      { data: "certificate_id" },
+      { data: "user_name" },
+      {
+        data: "field_name",
+        title: "Campo con Error",
+        render: function (data, type, row) {
+          return nombresCampos[data] || data;
+        },
+      },
+      { data: "corregido" },
+      {
+        data: "status",
+        title: "Campo con Error",
+        render: function (data, type, row) {
+          return status[data] || data;
+        },
+      },
+      { data: "reviewed_at" },
+      { data: "updated_at" },
+    ],
+    language,
+    dom,
+    buttons,
+  });
+
+  $("#tblErroresRejected").DataTable({
+    ajax: {
+      url: base_url + "ErroresAdmin/listarRechazados",
+      dataSrc: "",
+    },
+    columns: [
+      { data: "certificate_id", title: "ID Certificado" },
+      { data: "user_name" },
+      {
+        data: "field_name",
+        title: "Campo con Error",
+        render: function (data, type, row) {
+          return nombresCampos[data] || data;
+        },
+      },
+      { data: "corregido" },
+      {
+        data: "status",
+        title: "Campo con Error",
+        render: function (data, type, row) {
+          return status[data] || data;
+        },
+      },
+      { data: "created_at" },
+      { data: "updated_at" },
     ],
     language,
     dom,
@@ -119,7 +191,7 @@ document
       latitud: "Latitud",
       longitud: "Longitud",
       test_date: "Fecha de Prueba",
-       license_plate: "Placa",
+      license_plate: "Placa",
     };
 
     // Buscar nombre legible o mostrar el original si no está en el diccionario
