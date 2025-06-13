@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const inspectorSelectDiv = document.getElementById("inspectorSelectDiv");
   const inputPropuesto = document.getElementById("proposed_value");
   const inspectorSelect = document.getElementById("inspector_select");
+  const proposedValueLabel = document.getElementById("proposed_value_label");
 
   // Mostrar/ocultar campos según tipo de error
   tipoErrorSelect.addEventListener("change", function () {
@@ -15,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
     imagenesInput.style.display = "none";
     inspectorSelectDiv.style.display = "none";
     inputPropuesto.style.display = "none";
+    
 
     const prevDireccionSelect = document.getElementById("direccion_select");
     if (prevDireccionSelect) {
@@ -23,9 +25,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (campo === 'images') {
       imagenesInput.style.display = "block";
+      proposedValueLabel.textContent = "Subir nuevas imágenes";
     } else if (campo === 'inspector_id') {
       inspectorSelectDiv.style.display = "block";
-
+    proposedValueLabel.textContent = "Seleccionar Inspector";
       // Cargar inspectores dinámicamente
       fetch(base_url + "ErroresUsuario/getInspectores")
         .then((res) => res.json())
@@ -40,6 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     } else if (campo === 'address_id') {
       // Crear y mostrar nuevo select de direcciones
+      proposedValueLabel.textContent = "Valor Propuesto";
       let selectDireccion = document.createElement("select");
       selectDireccion.className = "form-select mt-2";
       selectDireccion.name = "direccion_select";
@@ -60,7 +64,9 @@ document.addEventListener("DOMContentLoaded", function () {
             selectDireccion.appendChild(option);
           });
         });
-    } else {
+    }  
+    else {
+      proposedValueLabel.textContent = "Valor Propuesto";
       inputPropuesto.style.display = "block";
     }
   });

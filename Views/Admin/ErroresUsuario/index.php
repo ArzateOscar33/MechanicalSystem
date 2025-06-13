@@ -39,21 +39,20 @@
 
           <!-- Valor propuesto -->
           <div class="mb-3">
-            <label for="proposed_value" class="form-label">Valor Propuesto</label>
+            <label for="proposed_value" id="proposed_value_label" class="form-label">Valor Propuesto</label>
             <input type="text" class="form-control" name="proposed_value" id="proposed_value">
           </div>
 
           <!-- Select de inspector -->
           <div class="mb-3" id="inspectorSelectDiv" style="display: none;">
-            <label for="inspector_select" class="form-label">Seleccionar Inspector</label>
+             
             <select class="form-select" id="inspector_select">
               <option value="">-- Seleccione un inspector --</option>
             </select>
           </div>
 
           <!-- Subida de imágenes -->
-          <div class="mb-3" id="imagenesInput" style="display: none;">
-            <label for="imagenes" class="form-label">Subir nuevas imágenes</label>
+          <div class="mb-3" id="imagenesInput" style="display: none;"> 
             <input type="file" class="form-control" name="imagenes[]" id="imagenes" accept="image/*" multiple>
             <small class="text-muted">Máximo 9 imágenes</small>
           </div>

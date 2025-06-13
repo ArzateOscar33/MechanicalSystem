@@ -19,33 +19,45 @@ document
     document.querySelector("#detalle_position_id").innerHTML =
       '<option value="">Seleccione</option>';
     limpiarHiddenInputs();
+     filtroDepartamento.disabled = false;
+    filtroEmpleado.disabled = false;
+    buscarNumero.disabled = false;
+    btnLimpiarBusqueda.classList.add("d-none");
   });
 
 document.addEventListener("DOMContentLoaded", function () {
   cargarDepartamentosDetalle();
 
-  filtroDepartamento.addEventListener("change", function () {
-    const idDep = this.value;
+ filtroDepartamento.addEventListener("change", function () {
+  const idDep = this.value;
 
-    // Reset de empleado
-    filtroEmpleado.innerHTML = '<option value="">Seleccione</option>';
-    filtroEmpleado.value = "";
+  // ✅ Guardamos el valor actual del departamento
+  const valorDepartamento = filtroDepartamento.value;
 
-    // Reset de detalle
-    frmDetalle.reset();
-    limpiarHiddenInputs();
-    document.querySelector("#imgEmpleado").src = "";
-    toggleEdicionEmpleado(false);
+  // Reset de empleado
+  filtroEmpleado.innerHTML = '<option value="">Seleccione</option>';
+  filtroEmpleado.value = "";
 
-    // Reset puestos
-    document.querySelector("#detalle_position_id").innerHTML =
-      '<option value="">Seleccione</option>';
+  // Reset de detalle
+  //frmDetalle.reset();
 
-    // Cargar nuevos empleados si hay departamento
-    if (idDep) {
-      cargarEmpleadosPorDepartamento(idDep);
-    }
-  });
+  // ✅ Reasignamos el valor del departamento después del reset
+  filtroDepartamento.value = valorDepartamento;
+
+  limpiarHiddenInputs();
+  document.querySelector("#imgEmpleado").src = "";
+  toggleEdicionEmpleado(false);
+
+  // Reset puestos
+  document.querySelector("#detalle_position_id").innerHTML =
+    '<option value="">Seleccione</option>';
+
+  // Cargar nuevos empleados si hay departamento
+  if (idDep) {
+    cargarEmpleadosPorDepartamento(idDep);
+  }
+});
+
   filtroEmpleado.addEventListener("change", function () {
     if (!filtroDepartamento.value) {
       Swal.fire("Aviso", "Debe seleccionar un departamento primero", "warning");
@@ -245,6 +257,7 @@ function cargarDetalleEmpleado(id) {
         document.querySelector("#detalle_email").value = data.email;
 cargarDepartamentosDetalle(() => {
   document.querySelector("#detalle_department_id").value = data.department_id;
+   filtroDepartamento.value = data.department_id;
   cargarPuestosDetalle(data.department_id, data.position_id);
 });
 setTimeout(() => {
