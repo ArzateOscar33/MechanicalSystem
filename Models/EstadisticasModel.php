@@ -168,6 +168,7 @@ class EstadisticasModel extends Query
             GROUP BY a.state, a.city
             ORDER BY total DESC
             LIMIT 1
+            
         ";
 
         return $this->select($sql, [$inspector]);
