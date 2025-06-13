@@ -27,9 +27,21 @@ class CrearCertificadosModel extends Query
     }
 
     public function insertarCertificado(
-        $cert_number, $vin, $address_id, $phone, $year, $mfg_in, $make,
-        $owner_name, $model, $license_plate, $odometer, $inspector_id,
-        $test_date, $expires, $source_file
+        $cert_number,
+        $vin,
+        $address_id,
+        $phone,
+        $year,
+        $mfg_in,
+        $make,
+        $owner_name,
+        $model,
+        $license_plate,
+        $odometer,
+        $inspector_id,
+        $test_date,
+        $expires,
+        $source_file
     ) {
         $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
 
@@ -40,9 +52,22 @@ class CrearCertificadosModel extends Query
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->insertar($sql, [
-            $cert_number, $vin, $address_id, $phone, $year, $mfg_in, $make,
-            $owner_name, $model, $license_plate, $odometer, $inspector_id,
-            $test_date, $expires, $source_file, $zip_path
+            $cert_number,
+            $vin,
+            $address_id,
+            $phone,
+            $year,
+            $mfg_in,
+            $make,
+            $owner_name,
+            $model,
+            $license_plate,
+            $odometer,
+            $inspector_id,
+            $test_date,
+            $expires,
+            $source_file,
+            $zip_path
         ]);
     }
 
@@ -98,11 +123,16 @@ class CrearCertificadosModel extends Query
 
     public function contarCertificadosPorUsuario($id_usuario)
     {
-        $sql = "SELECT COUNT(*) AS total FROM certificates WHERE cert_number LIKE ?";
+        $sql = "SELECT MAX(CAST(SUBSTRING_INDEX(cert_number, '-', -1) AS UNSIGNED)) AS ultimo 
+            FROM certificates 
+            WHERE cert_number LIKE ?";
+
         $like = 'MEX' . $id_usuario . '-%';
         $res = $this->select($sql, [$like]);
-        return $res ? $res['total'] : 0;
+
+        return $res && $res['ultimo'] !== null ? intval($res['ultimo']) + 1 : 1;
     }
+
 
     public function obtenerDireccionPorId($id)
     {

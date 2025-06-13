@@ -350,7 +350,7 @@ if (!empty($inspector['direccion_firma'])) {
                     $mime = $ext === 'png' ? 'image/png' : 'image/jpeg';
                     $imgData = base64_encode(file_get_contents($rutaFisica));
                     $imagenesHTML .= sprintf(
-                        '<img src="data:%s;base64,%s" style="width:180px; margin:5px;">',
+                        '<img src="data:%s;base64,%s" style="width:200px; height:200px; margin:5px;">',
                         $mime,
                         $imgData
                     );
@@ -379,35 +379,40 @@ if (!empty($inspector['direccion_firma'])) {
 
         // HTML del PDF
         $html = '
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        font-size: 12px;
-                    }
+          <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                }
 
-                    .header-barcodes {
-                        width: 100%;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-bottom: 10px;
-                    }
+                .header-barcodes {
+                    display: table;
+                    width: 100%;
+                    table-layout: fixed;
+                    margin-bottom: 10px;
+                    
+                }
 
-                    .barcode-block {
-                        text-align: center;
-                        flex: 1;
-                    }
+                .barcode-block {
+                    display: table-cell;
+                    text-align: center;
+                    vertical-align: top;
+                    padding: 5px;
+                }
 
-                    .barcode-block img {
-                        max-width: 100%;
-                        height: auto;
-                        max-height: 50px;
-                    }
+                .barcode-label {
+                    font-weight: bold;
+                    font-size: 12px;
+                    margin-bottom: 5px;
+                }
 
-                    .barcode-label {
-                        font-weight: bold;
-                        margin-bottom: 5px;
-                    }
+                .barcode-block img {
+                    width: 315px;
+                    height: 40px;
+                    object-fit: contain;
+                    display: block;
+                    margin: 0 auto;
+                }
 
                     .title {
                         font-size: 20px;
@@ -450,18 +455,26 @@ if (!empty($inspector['direccion_firma'])) {
                     td {
                         padding: 6px;
                     }
-                    </style>
+            </style>
 
-                <div style="display: flex; justify-content: center; align-items: flex-start; gap: 40px; margin-bottom: 10px;">
-                    <div style="text-align: center; display: inline-block;">
-                        <div style="font-weight: bold; margin-bottom: 4px;">VIN</div>
-                        <img src="' . $vinBarcodeWeb . '" alt="VIN Barcode" style="max-height: 50px;">
+                <div class="header-barcodes">
+                    <div class="barcode-block">
+                        <div class="barcode-label">VIN</div>
+                        <div class="barcode-img">
+                            <img src="' . $vinBarcodeWeb . '" alt="VIN Barcode">
+                        </div>
                     </div>
-                    <div style="text-align: center; display: inline-block;">
-                        <div style="font-weight: bold; margin-bottom: 4px;">Cert Number</div>
-                        <img src="' . $certBarcodeWeb . '" alt="Cert Barcode" style="max-height: 50px;">
+                    <div class="barcode-block">
+                        <div class="barcode-label">Cert Number</div>
+                        <div class="barcode-img">
+                            <img src="' . $certBarcodeWeb . '" alt="Cert Barcode">
+                        </div>
                     </div>
                 </div>
+
+
+
+
                     <!-- Nombre del Centro -->
                     <div class="title">MECHANICAL EMISSIONS SERVICES LLC</div>
     
@@ -516,12 +529,9 @@ if (!empty($inspector['direccion_firma'])) {
                 <img src="' . $qrWebPath . '" width="150">
             </div>
         
-            <div class="section"><b>Imágenes del vehículo</b><br>' . $imagenesHTML . '</div>
+            <div class="section"><b>Imágenes del vehículo</b><br><br><br><br><br>' . $imagenesHTML . '</div>
         
-            <div class="section" style="text-align:center">
-                <small>Powered by -- Formula 1 Auto Repair -- (BAR NBR RC 00305923)<br>
-                To verify this certificate, go to www.mecemissions.com</small>
-            </div>
+ 
             ';
 
         // Generar PDF

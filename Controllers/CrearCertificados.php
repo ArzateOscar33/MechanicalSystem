@@ -46,7 +46,7 @@ class CrearCertificados extends Controller
             error_reporting(E_ALL);
 
             $id_usuario = $_SESSION['id_usuario'] ?? 0;
-            $consecutivo = $this->model->contarCertificadosPorUsuario($id_usuario) + 1;
+            $consecutivo = $this->model->contarCertificadosPorUsuario($id_usuario);
             $cert_number = 'MEX' . $id_usuario . '-' . str_pad($consecutivo, 8, "0", STR_PAD_LEFT);
 
             $vin = $_POST['vin'];
@@ -220,42 +220,48 @@ class CrearCertificados extends Controller
 
                 if (is_uploaded_file($rutaTemp)) {
                     move_uploaded_file($rutaTemp, $rutaFisica);
-                    $imagenesHTML .= '<img src="' . $rutaWeb . '" width="150" style="margin:5px;">';
+                    $imagenesHTML .= '<img src="' . $rutaWeb . '" width="200" height="200" style="margin:5px;">';
                 }
             }
         }
 
         // HTML del PDF
+              // HTML del PDF
         $html = '
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        font-size: 12px;
-                    }
+          <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                }
 
-                    .header-barcodes {
-                        width: 100%;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-bottom: 10px;
-                    }
+                .header-barcodes {
+                    display: table;
+                    width: 100%;
+                    table-layout: fixed;
+                    margin-bottom: 10px;
+                    
+                }
 
-                    .barcode-block {
-                        text-align: center;
-                        flex: 1;
-                    }
+                .barcode-block {
+                    display: table-cell;
+                    text-align: center;
+                    vertical-align: top;
+                    padding: 5px;
+                }
 
-                    .barcode-block img {
-                        max-width: 100%;
-                        height: auto;
-                        max-height: 50px;
-                    }
+                .barcode-label {
+                    font-weight: bold;
+                    font-size: 12px;
+                    margin-bottom: 5px;
+                }
 
-                    .barcode-label {
-                        font-weight: bold;
-                        margin-bottom: 5px;
-                    }
+                .barcode-block img {
+                    width: 315px;
+                    height: 40px;
+                    object-fit: contain;
+                    display: block;
+                    margin: 0 auto;
+                }
 
                     .title {
                         font-size: 20px;
@@ -298,18 +304,26 @@ class CrearCertificados extends Controller
                     td {
                         padding: 6px;
                     }
-                    </style>
+            </style>
 
-                <div style="display: flex; justify-content: center; align-items: flex-start; gap: 40px; margin-bottom: 10px;">
-                    <div style="text-align: center; display: inline-block;">
-                        <div style="font-weight: bold; margin-bottom: 4px;">VIN</div>
-                        <img src="' . $vinBarcodeWeb . '" alt="VIN Barcode" style="max-height: 50px;">
+                <div class="header-barcodes">
+                    <div class="barcode-block">
+                        <div class="barcode-label">VIN</div>
+                        <div class="barcode-img">
+                            <img src="' . $vinBarcodeWeb . '" alt="VIN Barcode">
+                        </div>
                     </div>
-                    <div style="text-align: center; display: inline-block;">
-                        <div style="font-weight: bold; margin-bottom: 4px;">Cert Number</div>
-                        <img src="' . $certBarcodeWeb . '" alt="Cert Barcode" style="max-height: 50px;">
+                    <div class="barcode-block">
+                        <div class="barcode-label">Cert Number</div>
+                        <div class="barcode-img">
+                            <img src="' . $certBarcodeWeb . '" alt="Cert Barcode">
+                        </div>
                     </div>
                 </div>
+
+
+
+
                     <!-- Nombre del Centro -->
                     <div class="title">MECHANICAL EMISSIONS SERVICES LLC</div>
     
@@ -347,8 +361,7 @@ class CrearCertificados extends Controller
                 <table>
                     <tr><th>Campo</th><th>Valor</th></tr>
                     <tr><td>Inspector</td><td>' . $inspector_name . '</td></tr>
-                    <tr>
-                    <td>Firma del Inspector</td>
+                                        <td>Firma del Inspector</td>
                     <td style="text-align:center;">
                         ' . ($firma_path ? '<img src="' . $firma_path . '" style="height:40px; max-width:100px;">' : 'Sin firma') . '
                     </td>
@@ -365,12 +378,9 @@ class CrearCertificados extends Controller
                 <img src="' . $qrWebPath . '" width="150">
             </div>
         
-            <div class="section"><b>Imágenes del vehículo</b><br>' . $imagenesHTML . '</div>
+            <div class="section"><b>Imágenes del vehículo</b><br><br><br><br><br>' . $imagenesHTML . '</div>
         
-            <div class="section" style="text-align:center">
-                <small>Powered by -- Formula 1 Auto Repair -- (BAR NBR RC 00305923)<br>
-                To verify this certificate, go to www.mecemissions.com</small>
-            </div>
+ 
             ';
 
         // Generar PDF
