@@ -243,6 +243,120 @@ public function certificadosPorCiudadPorInspectorYFecha($inspector, $fecha)
     return $this->selectAll($sql, [$inspector, $fecha]);
 }
 
+    public function listarDuplicados()
+    {
+        $sql = "
+            SELECT c.cert_number,
+            c.vin, c.make, 
+            c.model, 
+            c.year, 
+            c.owner_name, 
+            c.address_id,
+            i.name AS inspector_name, 
+            a.city, 
+            a.state
+            FROM certificates c
+            LEFT JOIN inspectors i ON c.inspector_id = i.id
+            LEFT JOIN addresses a ON c.address_id = a.id
+            WHERE c.vin IN (
+            SELECT vin
+            FROM certificates
+            WHERE vin IS NOT NULL
+            GROUP BY vin
+            HAVING COUNT(*) > 1
+            )
+            ORDER BY c.vin ASC, c.test_date ASC;
+
+    ";
+
+        return $this->selectAll($sql);
+    }
+
+    public function listarCantidadIncidencias()
+    {
+        $sql = "
+        SELECT 
+        i.id AS inspector_id,
+        i.name AS inspector,
+        COUNT(*) AS certificados_duplicados
+        FROM certificates c
+        JOIN inspectors i ON c.inspector_id = i.id
+        WHERE c.vin IN (
+            SELECT vin
+            FROM certificates
+            GROUP BY vin
+            HAVING COUNT(*) > 1
+        )
+        GROUP BY i.id
+        ORDER BY certificados_duplicados DESC;
+
+    ";
+
+        return $this->selectAll($sql);
+    }
+    // Duplicados por ciudad
+public function duplicadosPorCiudad()
+{
+    $sql = "
+        SELECT a.city, COUNT(*) AS total
+        FROM certificates c
+        JOIN addresses a ON c.address_id = a.id
+        WHERE c.vin IS NOT NULL
+          AND c.vin IN (
+              SELECT vin
+              FROM certificates
+              WHERE vin IS NOT NULL
+              GROUP BY vin
+              HAVING COUNT(*) > 1
+          )
+        GROUP BY a.city
+        ORDER BY total DESC
+    ";
+    return $this->selectAll($sql);
+}
+
+// Duplicados por estado
+public function duplicadosPorEstado()
+{
+    $sql = "
+        SELECT a.state, COUNT(*) AS total
+        FROM certificates c
+        JOIN addresses a ON c.address_id = a.id
+        WHERE c.vin IS NOT NULL
+          AND c.vin IN (
+              SELECT vin
+              FROM certificates
+              WHERE vin IS NOT NULL
+              GROUP BY vin
+              HAVING COUNT(*) > 1
+          )
+        GROUP BY a.state
+        ORDER BY total DESC
+    ";
+    return $this->selectAll($sql);
+}
+public function duplicadosMensualesPorCiudad()
+{
+    $sql = "
+        SELECT 
+            DATE_FORMAT(c.test_date, '%Y-%m') AS mes,
+            a.city,
+            COUNT(*) AS total
+        FROM certificates c
+        JOIN addresses a ON c.address_id = a.id
+        WHERE c.vin IS NOT NULL
+          AND c.vin IN (
+              SELECT vin
+              FROM certificates
+              WHERE vin IS NOT NULL
+              GROUP BY vin
+              HAVING COUNT(*) > 1
+          )
+        GROUP BY mes, a.city
+        ORDER BY mes ASC;
+    ";
+    return $this->selectAll($sql);
+}
 
 
 }

@@ -250,4 +250,106 @@ public function certificadosPorCiudadPorInspectorYRango()
     die();
 }
 
+    public function listarDuplicados()
+    {
+        $data = $this->model->listarDuplicados();
+        for ($i = 0; $i < count($data); $i++) {
+            $data[$i]['accion'] = '<div class="d-flex gap-2">
+            
+                <button class="btn btn-danger" type="button" onclick="eliminarEmpleado(' . $data[$i]['cert_number'] . ')"><i class="fas fa-trash-alt"></i></button>
+            </div>';
+        }
+        echo json_encode($data);
+        die();
+    }
+
+        public function listarCantidadIncidencias()
+    {
+        $data = $this->model->listarCantidadIncidencias();
+        for ($i = 0; $i < count($data); $i++) {
+            $data[$i]['accion'] = '<div class="d-flex gap-2">
+            
+                 
+            </div>';
+        }
+        echo json_encode($data);
+        die();
+    }
+    public function duplicadosPorCiudad()
+    {
+        $data = $this->model->duplicadosPorCiudad();
+        $total = array_sum(array_column($data, 'total'));
+
+        foreach ($data as &$row) {
+            $row['porcentaje'] = $total > 0 ? ($row['total'] / $total) * 100 : 0;
+        }
+
+        echo json_encode($data);
+        die();
+    }
+
+    public function duplicadosPorEstado()
+    {
+        $data = $this->model->duplicadosPorEstado();
+        $total = array_sum(array_column($data, 'total'));
+
+        foreach ($data as &$row) {
+            $row['porcentaje'] = $total > 0 ? ($row['total'] / $total) * 100 : 0;
+        }
+
+        echo json_encode($data);
+        die();
+    }
+    public function duplicadosMensualesPorCiudad()
+{
+    $data = $this->model->duplicadosMensualesPorCiudad();
+
+    $meses = [];
+    $ciudades = [];
+    $dataset = [];
+
+    foreach ($data as $row) {
+        $mes = $row['mes'];
+        $ciudad = $row['city'];
+        $total = (int)$row['total'];
+
+        if (!in_array($mes, $meses)) {
+            $meses[] = $mes;
+        }
+
+        if (!isset($dataset[$ciudad])) {
+            $dataset[$ciudad] = [];
+        }
+
+        $dataset[$ciudad][$mes] = $total;
+    }
+
+    // Armar datos por ciudad
+    $series = [];
+    foreach ($dataset as $ciudad => $valores) {
+        $datos = [];
+        foreach ($meses as $m) {
+            $datos[] = isset($valores[$m]) ? $valores[$m] : 0;
+        }
+
+        $color = '#' . substr(md5($ciudad), 0, 6); // Color único por ciudad
+
+        $series[] = [
+            'label' => $ciudad,
+            'data' => $datos,
+            'borderColor' => $color,
+            'backgroundColor' => $color,
+            'fill' => false,
+            'tension' => 0.2
+        ];
+    }
+
+    echo json_encode([
+        'labels' => $meses,
+        'datasets' => $series
+    ]);
+    die();
+}
+
+
 }

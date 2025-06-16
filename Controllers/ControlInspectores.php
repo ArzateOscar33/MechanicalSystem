@@ -59,6 +59,11 @@ class ControlInspectores extends Controller
                 if (!empty($firma_nueva)) {
                     $ext = pathinfo($firma_nueva, PATHINFO_EXTENSION);
                     $nombreFirma = 'firma_' . uniqid() . '.' . $ext;
+                    $directorio = 'uploads/firmas_inspectores/';
+if (!is_dir($directorio)) {
+    mkdir($directorio, 0755, true); // crea el directorio si no existe
+}
+
                     $destino = 'uploads/firmas_inspectores/' . $nombreFirma;
 
                     if (move_uploaded_file($_FILES['firma']['tmp_name'], $destino)) {
@@ -104,6 +109,11 @@ class ControlInspectores extends Controller
                 if (!empty($firma['name'])) {
                     $ext = pathinfo($firma['name'], PATHINFO_EXTENSION);
                     $nombreFirma = 'firma_' . uniqid() . '.' . $ext;
+                    $directorio = 'uploads/firmas_inspectores/';
+if (!is_dir($directorio)) {
+    mkdir($directorio, 0755, true);
+}
+
                     $destino = 'uploads/firmas_inspectores/' . $nombreFirma;
 
                     // 🔒 Validación del tipo MIME
