@@ -617,8 +617,7 @@ public function generarTodasCredenciales()
     foreach ($empleados as $empleado) {
         // Asegurarse de que tenga los datos necesarios
         $empleado['nombre_completo'] = trim($empleado['nombre_completo']);
-        $empleado['puesto'] = $this->model->getNombrePuesto($empleado['puesto']);
-        $empleado['departamento'] = $this->model->getNombreDepartamento($empleado['departamento']);
+        
 
         $fotoPath = !empty($empleado['photo_path']) ? $empleado['photo_path'] : 'assets/images/default.png';
 

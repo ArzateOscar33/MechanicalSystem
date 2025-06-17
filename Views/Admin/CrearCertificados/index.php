@@ -87,7 +87,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="year" class="form-label">Año</label>
-                        <input type="number" class="form-control" id="year" name="year" required>
+                        <input type="number" class="form-control" id="year" name="year" max="2030" min="1980" required>
                     </div>
                     <div class="mb-3">
                         <label for="marca" class="form-label">Marca</label>

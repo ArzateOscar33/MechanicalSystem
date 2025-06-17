@@ -36,11 +36,20 @@ class EmpleadosModel extends Query {
     }
 
 public function getEmpleados() {
-    $sql = "SELECT e.id, e.employee_number, 
-                   CONCAT(e.first_name, ' ', e.last_name, ' ', e.second_last_name) AS nombre_completo,
-                   e.curp, e.rfc, e.phone, e.email, e.birth_date, e.gender,
-                   d.name AS departamento, p.name AS puesto, e.issue_date,
-                   e.photo_path
+            $sql = "SELECT 
+                e.id, 
+                e.employee_number, 
+                CONCAT(e.first_name, ' ', e.last_name, ' ', e.second_last_name) AS nombre_completo,
+                e.curp,
+                e.rfc, 
+                e.phone, 
+                e.email, 
+                e.birth_date,
+                e.gender,
+                d.name AS departamento,
+                p.name AS puesto, 
+                e.issue_date,
+                e.photo_path
             FROM employees e
             INNER JOIN departments d ON e.department_id = d.id
             INNER JOIN positions p ON e.position_id = p.id

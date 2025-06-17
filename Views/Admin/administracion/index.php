@@ -5,7 +5,7 @@
         <div class="card radius-10 border-start border-0 border-3 border-warning">
             <div class="card-body d-flex align-items-center">
                 <div>
-                    <?php echo $_SESSION['nombre_usuario']; ?>
+                  
                     <p class="mb-0 text-secondary">Certificados</p>
                     <h4 class="my-1 text-warning"><?php echo $data['certificadosTotales']['total']; ?></h4>
                 </div>

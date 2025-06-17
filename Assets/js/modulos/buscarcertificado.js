@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   $("#filterMfgIn").on("change", function () {
-    tblCertificados.column(9).search(this.value).draw();
+    tblCertificados.column(8).search(this.value).draw();
   });
 
   // Llenar dinámicamente filtros de ciudad, estado, propietario, inspector y origen
