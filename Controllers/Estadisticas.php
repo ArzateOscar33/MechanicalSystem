@@ -350,6 +350,78 @@ public function certificadosPorCiudadPorInspectorYRango()
     ]);
     die();
 }
+public function certificadosPorSemanaPorCiudad()
+{
+    if (empty($_SESSION['nombre_usuario'])) {
+        header('Location: ' . BASE_URL . 'admin');
+        exit;
+    }
+
+    $desde = $_POST['desde'] ?? '';
+    $hasta = $_POST['hasta'] ?? '';
+
+    if (empty($desde) || empty($hasta)) {
+        echo json_encode(['error' => 'Fechas inválidas']);
+        return;
+    }
+
+    $data = $this->model->certificadosPorSemanaPorCiudad($desde, $hasta);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    die();
+}
+
+
+public function certificadosPorSucursalAgrupada()
+{
+    $fechaInicio = $_POST['desde'] ?? null;
+    $fechaFin = $_POST['hasta'] ?? null;
+
+    if (!$fechaInicio || !$fechaFin) {
+        echo json_encode(['error' => 'Debe proporcionar un rango de fechas'], JSON_UNESCAPED_UNICODE);
+        return;
+    }
+
+    $data = $this->model->certificadosPorSucursalPorFechas($fechaInicio, $fechaFin);
+
+    $grupos = [
+        'Sucursal Matamoros' => ['MATAMOROS', 'MATAMOROSaa'],
+        'Sucursal W Cole' => ['W Cole Rd, Suite 5C', 'W Cole Blv', 'W Cole Biv'],
+        'Sucursal Alameda' => ['Alameda Avenue'],
+        'Sucursal East 7th' => ['East 7th Street', 'E 7th St'],
+        'Sucursal La Media' => ['La Media Rd'],
+        'Sucursal Highland' => ['Highland Ave'],
+        'Sucursal Ejido' => ['Ejido'],
+        'Sucursal Federico' => ['Federico Ave'],
+        'Sucursal Cristian' => ['Cristian Ave'],
+    ];
+
+    $resultado = [];
+
+    foreach ($data as $fila) {
+        $encontrado = false;
+        foreach ($grupos as $sucursal => $variantes) {
+            foreach ($variantes as $variante) {
+                if (stripos(trim($fila['street']), $variante) !== false) {
+                    $resultado[$sucursal] = ($resultado[$sucursal] ?? 0) + $fila['total'];
+                    $encontrado = true;
+                    break 2;
+                }
+            }
+        }
+        if (!$encontrado) {
+            $resultado[$fila['street']] = ($resultado[$fila['street']] ?? 0) + $fila['total'];
+        }
+    }
+
+    $formato = [];
+    foreach ($resultado as $sucursal => $total) {
+        $formato[] = ['sucursal' => $sucursal, 'total' => $total];
+    }
+
+    echo json_encode($formato, JSON_UNESCAPED_UNICODE);
+    die();
+}
+
 
 
 }

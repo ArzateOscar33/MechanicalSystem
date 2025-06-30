@@ -357,6 +357,32 @@ public function duplicadosMensualesPorCiudad()
     ";
     return $this->selectAll($sql);
 }
+public function certificadosPorSemanaPorCiudad($desde, $hasta)
+{
+    $sql = "
+        SELECT 
+            DAYNAME(c.test_date) AS dia_semana,
+            a.city,
+            COUNT(*) AS total
+        FROM certificates c
+        INNER JOIN addresses a ON c.address_id = a.id
+        WHERE DATE(c.test_date) BETWEEN ? AND ?
+        GROUP BY dia_semana, a.city
+    ";
+
+    return $this->selectAll($sql, [$desde, $hasta]);
+}
+
+public function certificadosPorSucursalPorFechas($fechaInicio, $fechaFin)
+{
+    $sql = "SELECT a.street, COUNT(*) AS total
+            FROM certificates c
+            INNER JOIN addresses a ON c.address_id = a.id
+            WHERE DATE(c.test_date) BETWEEN ? AND ?
+            GROUP BY a.street";
+    return $this->selectAll($sql, [$fechaInicio, $fechaFin]);
+}
+
 
 
 }

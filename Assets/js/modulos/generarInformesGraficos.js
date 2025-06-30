@@ -1,14 +1,11 @@
 (() => {
     const { jsPDF } = window.jspdf;
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const boton = document.createElement("button");
-        boton.className = "btn btn-warning mt-3";
-        boton.textContent = "Generar Informe de Gráficos Especiales";
-        boton.onclick = mostrarFormularioGraficosEspeciales;
-        document.querySelector("#estadisticasPorFecha .card-body")?.appendChild(boton);
-    });
-
+     const btnGraficos = document.querySelector("#generarGraficosEspeciales");
+    if (btnGraficos) {
+        btnGraficos.addEventListener("click", mostrarFormularioGraficosEspeciales);
+    }
+ 
     function mostrarFormularioGraficosEspeciales() {
         Swal.fire({
             title: "Generar Informe PDF",
@@ -40,7 +37,7 @@
         contenedor.style.display = "block";
         contenedor.innerHTML = `
             <div id="header-grafico" style="margin-bottom: 20px;"></div>
-            <div id="grid-ciudades" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+            <div id="grid-ciudades" style="display: flex; flex-wrap: wrap; gap: 10px; height: 1600px;"></div>
             <div id="footer-grafico" style="margin-top: 20px;"></div>
         `;
         document.body.appendChild(contenedor);
@@ -64,7 +61,7 @@
             await generarGraficoCiudad(anio, mesNum, ciudad, contenedor.querySelector("#grid-ciudades"));
         }
 
-        await generarGraficoInspectorPorFecha(fecha, contenedor.querySelector("#footer-grafico"), 1500, 300);
+        await generarGraficoInspectorPorFecha(fecha, contenedor.querySelector("#footer-grafico"), 1500, 400);
 
         const pdf = new jsPDF("p", "pt", "a4");
         const pageHeight = pdf.internal.pageSize.getHeight();
@@ -119,47 +116,70 @@
     }
 
     async function generarGraficoCiudad(anio, mes, ciudad, destino) {
-        const data = await fetch(base_url + "admin/certificadosPorDia", {
-            method: "POST",
-            body: new URLSearchParams({ anio, mes, ciudad })
-        }).then(r => r.json());
+      const data = await fetch(base_url + "admin/certificadosPorDia", {
+        method: "POST",
+        body: new URLSearchParams({ anio, mes, ciudad }),
+      }).then((r) => r.json());
 
-        const dias = data.map(d => d.dia);
-        const totales = data.map(d => parseInt(d.total));
+      const dias = data.map((d) => d.dia);
+      const totales = data.map((d) => parseInt(d.total));
 
-        const wrapper = document.createElement("div");
-        wrapper.style.flex = "1 1 48%";
-        wrapper.style.border = "1px solid #ccc";
-        wrapper.style.padding = "10px";
+      const wrapper = document.createElement("div");
+      wrapper.style.flex = "1 1 48%";
+      wrapper.style.border = "1px solid #ccc";
+      wrapper.style.padding = "10px";
 
-        const title = document.createElement("h6");
-        title.textContent = `Certificados por Día - ${ciudad}`;
-        wrapper.appendChild(title);
+      const title = document.createElement("h6");
+      title.textContent = `Certificados por Día - ${ciudad}`;
+      wrapper.appendChild(title);
 
-        const canvas = document.createElement("canvas");
-        canvas.width = 800;
-        canvas.height = 200;
-        wrapper.appendChild(canvas);
-        destino.appendChild(wrapper);
+      const canvas = document.createElement("canvas");
+      canvas.width = 800;
+      canvas.height = 400;
+      wrapper.appendChild(canvas);
+      destino.appendChild(wrapper);
 
-        new Chart(canvas.getContext("2d"), {
-            type: "line",
-            data: {
-                labels: dias,
-                datasets: [{
-                    label: `Día (${ciudad})`,
-                    data: totales,
-                    borderColor: "#17a2b8",
-                    backgroundColor: "rgba(23, 197, 17, 0.2)",
-                    fill: true,
-                    tension: 0.4
-                }]
+      new Chart(canvas.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: dias,
+          datasets: [
+            {
+              label: `Ciudad (${ciudad})`,
+              data: totales,
+              borderColor: "#17a2b8",
+              backgroundColor: "rgba(23, 197, 17, 0.2)",
+              fill: true,
+              tension: 0.4,
+              borderWidth: 1,
             },
-            options: {
-                responsive: false,
-                maintainAspectRatio: false
-            }
-        });
+          ],
+        },
+
+        options: {
+          responsive: false,
+          
+ 
+          plugins: {
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+    
+            title: {
+              display: true,
+              text: "Distribución Diaria de Certificados",
+            },
+          },
+        },
+      });
     }
 
     async function generarGraficoInspectorPorFecha(fecha, destino, width = 794, height = 300) {
@@ -192,6 +212,26 @@
                     borderColor: "rgba(54, 162, 235, 1)",
                     borderWidth: 1
                 }]
+            },
+            plugins: {
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    color: '#000',
+                    font: {
+                        weight: 'bold'
+                    },
+                    formatter: function (value) {
+                        return value;
+                    }
+                },
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: `Certificados por Inspector (${fecha})`
+                }
             },
             options: {
                 responsive: false,

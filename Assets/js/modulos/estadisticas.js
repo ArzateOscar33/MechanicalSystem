@@ -1431,9 +1431,75 @@ function generarGraficoCiudadRangoIndividual() {
         });
 }
 
+let graficoSucursal = null;
 
+function actualizarGraficoSucursal() {
+    const desde = document.getElementById("fechaDesdeSucursales").value;
+    const hasta = document.getElementById("fechaHastaSucursales").value;
 
+    if (!desde || !hasta) return; // Espera a que ambos campos estén completos
 
+    fetch(base_url + "estadisticas/certificadosPorSucursalAgrupada", {
+        method: "POST",
+        body: new URLSearchParams({ desde, hasta }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            Swal.fire("Error", data.error, "error");
+            return;
+        }
 
+        const labels = data.map(item => item.sucursal);
+        const valores = data.map(item => item.total);
+        const colores = labels.map(() => "#" + Math.floor(Math.random()*16777215).toString(16));
 
+        const ctx = document.getElementById("graficoSucursales").getContext("2d");
+
+        if (graficoSucursal) {
+            graficoSucursal.destroy();
+        }
+
+        graficoSucursal = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Certificados por Sucursal",
+                    data: valores,
+                    backgroundColor: colores,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Certificados por Sucursal (por Fechas)'
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#000',
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: function (value) {
+                            return value;
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+}
+
+// Evento dinámico para escuchar cambios en los dos inputs
+document.getElementById("fechaDesdeSucursales").addEventListener("change", actualizarGraficoSucursal);
+document.getElementById("fechaHastaSucursales").addEventListener("change", actualizarGraficoSucursal);
 

@@ -54,7 +54,7 @@ function duplicadosPorCiudad() {
                         legend: {
                             position: "bottom",
                             labels: { boxWidth: 10 }
-                        },
+                        }, 
                         tooltip: {
                             callbacks: {
                                 label: context => `${context.label}: ${context.raw}%`
@@ -172,7 +172,18 @@ function duplicadosCiudadMensual() {
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Duplicados por Ciudad (Mensual)'
+                            text: 'Duplicados por Ciudad (Mensual)',
+                                
+
+                        },
+                                                datalabels: {
+                            anchor: 'end',
+                            align: 'upper',
+                            color: '#000',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            },
                         },
                         tooltip: {
                             callbacks: {
