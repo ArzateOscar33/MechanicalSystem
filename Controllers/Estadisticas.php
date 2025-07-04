@@ -249,6 +249,28 @@ public function certificadosPorCiudadPorInspectorYRango()
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     die();
 }
+public function certificadosPorInspectorPorRango()
+{
+    $desde = $_POST['desde'];
+    $hasta = $_POST['hasta'];
+    $data = $this->model->certificadosPorInspectorPorRango($desde, $hasta);
+    echo json_encode($data);
+}
+public function certificadosPorCiudadEnRango()
+{
+    $desde = $_POST['desde'];
+    $hasta = $_POST['hasta'];
+    $data = $this->model->certificadosPorCiudadEnRango($desde, $hasta);
+    echo json_encode($data);
+}
+
+public function certificadosPorEstadoEnRango()
+{
+    $desde = $_POST['desde'];
+    $hasta = $_POST['hasta'];
+    $data = $this->model->certificadosPorEstadoEnRango($desde, $hasta);
+    echo json_encode($data);
+}
 
     public function listarDuplicados()
     {

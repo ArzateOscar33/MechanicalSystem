@@ -1135,6 +1135,73 @@ function generarGraficoCiudadInspector(inspector, fecha, hasta = null, callback)
             setTimeout(callback, 10);
         });
 }
+document.getElementById("filtroDesdeRangoInspectores")?.addEventListener("change", actualizarGraficoInspectorPorRango);
+document.getElementById("filtroHastaRangoInspectores")?.addEventListener("change", actualizarGraficoInspectorPorRango);
+
+let graficoInspectorRango = null;
+
+function actualizarGraficoInspectorPorRango() {
+    const desde = document.getElementById("filtroDesdeRangoInspectores").value;
+    const hasta = document.getElementById("filtroHastaRangoInspectores").value;
+
+    if (!desde || !hasta) return;
+
+    if (hasta < desde) {
+        Swal.fire("Rango inválido", "La fecha final no puede ser menor que la inicial", "warning");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("desde", desde);
+    formData.append("hasta", hasta);
+
+    fetch(base_url + "estadisticas/certificadosPorInspectorPorRango", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            const canvas = document.getElementById("graficoInspectorPorFechaRango");
+            const ctx = canvas.getContext("2d");
+
+            if (graficoInspectorRango) {
+                graficoInspectorRango.destroy();
+            }
+
+            graficoInspectorRango = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.map(item => item.inspector_name),
+                    datasets: [{
+                        label: "Certificados",
+                        data: data.map(item => item.total),
+                        backgroundColor: "rgba(153, 102, 255, 0.6)",
+                        borderColor: "rgba(153, 102, 255, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Certificados por Inspector (${desde} a ${hasta})`
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#000',
+                            font: { weight: 'bold' },
+                            formatter: function (value) {
+                                return value;
+                            }
+                        }
+                    }
+                   
+                }
+            });
+        });
+}
 
 
 
@@ -1368,8 +1435,13 @@ function generarGraficoCiudadRangoIndividual() {
     const desde = document.getElementById("filtroDesdeRango").value;
     const hasta = document.getElementById("filtroHastaRango").value;
 
-    if (!inspector || !desde || !hasta || hasta < desde) {
-        return; // No hace nada hasta que todo esté correcto
+    if (!inspector || !desde || !hasta) {
+     
+        return;  
+    }
+    else if (hasta < desde) {
+        Swal.fire("Rango inválido", "La fecha final no puede ser menor que la inicial", "warning");
+        return;
     }
 
     const formData = new FormData();
@@ -1430,14 +1502,142 @@ function generarGraficoCiudadRangoIndividual() {
             });
         });
 }
+document.getElementById("filtroDesdeRangoCiudad")?.addEventListener("change", actualizarGraficoCiudadRango);
+document.getElementById("filtroHastaRangoCiudad")?.addEventListener("change", actualizarGraficoCiudadRango);
+
+document.getElementById("filtroDesdeRangoEstado")?.addEventListener("change", actualizarGraficoEstadoRango);
+document.getElementById("filtroHastaRangoEstado")?.addEventListener("change", actualizarGraficoEstadoRango);
+
+let graficoCiudadRango = null;
+let graficoEstadoRango = null;
+
+function actualizarGraficoCiudadRango() {
+    const desde = document.getElementById("filtroDesdeRangoCiudad").value;
+    const hasta = document.getElementById("filtroHastaRangoCiudad").value;
+    if (!desde || !hasta || hasta < desde) return;
+
+    const formData = new FormData();
+    formData.append("desde", desde);
+    formData.append("hasta", hasta);
+
+    fetch(base_url + "estadisticas/certificadosPorCiudadEnRango", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById("graficoCertificadosPorCiudadRango").getContext("2d");
+            if (graficoCiudadRango) graficoCiudadRango.destroy();
+
+            graficoCiudadRango = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.map(item => item.city),
+                    datasets: [{
+                        label: "Certificados",
+                        data: data.map(item => item.total),
+                        backgroundColor: "rgba(255, 159, 64, 0.6)",
+                        borderColor: "rgba(255, 159, 64, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Certificados por Ciudad (${desde} a ${hasta})`
+                        },
+                        datalabels: {
+                            anchor: 'top',
+                            align: 'inside',
+                            color: '#000',
+                            font: { weight: 'bold' },
+                            formatter: v => v
+                        },
+                        legend: { display: false }
+                    },
+                    responsive: true,
+                     
+ 
+                }
+            });
+        });
+}
+
+
+function actualizarGraficoEstadoRango() {
+    const desde = document.getElementById("filtroDesdeRangoEstado").value;
+    const hasta = document.getElementById("filtroHastaRangoEstado").value;
+    if (!desde || !hasta || hasta < desde) return;
+
+    const formData = new FormData();
+    formData.append("desde", desde);
+    formData.append("hasta", hasta);
+
+    fetch(base_url + "estadisticas/certificadosPorEstadoEnRango", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById("graficoCert").getContext("2d");
+            if (graficoEstadoRango) graficoEstadoRango.destroy();
+
+            graficoEstadoRango = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.map(item => item.state),
+                    datasets: [{
+                        label: "Certificados",
+                        data: data.map(item => item.total),
+                        backgroundColor: "rgba(54, 162, 235, 0.6)",
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Certificados por Estado (${desde} a ${hasta})`
+                        },
+                        datalabels: {
+                            anchor: 'top',
+                            align: 'inside',
+                            color: '#000',
+                            font: { weight: 'bold' },
+                            formatter: v => v
+                        },
+                        legend: { display: false }
+                    },
+                    responsive: true,
+                   
+ 
+                }
+            });
+        });
+}
 
 let graficoSucursal = null;
 
 function actualizarGraficoSucursal() {
-    const desde = document.getElementById("fechaDesdeSucursales").value;
-    const hasta = document.getElementById("fechaHastaSucursales").value;
+    const desdeInput = document.getElementById("fechaDesdeSucursales");
+    const hastaInput = document.getElementById("fechaHastaSucursales");
 
-    if (!desde || !hasta) return; // Espera a que ambos campos estén completos
+    const desde = desdeInput.value;
+    const hasta = hastaInput.value;
+
+    if (!desde || !hasta) return;
+
+    if (hasta < desde) {
+        Swal.fire("Rango inválido", "La fecha final no puede ser menor que la inicial", "warning");
+
+        // Opcional: limpiar valores o marcar los campos
+        hastaInput.classList.add("is-invalid");
+        return;
+    } else {
+        hastaInput.classList.remove("is-invalid");
+    }
 
     fetch(base_url + "estadisticas/certificadosPorSucursalAgrupada", {
         method: "POST",
@@ -1472,7 +1672,7 @@ function actualizarGraficoSucursal() {
                     borderWidth: 1
                 }]
             },
-            options: {
+                options: {
                 responsive: true,
                 plugins: {
                     title: {
@@ -1499,7 +1699,6 @@ function actualizarGraficoSucursal() {
     });
 }
 
-// Evento dinámico para escuchar cambios en los dos inputs
+// Escucha los cambios en ambos campos
 document.getElementById("fechaDesdeSucursales").addEventListener("change", actualizarGraficoSucursal);
 document.getElementById("fechaHastaSucursales").addEventListener("change", actualizarGraficoSucursal);
-

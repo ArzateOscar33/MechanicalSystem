@@ -101,6 +101,7 @@
                         </div>
                     </div>
                 </div>
+
                 <?php endif; ?>
                 <div class="col">
                     <div class="card radius-10">
@@ -119,6 +120,60 @@
                                 </div>
                             </div>
                             <canvas id="graficoSucursales" width="600" height="100px"></canvas>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col mt-4">
+                    <div class="card radius-10">
+                        <div class="card-body">
+                            <h6 class="mb-0">Certificador por Ciudad (Por Rango de Fechas)</h6>
+                            <div class="mt-3">
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Desde</label>
+                                        <input type="date" id="filtroDesdeRangoCiudad" class="form-control mb-2"
+                                            max="<?= date('Y-m-d') ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Hasta</label>
+                                        <input type="date" id="filtroHastaRangoCiudad" class="form-control mb-2"
+                                            max="<?= date('Y-m-d') ?>">
+                                    </div>
+                                </div>
+
+                                <canvas id="graficoCertificadosPorCiudadRango"  width="600" height="150"></canvas>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col mt-4">
+                    <div class="card radius-10">
+                        <div class="card-body">
+                            <h6 class="mb-0"> Certificados por Estado (Por Rango de Fechas)</h6>
+                            <div class="mt-3">
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Desde</label>
+                                        <input type="date" id="filtroDesdeRangoEstado" class="form-control mb-2"
+                                            max="<?= date('Y-m-d') ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Hasta</label>
+                                        <input type="date" id="filtroHastaRangoEstado" class="form-control mb-2"
+                                            max="<?= date('Y-m-d') ?>">
+                                    </div>
+                                </div>
+
+                                <canvas id="graficoCert" width="600" height="150"></canvas>
+
+                            </div>
 
                         </div>
                     </div>
@@ -186,102 +241,104 @@
                                         max="<?= date('Y-m-d') ?>">
                                 </div>
                             </div>
-                            <table class="table table-bordered table-striped table-hover" style="width: 100%;"
-                                id="tblEstadisticasSemanal">
-                                <thead>
-                                    <tr>
-                                        <th>Dia de la Semana</th>
-                                        <th>Calexico</th>
-                                        <th>El Paso</th>
-                                        <th>National City</th>
-                                        <th>Nogales</th>
-                                        <th>San Diego</th>
-                                        <th>Tijuana</th>
-                                        <th>Total por Dia</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Lunes</td>
-                                        <td id="lunesCalexico"></td>
-                                        <td id="lunesElPaso"></td>
-                                        <td id="lunesNationalCity"></td>
-                                        <td id="lunesNogales"></td>
-                                        <td id="lunesSanDiego"></td>
-                                        <td id="lunesTijuana"></td>
-                                        <td id="totalLunes"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Martes</td>
-                                        <td id="martesCalexico"></td>
-                                        <td id="martesElPaso"></td>
-                                        <td id="martesNationalCity"></td>
-                                        <td id="martesNogales"></td>
-                                        <td id="martesSanDiego"></td>
-                                        <td id="martesTijuana"></td>
-                                        <td id="totalMartes"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Miércoles</td>
-                                        <td id="miercolesCalexico"></td>
-                                        <td id="miercolesElPaso"></td>
-                                        <td id="miercolesNationalCity"></td>
-                                        <td id="miercolesNogales"></td>
-                                        <td id="miercolesSanDiego"></td>
-                                        <td id="miercolesTijuana"></td>
-                                        <td id="totalMiercoles"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Jueves</td>
-                                        <td id="juevesCalexico"></td>
-                                        <td id="juevesElPaso"></td>
-                                        <td id="juevesNationalCity"></td>
-                                        <td id="juevesNogales"></td>
-                                        <td id="juevesSanDiego"></td>
-                                        <td id="juevesTijuana"></td>
-                                        <td id="totalJueves"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Viernes</td>
-                                        <td id="viernesCalexico"></td>
-                                        <td id="viernesElPaso"></td>
-                                        <td id="viernesNationalCity"></td>
-                                        <td id="viernesNogales"></td>
-                                        <td id="viernesSanDiego"></td>
-                                        <td id="viernesTijuana"></td>
-                                        <td id="totalViernes"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Sabado</td>
-                                        <td id="sabadoCalexico"></td>
-                                        <td id="sabadoElPaso"></td>
-                                        <td id="sabadoNationalCity"></td>
-                                        <td id="sabadoNogales"></td>
-                                        <td id="sabadoSanDiego"></td>
-                                        <td id="sabadoTijuana"></td>
-                                        <td id="totalSabado"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Domingo</td>
-                                        <td id="domingoCalexico"></td>
-                                        <td id="domingoElPaso"></td>
-                                        <td id="domingoNationalCity"></td>
-                                        <td id="domingoNogales"></td>
-                                        <td id="domingoSanDiego"></td>
-                                        <td id="domingoTijuana"></td>
-                                        <td id="totalDomingo"></td>
-                                    <tr>
-                                        <td><strong>Total Por Ciudad</strong></td>
-                                        <td id="totalCalexico"></td>
-                                        <td id="totalElPaso"></td>
-                                        <td id="totalNationalCity"></td>
-                                        <td id="totalNogales"></td>
-                                        <td id="totalSanDiego"></td>
-                                        <td id="totalTijuana"></td>
-                                        <td id="totalGeneral"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover  " style="width: 100%;"
+                                    id="tblEstadisticasSemanal">
+                                    <thead>
+                                        <tr>
+                                            <th>Dia de la Semana</th>
+                                            <th>Calexico</th>
+                                            <th>El Paso</th>
+                                            <th>National City</th>
+                                            <th>Nogales</th>
+                                            <th>San Diego</th>
+                                            <th>Tijuana</th>
+                                            <th>Total por Dia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Lunes</td>
+                                            <td id="lunesCalexico"></td>
+                                            <td id="lunesElPaso"></td>
+                                            <td id="lunesNationalCity"></td>
+                                            <td id="lunesNogales"></td>
+                                            <td id="lunesSanDiego"></td>
+                                            <td id="lunesTijuana"></td>
+                                            <td id="totalLunes"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Martes</td>
+                                            <td id="martesCalexico"></td>
+                                            <td id="martesElPaso"></td>
+                                            <td id="martesNationalCity"></td>
+                                            <td id="martesNogales"></td>
+                                            <td id="martesSanDiego"></td>
+                                            <td id="martesTijuana"></td>
+                                            <td id="totalMartes"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Miércoles</td>
+                                            <td id="miercolesCalexico"></td>
+                                            <td id="miercolesElPaso"></td>
+                                            <td id="miercolesNationalCity"></td>
+                                            <td id="miercolesNogales"></td>
+                                            <td id="miercolesSanDiego"></td>
+                                            <td id="miercolesTijuana"></td>
+                                            <td id="totalMiercoles"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Jueves</td>
+                                            <td id="juevesCalexico"></td>
+                                            <td id="juevesElPaso"></td>
+                                            <td id="juevesNationalCity"></td>
+                                            <td id="juevesNogales"></td>
+                                            <td id="juevesSanDiego"></td>
+                                            <td id="juevesTijuana"></td>
+                                            <td id="totalJueves"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Viernes</td>
+                                            <td id="viernesCalexico"></td>
+                                            <td id="viernesElPaso"></td>
+                                            <td id="viernesNationalCity"></td>
+                                            <td id="viernesNogales"></td>
+                                            <td id="viernesSanDiego"></td>
+                                            <td id="viernesTijuana"></td>
+                                            <td id="totalViernes"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Sabado</td>
+                                            <td id="sabadoCalexico"></td>
+                                            <td id="sabadoElPaso"></td>
+                                            <td id="sabadoNationalCity"></td>
+                                            <td id="sabadoNogales"></td>
+                                            <td id="sabadoSanDiego"></td>
+                                            <td id="sabadoTijuana"></td>
+                                            <td id="totalSabado"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Domingo</td>
+                                            <td id="domingoCalexico"></td>
+                                            <td id="domingoElPaso"></td>
+                                            <td id="domingoNationalCity"></td>
+                                            <td id="domingoNogales"></td>
+                                            <td id="domingoSanDiego"></td>
+                                            <td id="domingoTijuana"></td>
+                                            <td id="totalDomingo"></td>
+                                        <tr>
+                                            <td><strong>Total Por Ciudad</strong></td>
+                                            <td id="totalCalexico"></td>
+                                            <td id="totalElPaso"></td>
+                                            <td id="totalNationalCity"></td>
+                                            <td id="totalNogales"></td>
+                                            <td id="totalSanDiego"></td>
+                                            <td id="totalTijuana"></td>
+                                            <td id="totalGeneral"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                             <button class="btn btn-warning mt-3" id="imprimirTabla">Imprimir Tabla Semanal</button>
                         </div>
                     </div>
@@ -336,6 +393,33 @@
                         </div>
                     </div>
                 </div>
+                <div class="col mt-4">
+                    <div class="card radius-10">
+                        <div class="card-body">
+                            <h6 class="mb-0">Cantidad de Certificados (Por Rango de Fechas)</h6>
+                            <div class="mt-3">
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Desde</label>
+                                        <input type="date" id="filtroDesdeRangoInspectores" class="form-control mb-2"
+                                            max="<?= date('Y-m-d') ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Hasta</label>
+                                        <input type="date" id="filtroHastaRangoInspectores" class="form-control mb-2"
+                                            max="<?= date('Y-m-d') ?>">
+                                    </div>
+                                </div>
+
+                                <canvas id="graficoInspectorPorFechaRango" width="600" height="150"></canvas>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
                 <div class="col mt-4">
                     <div class="card radius-10">
                         <div class="card-body">

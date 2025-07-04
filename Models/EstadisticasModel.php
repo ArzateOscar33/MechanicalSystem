@@ -228,6 +228,31 @@ public function inspectoresPorRango($desde, $hasta)
 
     return $this->selectAll($sql, [$desde, $hasta]);
 }
+public function certificadosPorCiudadEnRango($desde, $hasta)
+{
+    $sql = "
+        SELECT a.city, COUNT(*) AS total
+        FROM certificates c
+        JOIN addresses a ON c.address_id = a.id
+        WHERE DATE(c.test_date) BETWEEN ? AND ?
+        GROUP BY a.city
+        ORDER BY total DESC
+    ";
+    return $this->selectAll($sql, [$desde, $hasta]);
+}
+
+public function certificadosPorEstadoEnRango($desde, $hasta)
+{
+    $sql = "
+        SELECT a.state, COUNT(*) AS total
+        FROM certificates c
+        JOIN addresses a ON c.address_id = a.id
+        WHERE DATE(c.test_date) BETWEEN ? AND ?
+        GROUP BY a.state
+        ORDER BY total DESC
+    ";
+    return $this->selectAll($sql, [$desde, $hasta]);
+}
 
 public function certificadosPorCiudadPorInspectorYFecha($inspector, $fecha)
 {
@@ -241,6 +266,17 @@ public function certificadosPorCiudadPorInspectorYFecha($inspector, $fecha)
         ORDER BY total DESC
     ";
     return $this->selectAll($sql, [$inspector, $fecha]);
+}
+public function certificadosPorInspectorPorRango($desde, $hasta)
+{
+    $sql = "
+        SELECT i.name AS inspector_name, COUNT(*) AS total
+        FROM certificates c
+        JOIN inspectors i ON c.inspector_id = i.id
+        WHERE DATE(c.test_date) BETWEEN ? AND ?
+        GROUP BY i.name
+    ";
+    return $this->selectAll($sql, [$desde, $hasta]);
 }
 
     public function listarDuplicados()
