@@ -346,7 +346,7 @@ public function generarCredencial($id)
     ]);
     (new \chillerlan\QRCode\QRCode($optionsQR))->render($contenidoQR, $qrAbsolutePath);
 
-    $logoPath = BASE_URL . 'assets/images/logo.png';
+    $logoPath = BASE_URL . 'assets/images/logo-marco.png';
     $fotoWebPath = BASE_URL . $empleado['photo_path'];
     //Conenido html para las credenciales
     $html = "
@@ -373,11 +373,13 @@ public function generarCredencial($id)
                 .contenedor-credencial {
                     display: inline-block;
                     text-align: center;
+                    transform: scale(0.65);
+                    transform-origin: top left;
                 }
 
                 .credencial,
                 .reverso {
-                    width: 255pt;
+                    width: 200pt;
                     height: 360pt;
                     border-radius: 20px;
                     overflow: hidden;
@@ -410,8 +412,8 @@ public function generarCredencial($id)
                 }
 
                 .header img.logo {
-                    width: 70px;
-                    height: 70px;
+                    width: 200px;
+                    height: 100px;
                     display: block;
                     margin: 0 auto;
                 }
@@ -634,7 +636,7 @@ public function generarTodasCredenciales()
         (new \chillerlan\QRCode\QRCode($optionsQR))->render($empleado['employee_number'], $qrAbsolutePath);
 
         $fotoWebPath = BASE_URL . $fotoPath;
-        $logoPath = BASE_URL . 'assets/images/logo.png';
+        $logoPath = BASE_URL . 'assets/images/logo-marco.png';
         $fechaEmision = date('d/m/Y', strtotime($empleado['issue_date']));
 
         // HTML por empleado
@@ -654,10 +656,12 @@ public function generarTodasCredenciales()
                 .contenedor-credencial {
                     display: inline-block;
                     text-align: center;
+                    transform: scale(0.65);
+                    transform-origin: top left;
                 }
                 .credencial,
                 .reverso {
-                    width: 255pt;
+                    width: 200pt;
                     height: 360pt;
                     border-radius: 20px;
                     overflow: hidden;
@@ -684,8 +688,8 @@ public function generarTodasCredenciales()
                     align-items: center;
                 }
                 .header img.logo {
-                    width: 70px;
-                    height: 70px;
+                    width: 200px;
+                    height: 100px;
                     display: block;
                     margin: 0 auto;
                 }
