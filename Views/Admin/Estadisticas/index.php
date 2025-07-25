@@ -119,10 +119,16 @@
                                         max="<?= date('Y-m-d') ?>">
                                 </div>
                             </div>
-                            <canvas id="graficoSucursales" width="600" height="100px"></canvas>
-
+                            <div id="contenedorSucursal"  >
+                            <canvas id="graficoSucursales" width="500px" height="200px"  ></canvas>
+                          </div>
+                                <button class="btn btn-primary mt-2" id="btnDescargarPdfSucursal">
+                                    Descargar PDF (Sucursal)
+                                </button>
                         </div>
+                       
                     </div>
+                     
                 </div>
 
                 <div class="col mt-4">
@@ -143,9 +149,13 @@
                                             max="<?= date('Y-m-d') ?>">
                                     </div>
                                 </div>
-
+                                <div id="contenedorCiudadRango">
                                 <canvas id="graficoCertificadosPorCiudadRango"  width="600" height="150"></canvas>
+                                </div>
 
+                                <button class="btn btn-primary mt-2" id="btnDescargarPdfCiudadRango">
+                                Descargar PDF (Ciudad por Rango)
+                                </button>
                             </div>
 
                         </div>
@@ -170,9 +180,12 @@
                                             max="<?= date('Y-m-d') ?>">
                                     </div>
                                 </div>
-
+                                <div id="contenedorCertificadosEstados">
                                 <canvas id="graficoCert" width="600" height="150"></canvas>
-
+                                </div>
+                                    <button class="btn btn-primary mt-2" id="btnDescargarPdfEstadosRango">
+                                    Descargar PDF (Estados por Rango)
+                                    </button>
                             </div>
 
                         </div>

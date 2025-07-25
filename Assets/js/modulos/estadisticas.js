@@ -4,1701 +4,2062 @@ estadosCertificado();
 certificadosPorInspector();
 
 function ciudadesCertificados() {
-    const url = base_url + "admin/ciudadesCertificados";
-    const http = new XMLHttpRequest();
-    http.open("GET", url, true);
-    http.send();
+  const url = base_url + "admin/ciudadesCertificados";
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
 
-    http.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            const res = JSON.parse(this.responseText);
-            let ciudades = [];
-            let porcentajes = [];
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(this.responseText);
+      let ciudades = [];
+      let porcentajes = [];
 
-            for (let i = 0; i < res.length; i++) {
-                ciudades.push(res[i]['city']);
-                porcentajes.push(parseFloat(res[i]['porcentaje']).toFixed(2));  // 2 decimales
-            }
-            const canvas = document.getElementById("ciudadesGrafico");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
-            //var ctx = document.getElementById("ciudadesGrafico").getContext("2d");
+      for (let i = 0; i < res.length; i++) {
+        ciudades.push(res[i]["city"]);
+        porcentajes.push(parseFloat(res[i]["porcentaje"]).toFixed(2)); // 2 decimales
+      }
+      const canvas = document.getElementById("ciudadesGrafico");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      //var ctx = document.getElementById("ciudadesGrafico").getContext("2d");
 
-            // Gradientes originales
-            var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientStroke1.addColorStop(0, "#ee0979");
-            gradientStroke1.addColorStop(1, "#ff6a00");
+      // Gradientes originales
+      var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientStroke1.addColorStop(0, "#ee0979");
+      gradientStroke1.addColorStop(1, "#ff6a00");
 
-            var gradientStroke2 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientStroke2.addColorStop(0, "#283c86");
-            gradientStroke2.addColorStop(1, "#39bd3c");
+      var gradientStroke2 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientStroke2.addColorStop(0, "#283c86");
+      gradientStroke2.addColorStop(1, "#39bd3c");
 
-            var gradientStroke3 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientStroke3.addColorStop(0, "#7f00ff");
-            gradientStroke3.addColorStop(1, "#e100ff");
+      var gradientStroke3 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientStroke3.addColorStop(0, "#7f00ff");
+      gradientStroke3.addColorStop(1, "#e100ff");
 
-            // Repetimos los gradientes si hay más de 3 ciudades
-            const gradients = [gradientStroke1, gradientStroke2, gradientStroke3];
-            const backgroundColors = ciudades.map((_, i) => gradients[i % gradients.length]);
+      // Repetimos los gradientes si hay más de 3 ciudades
+      const gradients = [gradientStroke1, gradientStroke2, gradientStroke3];
+      const backgroundColors = ciudades.map(
+        (_, i) => gradients[i % gradients.length]
+      );
 
-            var myChart = new Chart(ctx, {
-                type: "pie",
-                data: {
-                    labels: ciudades,
-                    datasets: [{
-                        backgroundColor: backgroundColors,
-                        hoverBackgroundColor: backgroundColors,
-                        data: porcentajes,
-                        borderWidth: 1,
-                    }],
+      var myChart = new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels: ciudades,
+          datasets: [
+            {
+              backgroundColor: backgroundColors,
+              hoverBackgroundColor: backgroundColors,
+              data: porcentajes,
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: {
+            datalabels: {
+              anchor: "inside",
+              align: "end",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+            legend: {
+              position: "bottom",
+              labels: {
+                boxWidth: 10,
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  let label = context.label || "";
+                  let value = context.raw || 0;
+                  return `${label}: ${parseFloat(value).toFixed(2)}%`;
                 },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: {
-                        datalabels: {
-                            anchor: 'inside',
-                            align: 'end',
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
-                            },
-                            formatter: function (value) {
-                                return value;
-                            }
-                        },
-                        legend: {
-                            position: "bottom",
-                            labels: {
-                                boxWidth: 10,
-                              
-                            }
-                        }, 
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    let label = context.label || '';
-                                    let value = context.raw || 0;
-                                    return `${label}: ${parseFloat(value).toFixed(2)}%`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    };
+              },
+            },
+          },
+        },
+      });
+    }
+  };
 }
 
-
 function estadosCertificado() {
-    const url = base_url + "admin/estadosCertificados";  // Cambié la URL para que apunte al método correcto
-    const http = new XMLHttpRequest();
-    http.open("GET", url, true);
-    http.send();
+  const url = base_url + "admin/estadosCertificados"; // Cambié la URL para que apunte al método correcto
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
 
-    http.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            //console.log(this.responseText); // Esto te ayuda a ver la respuesta en la consola
-            const res = JSON.parse(this.responseText);
-            let estados = [];
-            let porcentajes = [];
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      //console.log(this.responseText); // Esto te ayuda a ver la respuesta en la consola
+      const res = JSON.parse(this.responseText);
+      let estados = [];
+      let porcentajes = [];
 
-            // Iteramos sobre los datos recibidos
-            for (let i = 0; i < res.length; i++) {
-                estados.push(res[i]['state']);  // Aquí usamos 'state' para obtener el nombre del estado
-                porcentajes.push(res[i]['cantidad']);  // Usamos 'porcentaje' para obtener el porcentaje
-            }
-            const canvas = document.getElementById("estadosGrafico");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
-            //var ctx = document.getElementById("estadosGrafico").getContext("2d");
+      // Iteramos sobre los datos recibidos
+      for (let i = 0; i < res.length; i++) {
+        estados.push(res[i]["state"]); // Aquí usamos 'state' para obtener el nombre del estado
+        porcentajes.push(res[i]["cantidad"]); // Usamos 'porcentaje' para obtener el porcentaje
+      }
+      const canvas = document.getElementById("estadosGrafico");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      //var ctx = document.getElementById("estadosGrafico").getContext("2d");
 
-            // Crear gradientes para los colores del gráfico
-            var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientStroke1.addColorStop(0, "#ee0979");
-            gradientStroke1.addColorStop(1, "#ff6a00");
+      // Crear gradientes para los colores del gráfico
+      var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientStroke1.addColorStop(0, "#ee0979");
+      gradientStroke1.addColorStop(1, "#ff6a00");
 
-            var gradientStroke2 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientStroke2.addColorStop(0, "#283c86");
-            gradientStroke2.addColorStop(1, "#39bd3c");
+      var gradientStroke2 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientStroke2.addColorStop(0, "#283c86");
+      gradientStroke2.addColorStop(1, "#39bd3c");
 
-            var gradientStroke3 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientStroke3.addColorStop(0, "#7f00ff");
-            gradientStroke3.addColorStop(1, "#e100ff");
-            const gradients = [gradientStroke1, gradientStroke2, gradientStroke3];
-            const backgroundColors = estados.map((_, i) => gradients[i % gradients.length]);
-            // Crear el gráfico de barras con los datos y gradientes
-            new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: estados,
-                    datasets: [{
-                        data: porcentajes,
-                        backgroundColor: backgroundColors,
-                        hoverBackgroundColor: backgroundColors,
-                        borderWidth: 1,
+      var gradientStroke3 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientStroke3.addColorStop(0, "#7f00ff");
+      gradientStroke3.addColorStop(1, "#e100ff");
+      const gradients = [gradientStroke1, gradientStroke2, gradientStroke3];
+      const backgroundColors = estados.map(
+        (_, i) => gradients[i % gradients.length]
+      );
+      // Crear el gráfico de barras con los datos y gradientes
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: estados,
+          datasets: [
+            {
+              data: porcentajes,
+              backgroundColor: backgroundColors,
+              hoverBackgroundColor: backgroundColors,
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            datalabels: {
+              anchor: "top",
+              align: "inside",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+            legend: {
+              display: false,
+            },
+            title: {
+              display: true,
+              text: "Certificados por Ciudad (Filtrado por Inspector)",
+            },
+          },
 
-
-                    }]
-                },
-                options: {
-                    plugins: {
-                        datalabels: {
-                            anchor: 'top',
-                            align: 'inside',
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
-                            },
-                            formatter: function (value) {
-                                return value;
-                            }
-                        },
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'Certificados por Ciudad (Filtrado por Inspector)'
-                        }
-                    },
-                     
-                    maintainAspectRatio: false,  // Permite que el gráfico se adapte al tamaño del contenedor
-                    scales: {
-                        y: {
-                            beginAtZero: true,  // Asegura que las barras empiecen desde cero en el eje Y
-                        },
-                    },
-                    legend: {
-                        display: false,  // No es necesario mostrar la leyenda para un gráfico de barras
-                    },
-                    tooltips: {
-                        displayColors: false,  // No mostrar los colores en el tooltip
-                    },
-                    responsive: true,  // Hace que el gráfico sea responsivo
-                   
-                },
-            });
-        }
-    };
+          maintainAspectRatio: false, // Permite que el gráfico se adapte al tamaño del contenedor
+          scales: {
+            xAxes: [{
+                ticks: {
+                    maxRotation: 90,
+                    minRotation: 30,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 15
+                }
+                }],
+            y: {
+              beginAtZero: true, // Asegura que las barras empiecen desde cero en el eje Y
+            },
+          },
+          legend: {
+            display: false, // No es necesario mostrar la leyenda para un gráfico de barras
+          },
+          tooltips: {
+            displayColors: false, // No mostrar los colores en el tooltip
+          },
+          responsive: true, // Hace que el gráfico sea responsivo
+        },
+      });
+    }
+  };
 }
 
 function fechaChart() {
-    const url = base_url + "admin/certificadosPorMes";
-    const http = new XMLHttpRequest();
-    http.open("GET", url, true);
-    http.send();
+  const url = base_url + "admin/certificadosPorMes";
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
 
-    http.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            //console.log("Respuesta:", this.responseText);
-            const res = JSON.parse(this.responseText);
-            const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      //console.log("Respuesta:", this.responseText);
+      const res = JSON.parse(this.responseText);
+      const meses = [
+        "Ene",
+        "Feb",
+        "Mar",
+        "Abr",
+        "May",
+        "Jun",
+        "Jul",
+        "Ago",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dic",
+      ];
 
+      // Crear objeto dinámico para almacenar datos por año
+      let datosPorAnio = {
+        2024: new Array(12).fill(0),
+        2025: new Array(12).fill(0),
+        2026: new Array(12).fill(0), // Deja espacio preparado para 2026
+      };
 
-            // Crear objeto dinámico para almacenar datos por año
-            let datosPorAnio = {
-                2024: new Array(12).fill(0),
-                2025: new Array(12).fill(0),
-                2026: new Array(12).fill(0)  // Deja espacio preparado para 2026
-            };
-
-            for (let i = 0; i < res.length; i++) {
-                const anio = res[i]['anio'];
-                const mes = res[i]['mes'] - 1;
-                const total = parseInt(res[i]['total']);
-                if (!datosPorAnio[anio]) {
-                    datosPorAnio[anio] = new Array(12).fill(0); // Por si llega otro año
-                }
-                datosPorAnio[anio][mes] = total;
-            }
-            const canvas = document.getElementById("fechaChart");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
-            //  var ctx = document.getElementById("fechaChart").getContext("2d");
-
-            const datasets = [
-                {
-                    label: "2024",
-                    data: datosPorAnio[2024],
-                    borderColor: "#007bff",
-                    backgroundColor: "rgba(0, 123, 255, 0.1)",
-                    fill: false,
-                    tension: 0.4
-                },
-                {
-                    label: "2025",
-                    data: datosPorAnio[2025],
-                    borderColor: "#ff4d4d",
-                    backgroundColor: "rgba(255, 77, 77, 0.1)",
-                    fill: false,
-                    tension: 0.4
-                },
-                {
-                    label: "2026",
-                    data: datosPorAnio[2026],
-                    borderColor: "#28a745",
-                    backgroundColor: "rgba(40, 167, 69, 0.1)",
-                    fill: false,
-                    tension: 0.4
-                }
-            ];
-
-            var myChart = new Chart(ctx, {
-                type: "line",
-                data: {
-                    labels: meses,
-                    datasets: datasets
-                },
-                options: {
-                    
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad de Certificados'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Mes'
-                            }
-                        }
-                    },
-                    plugins: {
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
-                            },
-                            formatter: function (value) {
-                                return value;
-                            }
-                        },
-                        legend: {
-                            position: "top"
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        },
-                        title: {
-                            display: true,
-                            text: "Certificados por Mes (2024 - 2026)"
-                        }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    }
-                }
-            });
+      for (let i = 0; i < res.length; i++) {
+        const anio = res[i]["anio"];
+        const mes = res[i]["mes"] - 1;
+        const total = parseInt(res[i]["total"]);
+        if (!datosPorAnio[anio]) {
+          datosPorAnio[anio] = new Array(12).fill(0); // Por si llega otro año
         }
-    };
+        datosPorAnio[anio][mes] = total;
+      }
+      const canvas = document.getElementById("fechaChart");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      //  var ctx = document.getElementById("fechaChart").getContext("2d");
+
+      const datasets = [
+        {
+          label: "2024",
+          data: datosPorAnio[2024],
+          borderColor: "#007bff",
+          backgroundColor: "rgba(0, 123, 255, 0.1)",
+          fill: false,
+          tension: 0.4,
+        },
+        {
+          label: "2025",
+          data: datosPorAnio[2025],
+          borderColor: "#ff4d4d",
+          backgroundColor: "rgba(255, 77, 77, 0.1)",
+          fill: false,
+          tension: 0.4,
+        },
+        {
+          label: "2026",
+          data: datosPorAnio[2026],
+          borderColor: "#28a745",
+          backgroundColor: "rgba(40, 167, 69, 0.1)",
+          fill: false,
+          tension: 0.4,
+        },
+      ];
+
+      var myChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: meses,
+          datasets: datasets,
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            xAxes: [{
+                ticks: {
+                    maxRotation: 90,
+                    minRotation: 0,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
+                }
+                }],
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "Cantidad de Certificados",
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: "Mes",
+              },
+            },
+          },
+          plugins: {
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+            legend: {
+              position: "top",
+            },
+            tooltip: {
+              mode: "index",
+              intersect: false,
+            },
+            title: {
+              display: true,
+              text: "Certificados por Mes (2024 - 2026)",
+            },
+          },
+          interaction: {
+            mode: "nearest",
+            axis: "x",
+            intersect: false,
+          },
+        },
+      });
+    }
+  };
 }
 function certificadosPorInspector() {
-    const url = base_url + "admin/certificadosPorInspector";
-    const http = new XMLHttpRequest();
-    http.open("GET", url, true);
-    http.send();
+  const url = base_url + "admin/certificadosPorInspector";
+  const http = new XMLHttpRequest();
+  http.open("GET", url, true);
+  http.send();
 
-    http.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            const res = JSON.parse(this.responseText);
-            //console.log(this.responseText);
-            let inspectores = [];
-            let cantidades = [];
+  http.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(this.responseText);
+      //console.log(this.responseText);
+      let inspectores = [];
+      let cantidades = [];
 
-            for (let i = 0; i < res.length; i++) {
-                inspectores.push(res[i]['inspector_name']);
-                cantidades.push(parseInt(res[i]['total']));
-            }
-            const canvas = document.getElementById("inspectoresChart");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
-            // var ctx = document.getElementById("inspectoresChart").getContext("2d");
+      for (let i = 0; i < res.length; i++) {
+        inspectores.push(res[i]["inspector_name"]);
+        cantidades.push(parseInt(res[i]["total"]));
+      }
+      const canvas = document.getElementById("inspectoresChart");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      // var ctx = document.getElementById("inspectoresChart").getContext("2d");
 
-            // Gradientes
-            var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientStroke1.addColorStop(0, "#ee0979");
-            gradientStroke1.addColorStop(1, "#ff6a00");
+      // Gradientes
+      var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientStroke1.addColorStop(0, "#ee0979");
+      gradientStroke1.addColorStop(1, "#ff6a00");
 
-            var gradientStroke2 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientStroke2.addColorStop(0, "#283c86");
-            gradientStroke2.addColorStop(1, "#39bd3c");
+      var gradientStroke2 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientStroke2.addColorStop(0, "#283c86");
+      gradientStroke2.addColorStop(1, "#39bd3c");
 
-            var gradientStroke3 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientStroke3.addColorStop(0, "#7f00ff");
-            gradientStroke3.addColorStop(1, "#e100ff");
+      var gradientStroke3 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientStroke3.addColorStop(0, "#7f00ff");
+      gradientStroke3.addColorStop(1, "#e100ff");
 
-            const gradients = [gradientStroke1, gradientStroke2, gradientStroke3];
-            const backgroundColors = inspectores.map((_, i) => gradients[i % gradients.length]);
+      const gradients = [gradientStroke1, gradientStroke2, gradientStroke3];
+      const backgroundColors = inspectores.map(
+        (_, i) => gradients[i % gradients.length]
+      );
 
-            new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: inspectores,
-                    datasets: [{
-                        data: cantidades,
-                        backgroundColor: backgroundColors,
-                        hoverBackgroundColor: backgroundColors,
-                        borderWidth: 1,
-
-
-                    }]
-                },
-                options: {
-                    plugins: {  
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: '#000',
-                        font: {
-                            weight: 'bold'
-                        },
-                        formatter: function (value) {
-                            return value;
-                        }
-                    },
-                },
-                    maintainAspectRatio: false,  // Permite que el gráfico se adapte al tamaño del contenedor
-                    scales: {
-                        y: {
-                            beginAtZero: true,  // Asegura que las barras empiecen desde cero en el eje Y
-                        },
-                    },
-                    legend: {
-                        display: false,  // No es necesario mostrar la leyenda para un gráfico de barras
-                    },
-                    tooltips: {
-                        displayColors: false,  // No mostrar los colores en el tooltip
-                    },
-                    responsive: true,  // Hace que el gráfico sea responsivo
-                },
-            });
-        }
-    };
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: inspectores,
+          datasets: [
+            {
+              data: cantidades,
+              backgroundColor: backgroundColors,
+              hoverBackgroundColor: backgroundColors,
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+          },
+          maintainAspectRatio: false, // Permite que el gráfico se adapte al tamaño del contenedor
+          scales: {
+            xAxes: [{
+                ticks: {
+                    maxRotation: 90,
+                    minRotation: 0,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
+                }
+                }],
+            y: {
+              beginAtZero: true, // Asegura que las barras empiecen desde cero en el eje Y
+            },
+          },
+          legend: {
+            display: false, // No es necesario mostrar la leyenda para un gráfico de barras
+          },
+          tooltips: {
+            displayColors: false, // No mostrar los colores en el tooltip
+          },
+          responsive: true, // Hace que el gráfico sea responsivo
+        },
+      });
+    }
+  };
 }
 
-function certificadosPorDia(anio, mes, estado = '', ciudad = '') {
-    const url = base_url + "admin/certificadosPorDia";
-    const http = new XMLHttpRequest();
-    const formData = new FormData();
-    formData.append("anio", anio);
-    formData.append("mes", mes);
-    formData.append("estado", estado);
-    formData.append("ciudad", ciudad);
+function certificadosPorDia(anio, mes, estado = "", ciudad = "") {
+  const url = base_url + "admin/certificadosPorDia";
+  const http = new XMLHttpRequest();
+  const formData = new FormData();
+  formData.append("anio", anio);
+  formData.append("mes", mes);
+  formData.append("estado", estado);
+  formData.append("ciudad", ciudad);
 
-    http.open("POST", url, true);
-    http.send(formData);
+  http.open("POST", url, true);
+  http.send(formData);
 
-    http.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            const res = JSON.parse(this.responseText);
-            const dias = res.map(item => item.dia);
-            const totales = res.map(item => parseInt(item.total));
-            const canvas = document.getElementById("certificadosDiaChart");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
-            //const ctx = document.getElementById("certificadosDiaChart").getContext("2d");
+  http.onreadystatechange = function () {
+    if (this.readyState === 4 && this.status === 200) {
+      const res = JSON.parse(this.responseText);
+      const dias = res.map((item) => item.dia);
+      const totales = res.map((item) => parseInt(item.total));
+      const canvas = document.getElementById("certificadosDiaChart");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      //const ctx = document.getElementById("certificadosDiaChart").getContext("2d");
 
-            if (window.diaChartInstance) {
-                window.diaChartInstance.destroy();
-            }
+      if (window.diaChartInstance) {
+        window.diaChartInstance.destroy();
+      }
 
-            window.diaChartInstance = new Chart(ctx, {
-                type: "line",
-                data: {
-                    labels: dias,
-                    datasets: [{
-                        label: "Certificados por Día",
-                        data: totales,
-                        borderColor: "#17a2b8",
-                        backgroundColor: "rgba(23, 197, 17, 0.2)",
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        },
-                        x: {
-                            ticks: {
-                                maxRotation: 90,
-                                minRotation: 45
-                            }
-                        }
-                    },
-                    plugins: {
-                       datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: '#000',
-                        font: {
-                            weight: 'bold'
-                        },
-                        formatter: function (value) {
-                            return value;
-                        }
-                    },
-                        tooltip: {
-                            mode: "index",
-                            intersect: false
-                        },
-                        title: {
-                            display: true,
-                            text: "Distribución Diaria de Certificados"
-                        }
-                    }
+      window.diaChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: dias,
+          datasets: [
+            {
+              label: "Certificados por Día",
+              data: totales,
+              borderColor: "#17a2b8",
+              backgroundColor: "rgba(23, 197, 17, 0.2)",
+              fill: true,
+              tension: 0.4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            xAxes: [{
+                ticks: {
+                    maxRotation: 90,
+                    minRotation: 0,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
                 }
-            });
-        }
-    };
+                }],
+            y: {
+              beginAtZero: true,
+            },
+            x: {
+              ticks: {
+                maxRotation: 90,
+                minRotation: 45,
+              },
+            },
+          },
+          plugins: {
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+            tooltip: {
+              mode: "index",
+              intersect: false,
+            },
+            title: {
+              display: true,
+              text: "Distribución Diaria de Certificados",
+            },
+          },
+        },
+      });
+    }
+  };
 }
 document.addEventListener("DOMContentLoaded", function () {
-    // Comunes para todos
-    fechaChart();
-    ciudadesCertificados();
-    estadosCertificado();
-    certificadosPorInspector();
+  // Comunes para todos
+  fechaChart();
+  ciudadesCertificados();
+  estadosCertificado();
+  certificadosPorInspector();
 
-    // === Condicionales por elementos ===
+  // === Condicionales por elementos ===
 
-    // filtroMes, filtroEstado, filtroCiudad
-    if (document.getElementById("filtroMes")) {
-        configurarFiltroMes();
-        aplicarFiltro();
+  // filtroMes, filtroEstado, filtroCiudad
+  if (document.getElementById("filtroMes")) {
+    configurarFiltroMes();
+    aplicarFiltro();
 
-        const filtroMes = document.getElementById("filtroMes");
-        const filtroEstado = document.getElementById("filtroEstado");
-        const filtroCiudad = document.getElementById("filtroCiudad");
+    const filtroMes = document.getElementById("filtroMes");
+    const filtroEstado = document.getElementById("filtroEstado");
+    const filtroCiudad = document.getElementById("filtroCiudad");
 
-        filtroMes.addEventListener("change", aplicarFiltro);
-        filtroEstado.addEventListener("change", aplicarFiltro);
-        filtroCiudad.addEventListener("change", aplicarFiltro);
+    filtroMes.addEventListener("change", aplicarFiltro);
+    filtroEstado.addEventListener("change", aplicarFiltro);
+    filtroCiudad.addEventListener("change", aplicarFiltro);
 
-        cargarEstados();
-        cargarCiudades();
+    cargarEstados();
+    cargarCiudades();
+  }
+
+  // filtros para inspector por mes
+  if (
+    document.getElementById("filtroInspector") &&
+    document.getElementById("filtroAnioInspector")
+  ) {
+    cargarAniosInspector();
+    cargarInspectores();
+
+    const filtroInspector = document.getElementById("filtroInspector");
+    const filtroAnioInspector = document.getElementById("filtroAnioInspector");
+
+    if (filtroInspector && filtroAnioInspector) {
+      filtroInspector.addEventListener("change", aplicarFiltroInspector);
+      filtroAnioInspector.addEventListener("change", aplicarFiltroInspector);
     }
+  }
 
-    // filtros para inspector por mes
-    if (document.getElementById("filtroInspector") && document.getElementById("filtroAnioInspector")) {
-        cargarAniosInspector();
-        cargarInspectores();
-
-        const filtroInspector = document.getElementById("filtroInspector");
-        const filtroAnioInspector = document.getElementById("filtroAnioInspector");
-
-        if (filtroInspector && filtroAnioInspector) {
-            filtroInspector.addEventListener("change", aplicarFiltroInspector);
-            filtroAnioInspector.addEventListener("change", aplicarFiltroInspector);
-        }
-
-    }
-
-    // filtro inspector por ciudad
-    if (document.getElementById("filtroInspectorCiudad")) {
-        cargarInspectoresCiudad();
-        document.getElementById("filtroInspectorCiudad").addEventListener("change", function () {
-            const inspector = this.value;
-            if (inspector) certificadosPorCiudadPorInspector(inspector);
-        });
-    }
+  // filtro inspector por ciudad
+  if (document.getElementById("filtroInspectorCiudad")) {
+    cargarInspectoresCiudad();
+    document
+      .getElementById("filtroInspectorCiudad")
+      .addEventListener("change", function () {
+        const inspector = this.value;
+        if (inspector) certificadosPorCiudadPorInspector(inspector);
+      });
+  }
 });
 
-
-
-
 function cargarEstados() {
-    const select = document.getElementById("filtroEstado");
-    if (!select) return;
+  const select = document.getElementById("filtroEstado");
+  if (!select) return;
 
-    const url = base_url + "admin/getEstados";
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            data.forEach(item => {
-                const option = document.createElement("option");
-                option.value = item.state;
-                option.textContent = item.state;
-                select.appendChild(option);
-            });
-        });
-}
-
-
-function cargarCiudades() {
-    const select = document.getElementById("filtroCiudad");
-    if (!select) return;
-
-    const url = base_url + "admin/getCiudades";
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            data.forEach(item => {
-                const option = document.createElement("option");
-                option.value = item.city;
-                option.textContent = item.city;
-                select.appendChild(option);
-            });
-        });
-}
-
-function bloquearCiudad() {
-    const estado = document.getElementById("filtroEstado").value;
-    const ciudad = document.getElementById("filtroCiudad");
-
-    ciudad.disabled = estado !== "";
-    if (estado !== "") ciudad.value = "";
-}
-
-function bloquearEstado() {
-    const ciudad = document.getElementById("filtroCiudad").value;
-    const estado = document.getElementById("filtroEstado");
-
-    estado.disabled = ciudad !== "";
-    if (ciudad !== "") estado.value = "";
-}
-
-function aplicarFiltro() {
-    const fecha = document.getElementById("filtroMes").value;
-    const estado = document.getElementById("filtroEstado").value;
-    const ciudad = document.getElementById("filtroCiudad").value;
-
-    if (fecha) {
-        const [anio, mes] = fecha.split("-");
-        certificadosPorDia(anio, mes, estado, ciudad);
-    }
-}
-function configurarFiltroMes() {
-    const filtroMes = document.getElementById("filtroMes");
-    if (!filtroMes) return;
-
-    const fechaHoy = new Date();
-    const anio = fechaHoy.getFullYear();
-    const mes = String(fechaHoy.getMonth() + 1).padStart(2, '0');
-    const hoy = `${anio}-${mes}`;
-
-    filtroMes.min = "2024-12";
-    filtroMes.max = hoy;
-    filtroMes.value = hoy;
-}
-
-function cargarInspectores() {
-    const url = base_url + "admin/inspectoresDisponibles";
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            const select = document.getElementById("filtroInspector");
-            data.forEach(item => {
-                const option = document.createElement("option");
-                option.value = item.inspector_name;
-                option.textContent = item.inspector_name;
-                select.appendChild(option);
-            });
-        });
-}
-
-function cargarAniosInspector() {
-    const select = document.getElementById("filtroAnioInspector");
-    if (!select) return;
-
-    const anioActual = new Date().getFullYear();
-    for (let i = 2024; i <= anioActual; i++) {
+  const url = base_url + "admin/getEstados";
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      data.forEach((item) => {
         const option = document.createElement("option");
-        option.value = i;
-        option.textContent = i;
+        option.value = item.state;
+        option.textContent = item.state;
         select.appendChild(option);
-    }
-    select.value = anioActual;
-}
-
-
-function certificadosPorMesInspector(anio, inspector) {
-    const url = base_url + "admin/certificadosPorMesInspector";
-    const formData = new FormData();
-    formData.append("anio", anio);
-    formData.append("inspector", inspector);
-
-    const http = new XMLHttpRequest();
-    http.open("POST", url, true);
-    http.send(formData);
-
-    http.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            const res = JSON.parse(this.responseText);
-            const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            let datos = new Array(12).fill(0);
-
-            res.forEach(item => {
-                const index = parseInt(item.mes) - 1;
-                datos[index] = parseInt(item.total);
-            });
-            const canvas = document.getElementById("certificadosInspectorChart");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
-            //  const ctx = document.getElementById("certificadosInspectorChart").getContext("2d");
-            if (window.inspectorChartInstance) {
-                window.inspectorChartInstance.destroy();
-            }
-
-            window.inspectorChartInstance = new Chart(ctx, {
-                type: "line",
-                data: {
-                    labels: meses,
-                    datasets: [{
-                        label: "Certificados por Mes",
-                        data: datos,
-                        borderColor: "#ffc107",
-                        backgroundColor: "rgba(121, 175, 19, 0.2)",
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: '#ff0',
-                        font: {
-                            weight: 'bold'
-                        },
-                        formatter: function (value) {
-                            return value;
-                        }
-                    },
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
-                            },
-                            formatter: function (value) {
-                                return value;
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: "Actividad del Inspector"
-                        }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        }
-    };
-}
-
-
-function aplicarFiltroInspector() {
-    const anio = document.getElementById("filtroAnioInspector").value;
-    const inspector = document.getElementById("filtroInspector").value;
-
-    if (inspector) {
-        certificadosPorMesInspector(anio, inspector);
-    }
-}
-function actualizarOrigenInspector(inspector) {
-    const url = base_url + "admin/lugarInspector";
-    const formData = new FormData();
-    formData.append("inspector", inspector);
-
-    fetch(url, {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            const origen = data && data.city && data.state
-                ? `${data.city}, ${data.state}`
-                : "No disponible";
-            document.getElementById("origenTexto").textContent = origen;
-        })
-        .catch(() => {
-            document.getElementById("origenTexto").textContent = "Error al obtener origen";
-        });
-}
-
-function aplicarFiltroInspector() {
-    const anio = document.getElementById("filtroAnioInspector").value;
-    const inspector = document.getElementById("filtroInspector").value;
-
-    if (inspector) {
-        certificadosPorMesInspector(anio, inspector);
-        actualizarOrigenInspector(inspector);
-    }
-}
-
-function certificadosPorCiudadPorInspector(inspector) {
-    const url = base_url + "admin/certificadosPorCiudadPorInspector";
-    const formData = new FormData();
-    formData.append("inspector", inspector);
-
-    const http = new XMLHttpRequest();
-    http.open("POST", url, true);
-    http.send(formData);
-
-    http.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            const res = JSON.parse(this.responseText);
-            const ciudades = res.map(item => item.city);
-            const cantidades = res.map(item => parseInt(item.cantidad_certificados));
-            const canvas = document.getElementById("ciudadesInspectorGrafico");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
-            //const ctx = document.getElementById("ciudadesInspectorGrafico").getContext("2d");
-
-            if (window.ciudadInspectorChartInstance) {
-                window.ciudadInspectorChartInstance.destroy();
-            }
-
-            window.ciudadInspectorChartInstance = new Chart(ctx, {
-                type: "bar",  // Usamos un gráfico de barras
-                data: {
-                    labels: ciudades,  // Las ciudades en el eje X
-                    datasets: [{
-                        label: 'Certificados por Inspector',  // Nombre de la serie de datos
-                        data: cantidades,  // El número de certificados en el eje Y
-                        backgroundColor: "rgba(23, 162, 184, 0.5)",  // Color de las barras
-                        borderColor: "rgba(23, 162, 184, 1)",  // Color de los bordes de las barras
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,  // Comienza desde 0 en el eje Y
-                            title: {
-                                display: true,
-                                text: 'Cantidad de Certificados'  // Título del eje Y
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Ciudades'  // Título del eje X
-                            },
-                            ticks: {
-                                maxRotation: 45,  // Rotación máxima de los nombres de las ciudades
-                                minRotation: 45
-                            }
-                        }
-                    },
-                    plugins: {
-                        datalabels: {
-                        anchor: 'bottom',
-                        align: 'inside',
-                        color: '#000',
-                        font: {
-                            weight: 'bold'
-                        },
-                        formatter: function (value) {
-                            return value;
-                        }
-                    },
-                        legend: {
-                            display: false  // No necesitamos la leyenda en este gráfico
-                        },
-                        title: {
-                            display: true,
-                            text: 'Certificados por Ciudad (Filtrado por Inspector)'  // Título del gráfico
-                        }
-                    }
-                }
-            });
-        }
-    };
-}
-const selectInspectorCiudad = document.getElementById("filtroInspectorCiudad");
-if (selectInspectorCiudad) {
-    selectInspectorCiudad.addEventListener("change", function () {
-        const inspector = this.value;
-        if (inspector) {
-            certificadosPorCiudadPorInspector(inspector);
-        }
+      });
     });
 }
 
-function cargarInspectoresCiudad() {
-    const select = document.getElementById("filtroInspectorCiudad");
-    if (!select) return;
+function cargarCiudades() {
+  const select = document.getElementById("filtroCiudad");
+  if (!select) return;
 
-    const url = base_url + "admin/inspectoresDisponibles";
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            data.forEach(item => {
-                const option = document.createElement("option");
-                option.value = item.inspector_name;
-                option.textContent = item.inspector_name;
-                select.appendChild(option);
-            });
-        });
+  const url = base_url + "admin/getCiudades";
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      data.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.city;
+        option.textContent = item.city;
+        select.appendChild(option);
+      });
+    });
 }
 
+function bloquearCiudad() {
+  const estado = document.getElementById("filtroEstado").value;
+  const ciudad = document.getElementById("filtroCiudad");
+
+  ciudad.disabled = estado !== "";
+  if (estado !== "") ciudad.value = "";
+}
+
+function bloquearEstado() {
+  const ciudad = document.getElementById("filtroCiudad").value;
+  const estado = document.getElementById("filtroEstado");
+
+  estado.disabled = ciudad !== "";
+  if (ciudad !== "") estado.value = "";
+}
+
+function aplicarFiltro() {
+  const fecha = document.getElementById("filtroMes").value;
+  const estado = document.getElementById("filtroEstado").value;
+  const ciudad = document.getElementById("filtroCiudad").value;
+
+  if (fecha) {
+    const [anio, mes] = fecha.split("-");
+    certificadosPorDia(anio, mes, estado, ciudad);
+  }
+}
+function configurarFiltroMes() {
+  const filtroMes = document.getElementById("filtroMes");
+  if (!filtroMes) return;
+
+  const fechaHoy = new Date();
+  const anio = fechaHoy.getFullYear();
+  const mes = String(fechaHoy.getMonth() + 1).padStart(2, "0");
+  const hoy = `${anio}-${mes}`;
+
+  filtroMes.min = "2024-12";
+  filtroMes.max = hoy;
+  filtroMes.value = hoy;
+}
+
+function cargarInspectores() {
+  const url = base_url + "admin/inspectoresDisponibles";
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      const select = document.getElementById("filtroInspector");
+      data.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.inspector_name;
+        option.textContent = item.inspector_name;
+        select.appendChild(option);
+      });
+    });
+}
+
+function cargarAniosInspector() {
+  const select = document.getElementById("filtroAnioInspector");
+  if (!select) return;
+
+  const anioActual = new Date().getFullYear();
+  for (let i = 2024; i <= anioActual; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = i;
+    select.appendChild(option);
+  }
+  select.value = anioActual;
+}
+
+function certificadosPorMesInspector(anio, inspector) {
+  const url = base_url + "admin/certificadosPorMesInspector";
+  const formData = new FormData();
+  formData.append("anio", anio);
+  formData.append("inspector", inspector);
+
+  const http = new XMLHttpRequest();
+  http.open("POST", url, true);
+  http.send(formData);
+
+  http.onreadystatechange = function () {
+    if (this.readyState === 4 && this.status === 200) {
+      const res = JSON.parse(this.responseText);
+      const meses = [
+        "Ene",
+        "Feb",
+        "Mar",
+        "Abr",
+        "May",
+        "Jun",
+        "Jul",
+        "Ago",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dic",
+      ];
+      let datos = new Array(12).fill(0);
+
+      res.forEach((item) => {
+        const index = parseInt(item.mes) - 1;
+        datos[index] = parseInt(item.total);
+      });
+      const canvas = document.getElementById("certificadosInspectorChart");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      //  const ctx = document.getElementById("certificadosInspectorChart").getContext("2d");
+      if (window.inspectorChartInstance) {
+        window.inspectorChartInstance.destroy();
+      }
+
+      window.inspectorChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: meses,
+          datasets: [
+            {
+              label: "Certificados por Mes",
+              data: datos,
+              borderColor: "#ffc107",
+              backgroundColor: "rgba(121, 175, 19, 0.2)",
+              fill: true,
+              tension: 0.4,
+            },
+          ],
+        },
+        options: {
+          datalabels: {
+            anchor: "end",
+            align: "top",
+            color: "#ff0",
+            font: {
+              weight: "bold",
+            },
+            formatter: function (value) {
+              return value;
+            },
+          },
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+            title: {
+              display: true,
+              text: "Actividad del Inspector",
+            },
+          },
+          scales: {
+            xAxes: [{
+                ticks: {
+                    maxRotation: 90,
+                    minRotation: 0,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
+                }
+                }],
+            y: { beginAtZero: true },
+          },
+        },
+      });
+    }
+  };
+}
+
+function aplicarFiltroInspector() {
+  const anio = document.getElementById("filtroAnioInspector").value;
+  const inspector = document.getElementById("filtroInspector").value;
+
+  if (inspector) {
+    certificadosPorMesInspector(anio, inspector);
+  }
+}
+function actualizarOrigenInspector(inspector) {
+  const url = base_url + "admin/lugarInspector";
+  const formData = new FormData();
+  formData.append("inspector", inspector);
+
+  fetch(url, {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const origen =
+        data && data.city && data.state
+          ? `${data.city}, ${data.state}`
+          : "No disponible";
+      document.getElementById("origenTexto").textContent = origen;
+    })
+    .catch(() => {
+      document.getElementById("origenTexto").textContent =
+        "Error al obtener origen";
+    });
+}
+
+function aplicarFiltroInspector() {
+  const anio = document.getElementById("filtroAnioInspector").value;
+  const inspector = document.getElementById("filtroInspector").value;
+
+  if (inspector) {
+    certificadosPorMesInspector(anio, inspector);
+    actualizarOrigenInspector(inspector);
+  }
+}
+
+function certificadosPorCiudadPorInspector(inspector) {
+  const url = base_url + "admin/certificadosPorCiudadPorInspector";
+  const formData = new FormData();
+  formData.append("inspector", inspector);
+
+  const http = new XMLHttpRequest();
+  http.open("POST", url, true);
+  http.send(formData);
+
+  http.onreadystatechange = function () {
+    if (this.readyState === 4 && this.status === 200) {
+      const res = JSON.parse(this.responseText);
+      const ciudades = res.map((item) => item.city);
+      const cantidades = res.map((item) =>
+        parseInt(item.cantidad_certificados)
+      );
+      const canvas = document.getElementById("ciudadesInspectorGrafico");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      //const ctx = document.getElementById("ciudadesInspectorGrafico").getContext("2d");
+
+      if (window.ciudadInspectorChartInstance) {
+        window.ciudadInspectorChartInstance.destroy();
+      }
+
+      window.ciudadInspectorChartInstance = new Chart(ctx, {
+        type: "bar", // Usamos un gráfico de barras
+        data: {
+          labels: ciudades, // Las ciudades en el eje X
+          datasets: [
+            {
+              label: "Certificados por Inspector", // Nombre de la serie de datos
+              data: cantidades, // El número de certificados en el eje Y
+              backgroundColor: "rgba(23, 162, 184, 0.5)", // Color de las barras
+              borderColor: "rgba(23, 162, 184, 1)", // Color de los bordes de las barras
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            xAxes: [{
+                ticks: {
+                    maxRotation: 90,
+                    minRotation: 0,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
+                }
+                }],
+            y: {
+              beginAtZero: true, // Comienza desde 0 en el eje Y
+              title: {
+                display: true,
+                text: "Cantidad de Certificados", // Título del eje Y
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: "Ciudades", // Título del eje X
+              },
+              ticks: {
+                maxRotation: 45, // Rotación máxima de los nombres de las ciudades
+                minRotation: 45,
+              },
+            },
+          },
+          plugins: {
+            datalabels: {
+              anchor: "bottom",
+              align: "inside",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+            legend: {
+              display: false, // No necesitamos la leyenda en este gráfico
+            },
+            title: {
+              display: true,
+              text: "Certificados por Ciudad (Filtrado por Inspector)", // Título del gráfico
+            },
+          },
+        },
+      });
+    }
+  };
+}
+const selectInspectorCiudad = document.getElementById("filtroInspectorCiudad");
+if (selectInspectorCiudad) {
+  selectInspectorCiudad.addEventListener("change", function () {
+    const inspector = this.value;
+    if (inspector) {
+      certificadosPorCiudadPorInspector(inspector);
+    }
+  });
+}
+
+function cargarInspectoresCiudad() {
+  const select = document.getElementById("filtroInspectorCiudad");
+  if (!select) return;
+
+  const url = base_url + "admin/inspectoresDisponibles";
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      data.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.inspector_name;
+        option.textContent = item.inspector_name;
+        select.appendChild(option);
+      });
+    });
+}
 
 document.addEventListener("DOMContentLoaded", function () {
-    const inputFecha = document.getElementById("filtroFechaDia");
-    if (inputFecha) {
-        inputFecha.addEventListener("change", function () {
-            const fecha = this.value;
-            if (fecha) certificadosInspectorPorFecha(fecha);
-        });
-    }
+  const inputFecha = document.getElementById("filtroFechaDia");
+  if (inputFecha) {
+    inputFecha.addEventListener("change", function () {
+      const fecha = this.value;
+      if (fecha) certificadosInspectorPorFecha(fecha);
+    });
+  }
 });
 
- 
- 
 function certificadosInspectorPorFecha(fecha) {
-    const url = base_url + "estadisticas/certificadosPorInspectorPorFecha";
-    const formData = new FormData();
-    formData.append("fecha", fecha);
+  const url = base_url + "estadisticas/certificadosPorInspectorPorFecha";
+  const formData = new FormData();
+  formData.append("fecha", fecha);
 
-    const http = new XMLHttpRequest();
-    http.open("POST", url, true);
-    http.send(formData);
+  const http = new XMLHttpRequest();
+  http.open("POST", url, true);
+  http.send(formData);
 
-    http.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            const res = JSON.parse(this.responseText);
-            const inspectores = res.map(item => item.inspector_name);
-            const cantidades = res.map(item => parseInt(item.total));
+  http.onreadystatechange = function () {
+    if (this.readyState === 4 && this.status === 200) {
+      const res = JSON.parse(this.responseText);
+      const inspectores = res.map((item) => item.inspector_name);
+      const cantidades = res.map((item) => parseInt(item.total));
 
-            const canvas = document.getElementById("graficoInspectorPorFecha");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
+      const canvas = document.getElementById("graficoInspectorPorFecha");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
 
-            if (window.inspectorFechaChartInstance) {
-                window.inspectorFechaChartInstance.destroy();
-            }
+      if (window.inspectorFechaChartInstance) {
+        window.inspectorFechaChartInstance.destroy();
+      }
 
-            window.inspectorFechaChartInstance = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: inspectores,
-                    datasets: [{
-                        label: "Certificados realizados por día",
-                        data: cantidades,
-                        backgroundColor: "rgba(54, 162, 235, 0.5)",
-                        borderColor: "rgba(54, 162, 235, 1)",
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: false
-                    },
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            },
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Cantidad de Certificados'
-                            }
-                        }]
-                    },
-                    plugins: {
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
-                            },
-                            formatter: function (value) {
-                                return value;
-                            }
-                        }
-                    }
+      window.inspectorFechaChartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: inspectores,
+          datasets: [
+            {
+              label: "Certificados realizados por día",
+              data: cantidades,
+              backgroundColor: "rgba(54, 162, 235, 0.5)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          legend: {
+            display: false,
+          },
+          scales: {
+            xAxes: [{
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 0,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
                 }
-            });
-        }
-    };
+                }],
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: true,
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: "Cantidad de Certificados",
+                },
+              },
+            ],
+          },
+          plugins: {
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+          },
+        },
+      });
+    }
+  };
 }
 
-
-
 document.addEventListener("DOMContentLoaded", function () {
-    const select = document.getElementById("filtroInspectorFechaCiudad");
-    const input = document.getElementById("filtroFechaCiudad");
+  const select = document.getElementById("filtroInspectorFechaCiudad");
+  const input = document.getElementById("filtroFechaCiudad");
 
-    if (select && input) {
-        cargarInspectoresPorCiudadYFecha(); // rellena el select
+  if (select && input) {
+    cargarInspectoresPorCiudadYFecha(); // rellena el select
 
-        select.addEventListener("change", actualizarGraficoCiudadInspector);
-        input.addEventListener("change", actualizarGraficoCiudadInspector);
-    }
+    select.addEventListener("change", actualizarGraficoCiudadInspector);
+    input.addEventListener("change", actualizarGraficoCiudadInspector);
+  }
 });
 function cargarInspectoresPorCiudadYFecha() {
-    const url = base_url + "estadisticas/inspectoresDisponibles";
-    const select = document.getElementById("filtroInspectorFechaCiudad");
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            data.forEach(item => {
-                const option = document.createElement("option");
-                option.value = item.inspector_name;
-                option.textContent = item.inspector_name;
-                select.appendChild(option);
-            });
-        });
+  const url = base_url + "estadisticas/inspectoresDisponibles";
+  const select = document.getElementById("filtroInspectorFechaCiudad");
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      data.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.inspector_name;
+        option.textContent = item.inspector_name;
+        select.appendChild(option);
+      });
+    });
 }
 function actualizarGraficoCiudadInspector() {
-    const inspector = document.getElementById("filtroInspectorFechaCiudad").value;
-    const fecha = document.getElementById("filtroFechaCiudad").value;
+  const inspector = document.getElementById("filtroInspectorFechaCiudad").value;
+  const fecha = document.getElementById("filtroFechaCiudad").value;
 
-    if (!inspector || !fecha) return;
+  if (!inspector || !fecha) return;
 
-    const url = base_url + "estadisticas/certificadosPorCiudadPorInspectorYFecha";
-    const formData = new FormData();
-    formData.append("inspector", inspector);
-    formData.append("fecha", fecha);
+  const url = base_url + "estadisticas/certificadosPorCiudadPorInspectorYFecha";
+  const formData = new FormData();
+  formData.append("inspector", inspector);
+  formData.append("fecha", fecha);
 
-    const http = new XMLHttpRequest();
-    http.open("POST", url, true);
-    http.send(formData);
+  const http = new XMLHttpRequest();
+  http.open("POST", url, true);
+  http.send(formData);
 
-    http.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            console.log(this.responseText);
-            const res = JSON.parse(this.responseText);
-            const ciudades = res.map(item => item.city);
-            const cantidades = res.map(item => parseInt(item.total));
+  http.onreadystatechange = function () {
+    if (this.readyState === 4 && this.status === 200) {
+      console.log(this.responseText);
+      const res = JSON.parse(this.responseText);
+      const ciudades = res.map((item) => item.city);
+      const cantidades = res.map((item) => parseInt(item.total));
 
-            const canvas = document.getElementById("graficoCiudadInspectorFecha");
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
+      const canvas = document.getElementById("graficoCiudadInspectorFecha");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
 
-            if (window.chartCiudadInspectorFecha) {
-                window.chartCiudadInspectorFecha.destroy();
-            }
+      if (window.chartCiudadInspectorFecha) {
+        window.chartCiudadInspectorFecha.destroy();
+      }
 
-            window.chartCiudadInspectorFecha = new Chart(ctx, {
-                type: "horizontalBar",
-                data: {
-                    labels: ciudades,
-                    datasets: [{
-                        label: "Certificados por Ciudad",
-                        data: cantidades,
-                        backgroundColor: "rgba(40, 167, 69, 0.6)",
-                        borderColor: "rgba(40, 167, 69, 1)",
-                        borderWidth: 1
-                    }]
+      window.chartCiudadInspectorFecha = new Chart(ctx, {
+        type: "horizontalBar",
+        data: {
+          labels: ciudades,
+          datasets: [
+            {
+              label: "Certificados por Ciudad",
+              data: cantidades,
+              backgroundColor: "rgba(40, 167, 69, 0.6)",
+              borderColor: "rgba(40, 167, 69, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            datalabels: {
+              anchor: "end",
+              align: "left",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+          },
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            xAxes: [
+              {
+                ticks: { beginAtZero: true },
+                scaleLabel: {
+                  display: true,
+                  labelString: "Cantidad",
                 },
-                options: {
-                    plugins:{
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'left',
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
-                            },
-                            formatter: function (value) {
-                                return value;
-                            }
-                        },
-                    },
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        xAxes: [{
-                            ticks: { beginAtZero: true },
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Cantidad'
-                            }
-                        }],
-                        yAxes: [{
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Ciudad'
-                            }
-                        }]
-                    },
-                    legend: {
-                        display: false
-                    },
-                    title: {
-                        display: true,
-                        text: `Certificados por Ciudad para ${inspector} (${fecha})`
-                    }
-                }
-            });
-        }
-    };
+              },
+            ],
+            yAxes: [
+              {
+                scaleLabel: {
+                  display: true,
+                  labelString: "Ciudad",
+                },
+              },
+            ],
+          },
+          legend: {
+            display: false,
+          },
+          title: {
+            display: true,
+            text: `Certificados por Ciudad para ${inspector} (${fecha})`,
+          },
+        },
+      });
+    }
+  };
 }
 
-document.getElementById("btnGenerarPdfInspectores")?.addEventListener("click", generarPdfTodosInspectores);
+document
+  .getElementById("btnGenerarPdfInspectores")
+  ?.addEventListener("click", generarPdfTodosInspectores);
 
-function generarGraficoCiudadInspector(inspector, fecha, hasta = null, callback) {
-    const url = hasta === null
-        ? base_url + "estadisticas/certificadosPorCiudadPorInspectorYFecha"
-        : base_url + "estadisticas/certificadosPorCiudadPorInspectorYRango";
+function generarGraficoCiudadInspector(
+  inspector,
+  fecha,
+  hasta = null,
+  callback
+) {
+  const url =
+    hasta === null
+      ? base_url + "estadisticas/certificadosPorCiudadPorInspectorYFecha"
+      : base_url + "estadisticas/certificadosPorCiudadPorInspectorYRango";
 
-    const formData = new FormData();
-    formData.append("inspector", inspector);
+  const formData = new FormData();
+  formData.append("inspector", inspector);
 
-    if (hasta === null) {
-        formData.append("fecha", fecha);
-    } else {
-        formData.append("desde", fecha);
-        formData.append("hasta", hasta);
-    }
+  if (hasta === null) {
+    formData.append("fecha", fecha);
+  } else {
+    formData.append("desde", fecha);
+    formData.append("hasta", hasta);
+  }
 
-    fetch(url, { method: "POST", body: formData })
-        .then(res => res.json())
-        .then(data => {
-            const contenedor = document.getElementById("contenedorGraficosInspectores");
-            const safeInspector = inspector.replace(/\s+/g, "_");
-            const labelFecha = hasta === null ? fecha : `${fecha} a ${hasta}`;
-            const canvasId = `grafico_${safeInspector}_${labelFecha.replace(/[^a-zA-Z0-9]/g, "_")}`;
+  fetch(url, { method: "POST", body: formData })
+    .then((res) => res.json())
+    .then((data) => {
+      const contenedor = document.getElementById(
+        "contenedorGraficosInspectores"
+      );
+      const safeInspector = inspector.replace(/\s+/g, "_");
+      const labelFecha = hasta === null ? fecha : `${fecha} a ${hasta}`;
+      const canvasId = `grafico_${safeInspector}_${labelFecha.replace(
+        /[^a-zA-Z0-9]/g,
+        "_"
+      )}`;
 
-            const canvasWrapper = document.createElement("div");
-            canvasWrapper.style.marginBottom = "40px";
-            canvasWrapper.innerHTML = `
+      const canvasWrapper = document.createElement("div");
+      canvasWrapper.style.marginBottom = "40px";
+      canvasWrapper.innerHTML = `
                 <h5>${inspector} - ${labelFecha}</h5>
                 <canvas id="${canvasId}" width="600" height="300"></canvas>
             `;
-            contenedor.appendChild(canvasWrapper);
+      contenedor.appendChild(canvasWrapper);
 
-            const ctx = document.getElementById(canvasId).getContext("2d");
+      const ctx = document.getElementById(canvasId).getContext("2d");
 
-            new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: data.map(item => item.city),
-                    datasets: [{
-                        label: `Certificados por Ciudad`,
-                        data: data.map(item => item.total),
-                        backgroundColor: "rgba(75, 192, 192, 0.6)",
-                        borderColor: "rgba(75, 192, 192, 1)",
-                        borderWidth: 1
-                    }]
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: data.map((item) => item.city),
+          datasets: [
+            {
+              label: `Certificados por Ciudad`,
+              data: data.map((item) => item.total),
+              backgroundColor: "rgba(75, 192, 192, 0.6)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            datalabels: {
+              anchor: "top",
+              align: "inside",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: (value) => value,
+            },
+            legend: {
+              display: false,
+            },
+            title: {
+              display: true,
+              text: `${inspector} - ${labelFecha}`,
+            },
+          },
+          responsive: false,
+          maintainAspectRatio: false,
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: true,
                 },
-                options: {
-                    plugins: {
-                        datalabels: {
-                            anchor: 'top',
-                            align: 'inside',
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
-                            },
-                            formatter: value => value
-                        },
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: `${inspector} - ${labelFecha}`
-                        }
-                    },
-                    responsive: false,
-                    maintainAspectRatio: false,
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            }
-                        }]
-                    }
-                }
-            });
+              },
+            ],
+          },
+        },
+      });
 
-            setTimeout(callback, 10);
-        });
+      setTimeout(callback, 10);
+    });
 }
-document.getElementById("filtroDesdeRangoInspectores")?.addEventListener("change", actualizarGraficoInspectorPorRango);
-document.getElementById("filtroHastaRangoInspectores")?.addEventListener("change", actualizarGraficoInspectorPorRango);
+document
+  .getElementById("filtroDesdeRangoInspectores")
+  ?.addEventListener("change", actualizarGraficoInspectorPorRango);
+document
+  .getElementById("filtroHastaRangoInspectores")
+  ?.addEventListener("change", actualizarGraficoInspectorPorRango);
 
 let graficoInspectorRango = null;
 
 function actualizarGraficoInspectorPorRango() {
-    const desde = document.getElementById("filtroDesdeRangoInspectores").value;
-    const hasta = document.getElementById("filtroHastaRangoInspectores").value;
+  const desde = document.getElementById("filtroDesdeRangoInspectores").value;
+  const hasta = document.getElementById("filtroHastaRangoInspectores").value;
 
-    if (!desde || !hasta) return;
+  if (!desde || !hasta) return;
 
-    if (hasta < desde) {
-        Swal.fire("Rango inválido", "La fecha final no puede ser menor que la inicial", "warning");
-        return;
-    }
+  if (hasta < desde) {
+    Swal.fire(
+      "Rango inválido",
+      "La fecha final no puede ser menor que la inicial",
+      "warning"
+    );
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("desde", desde);
-    formData.append("hasta", hasta);
+  const formData = new FormData();
+  formData.append("desde", desde);
+  formData.append("hasta", hasta);
 
-    fetch(base_url + "estadisticas/certificadosPorInspectorPorRango", {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            const canvas = document.getElementById("graficoInspectorPorFechaRango");
-            const ctx = canvas.getContext("2d");
+  fetch(base_url + "estadisticas/certificadosPorInspectorPorRango", {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const canvas = document.getElementById("graficoInspectorPorFechaRango");
+      const ctx = canvas.getContext("2d");
 
-            if (graficoInspectorRango) {
-                graficoInspectorRango.destroy();
-            }
+      if (graficoInspectorRango) {
+        graficoInspectorRango.destroy();
+      }
 
-            graficoInspectorRango = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: data.map(item => item.inspector_name),
-                    datasets: [{
-                        label: "Certificados",
-                        data: data.map(item => item.total),
-                        backgroundColor: "rgba(153, 102, 255, 0.6)",
-                        borderColor: "rgba(153, 102, 255, 1)",
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: `Certificados por Inspector (${desde} a ${hasta})`
-                        },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            color: '#000',
-                            font: { weight: 'bold' },
-                            formatter: function (value) {
-                                return value;
-                            }
-                        }
-                    }
-                   
+      graficoInspectorRango = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: data.map((item) => item.inspector_name),
+          datasets: [
+            {
+              label: "Certificados",
+              data: data.map((item) => item.total),
+              backgroundColor: "rgba(153, 102, 255, 0.6)",
+              borderColor: "rgba(153, 102, 255, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: `Certificados por Inspector (${desde} a ${hasta})`,
+            },
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#000",
+              font: { weight: "bold" },
+              formatter: function (value) {
+                return value;
+              },
+            },
+          },
+          scales:{
+             
+            xAxes: [{
+                ticks: {
+                    maxRotation: 90,
+                    minRotation: 0,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
                 }
-            });
-        });
+                }],
+          },
+        },
+      });
+    });
 }
-
-
 
 function generarPdfTodosInspectores() {
-    Swal.fire({
-        title: 'Selecciona una fecha',
-        html: `
-            <input type="date" id="fechaGraficoPDF" class="form-control" max="${new Date().toISOString().split('T')[0]}">
+  Swal.fire({
+    title: "Selecciona una fecha",
+    html: `
+            <input type="date" id="fechaGraficoPDF" class="form-control" max="${
+              new Date().toISOString().split("T")[0]
+            }">
         `,
-        confirmButtonText: 'Generar PDF',
-        focusConfirm: false,
-        preConfirm: () => {
-            const fecha = document.getElementById('fechaGraficoPDF').value;
-            if (!fecha) {
-                Swal.showValidationMessage('Por favor selecciona una fecha');
-            }
-            return fecha;
-        }
-    }).then((result) => {
-        if (!result.isConfirmed) return;
+    confirmButtonText: "Generar PDF",
+    focusConfirm: false,
+    preConfirm: () => {
+      const fecha = document.getElementById("fechaGraficoPDF").value;
+      if (!fecha) {
+        Swal.showValidationMessage("Por favor selecciona una fecha");
+      }
+      return fecha;
+    },
+  }).then((result) => {
+    if (!result.isConfirmed) return;
 
-        const fecha = result.value;
+    const fecha = result.value;
 
-        // 🔔 Mostrar alerta de carga INMEDIATAMENTE
-        Swal.fire({
-            title: 'Generando PDF...',
-            html: 'Esto puede tardar unos segundos',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        //  Esperar al siguiente frame para que se dibuje el loading
-        setTimeout(() => {
-            const url = base_url + "estadisticas/inspectoresDisponibles";
-            fetch(url)
-                .then(res => res.json())
-                .then(inspectores => {
-                    const contenedor = document.getElementById("contenedorGraficosInspectores");
-                    contenedor.innerHTML = "";
-
-                    let index = 0;
-
-                    const procesarSiguiente = () => {
-                        if (index >= inspectores.length) {
-                            capturarGraficosEnPdf(fecha);
-                            return;
-                        }
-
-                        const inspector = inspectores[index].inspector_name;
-                        generarGraficoCiudadInspector(inspector, fecha,null, () => {
-                            index++;
-                            setTimeout(procesarSiguiente, 10);
-                        });
-                    };
-
-                    procesarSiguiente();
-                });
-        }, 100); // <= esto permite que el spinner se dibuje ANTES
+    // 🔔 Mostrar alerta de carga INMEDIATAMENTE
+    Swal.fire({
+      title: "Generando PDF...",
+      html: "Esto puede tardar unos segundos",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
     });
+
+    //  Esperar al siguiente frame para que se dibuje el loading
+    setTimeout(() => {
+      const url = base_url + "estadisticas/inspectoresDisponibles";
+      fetch(url)
+        .then((res) => res.json())
+        .then((inspectores) => {
+          const contenedor = document.getElementById(
+            "contenedorGraficosInspectores"
+          );
+          contenedor.innerHTML = "";
+
+          let index = 0;
+
+          const procesarSiguiente = () => {
+            if (index >= inspectores.length) {
+              capturarGraficosEnPdf(fecha);
+              return;
+            }
+
+            const inspector = inspectores[index].inspector_name;
+            generarGraficoCiudadInspector(inspector, fecha, null, () => {
+              index++;
+              setTimeout(procesarSiguiente, 10);
+            });
+          };
+
+          procesarSiguiente();
+        });
+    }, 100); // <= esto permite que el spinner se dibuje ANTES
+  });
 }
 
-
-
 async function capturarGraficosEnPdf(fechaInput) {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "mm", "a4");
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "mm", "a4");
 
-    const contenedor = document.getElementById("contenedorGraficosInspectores");
-    contenedor.style.display = "block";
+  const contenedor = document.getElementById("contenedorGraficosInspectores");
+  contenedor.style.display = "block";
 
-    Swal.fire({
-        title: 'Generando PDF...',
-        html: 'Esto puede tardar unos segundos',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
+  Swal.fire({
+    title: "Generando PDF...",
+    html: "Esto puede tardar unos segundos",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  const children = contenedor.children;
+  const pageHeight = 297;
+  const margin = 10;
+  const spacing = 10;
+  let currentY = margin;
+
+  for (let i = 0; i < children.length; i++) {
+    const div = children[i];
+
+    div.style.display = "block";
+    div.offsetHeight;
+
+    const canvas = await html2canvas(div, {
+      useCORS: true,
+      scale: 1,
+      allowTaint: false,
     });
 
-    const children = contenedor.children;
-    const pageHeight = 297;
-    const margin = 10;
-    const spacing = 10;
-    let currentY = margin;
+    const imgData = canvas.toDataURL("image/png");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pageWidth = 210;
+    const pdfWidth = pageWidth - 2 * margin;
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    for (let i = 0; i < children.length; i++) {
-        const div = children[i];
-
-        div.style.display = "block";
-        div.offsetHeight;
-
-        const canvas = await html2canvas(div, {
-            useCORS: true,
-            scale: 1,
-            allowTaint: false
-        });
-
-        const imgData = canvas.toDataURL("image/png");
-        const imgProps = pdf.getImageProperties(imgData);
-        const pageWidth = 210;
-        const pdfWidth = pageWidth - 2 * margin;
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-        if (currentY + pdfHeight > pageHeight - margin) {
-            pdf.addPage();
-            currentY = margin;
-        }
-
-        pdf.addImage(imgData, "PNG", margin, currentY, pdfWidth, pdfHeight);
-        currentY += pdfHeight + spacing;
+    if (currentY + pdfHeight > pageHeight - margin) {
+      pdf.addPage();
+      currentY = margin;
     }
 
-    contenedor.style.display = "none";
-    Swal.close();
+    pdf.addImage(imgData, "PNG", margin, currentY, pdfWidth, pdfHeight);
+    currentY += pdfHeight + spacing;
+  }
 
-    // ✅ usar directamente la fecha recibida
-    pdf.save(`Graficos_${fechaInput}.pdf`);
+  contenedor.style.display = "none";
+  Swal.close();
 
-    Swal.fire({
-        icon: 'success',
-        title: 'PDF generado',
-        text: 'El archivo se ha descargado correctamente.',
-        timer: 1200,
-        showConfirmButton: false
-    });
+  // ✅ usar directamente la fecha recibida
+  pdf.save(`Graficos_${fechaInput}.pdf`);
+
+  Swal.fire({
+    icon: "success",
+    title: "PDF generado",
+    text: "El archivo se ha descargado correctamente.",
+    timer: 1200,
+    showConfirmButton: false,
+  });
 }
 
 function generarPdfInspectoresPorRango() {
-    Swal.fire({
-        title: 'Selecciona el rango de fechas',
-        html: `
+  Swal.fire({
+    title: "Selecciona el rango de fechas",
+    html: `
             <label>Desde:</label>
-            <input type="date" id="fechaInicio" class="form-control mb-2" max="${new Date().toISOString().split('T')[0]}">
+            <input type="date" id="fechaInicio" class="form-control mb-2" max="${
+              new Date().toISOString().split("T")[0]
+            }">
             <label>Hasta:</label>
-            <input type="date" id="fechaFin" class="form-control" max="${new Date().toISOString().split('T')[0]}">
+            <input type="date" id="fechaFin" class="form-control" max="${
+              new Date().toISOString().split("T")[0]
+            }">
         `,
-        confirmButtonText: 'Generar PDF',
-        focusConfirm: false,
-        preConfirm: () => {
-            const desde = document.getElementById('fechaInicio').value;
-            const hasta = document.getElementById('fechaFin').value;
+    confirmButtonText: "Generar PDF",
+    focusConfirm: false,
+    preConfirm: () => {
+      const desde = document.getElementById("fechaInicio").value;
+      const hasta = document.getElementById("fechaFin").value;
 
-            if (!desde || !hasta) {
-                Swal.showValidationMessage('Selecciona ambas fechas');
-                return false;
-            }
+      if (!desde || !hasta) {
+        Swal.showValidationMessage("Selecciona ambas fechas");
+        return false;
+      }
 
-            if (hasta < desde) {
-                Swal.showValidationMessage('La fecha final no puede ser menor que la inicial');
-                return false;
-            }
+      if (hasta < desde) {
+        Swal.showValidationMessage(
+          "La fecha final no puede ser menor que la inicial"
+        );
+        return false;
+      }
 
-            return { desde, hasta };
-        }
-    }).then((result) => {
-        if (!result.isConfirmed) return;
+      return { desde, hasta };
+    },
+  }).then((result) => {
+    if (!result.isConfirmed) return;
 
-        const { desde, hasta } = result.value;
+    const { desde, hasta } = result.value;
 
-        Swal.fire({
-            title: 'Generando PDF...',
-            html: 'Esto puede tardar unos segundos',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        setTimeout(() => {
-            const url = `${base_url}estadisticas/inspectoresPorRango?desde=${desde}&hasta=${hasta}`;
-            fetch(url)
-                .then(res => res.json())
-                .then(inspectores => {
-                    const contenedor = document.getElementById("contenedorGraficosInspectores");
-                    contenedor.innerHTML = "";
-
-                    let index = 0;
-
-                    const procesarSiguiente = () => {
-                        if (index >= inspectores.length) {
-                            capturarGraficosEnPdf(`${desde}_a_${hasta}`);
-                            return;
-                        }
-
-                        const inspector = inspectores[index].inspector_name;
-                        generarGraficoCiudadInspector(inspector, desde, hasta, () => {
-                            index++;
-                            setTimeout(procesarSiguiente, 10);
-                        });
-                    };
-
-                    procesarSiguiente();
-                });
-        }, 100);
+    Swal.fire({
+      title: "Generando PDF...",
+      html: "Esto puede tardar unos segundos",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
     });
+
+    setTimeout(() => {
+      const url = `${base_url}estadisticas/inspectoresPorRango?desde=${desde}&hasta=${hasta}`;
+      fetch(url)
+        .then((res) => res.json())
+        .then((inspectores) => {
+          const contenedor = document.getElementById(
+            "contenedorGraficosInspectores"
+          );
+          contenedor.innerHTML = "";
+
+          let index = 0;
+
+          const procesarSiguiente = () => {
+            if (index >= inspectores.length) {
+              capturarGraficosEnPdf(`${desde}_a_${hasta}`);
+              return;
+            }
+
+            const inspector = inspectores[index].inspector_name;
+            generarGraficoCiudadInspector(inspector, desde, hasta, () => {
+              index++;
+              setTimeout(procesarSiguiente, 10);
+            });
+          };
+
+          procesarSiguiente();
+        });
+    }, 100);
+  });
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  cargarInspectoresEnSelectRango();
 
-document.addEventListener('DOMContentLoaded', () => {
-    cargarInspectoresEnSelectRango();
+  const selects = [
+    document.getElementById("filtroInspectorRango"),
+    document.getElementById("filtroDesdeRango"),
+    document.getElementById("filtroHastaRango"),
+  ];
 
-    const selects = [
-        document.getElementById('filtroInspectorRango'),
-        document.getElementById('filtroDesdeRango'),
-        document.getElementById('filtroHastaRango')
-    ];
-
-    selects.forEach(element => {
-        element.addEventListener('change', generarGraficoCiudadRangoIndividual);
-    });
+  selects.forEach((element) => {
+    element.addEventListener("change", generarGraficoCiudadRangoIndividual);
+  });
 });
 
 function cargarInspectoresEnSelectRango() {
-    fetch(base_url + "estadisticas/inspectoresDisponibles")
-        .then(res => res.json())
-        .then(data => {
-            const select = document.getElementById("filtroInspectorRango");
-            data.forEach(inspector => {
-                const option = document.createElement("option");
-                option.value = inspector.inspector_name;
-                option.textContent = inspector.inspector_name;
-                select.appendChild(option);
-            });
-        });
+  fetch(base_url + "estadisticas/inspectoresDisponibles")
+    .then((res) => res.json())
+    .then((data) => {
+      const select = document.getElementById("filtroInspectorRango");
+      data.forEach((inspector) => {
+        const option = document.createElement("option");
+        option.value = inspector.inspector_name;
+        option.textContent = inspector.inspector_name;
+        select.appendChild(option);
+      });
+    });
 }
 
 function generarGraficoCiudadRangoIndividual() {
-    const inspector = document.getElementById("filtroInspectorRango").value;
-    const desde = document.getElementById("filtroDesdeRango").value;
-    const hasta = document.getElementById("filtroHastaRango").value;
+  const inspector = document.getElementById("filtroInspectorRango").value;
+  const desde = document.getElementById("filtroDesdeRango").value;
+  const hasta = document.getElementById("filtroHastaRango").value;
 
-    if (!inspector || !desde || !hasta) {
-     
-        return;  
-    }
-    else if (hasta < desde) {
-        Swal.fire("Rango inválido", "La fecha final no puede ser menor que la inicial", "warning");
-        return;
-    }
+  if (!inspector || !desde || !hasta) {
+    return;
+  } else if (hasta < desde) {
+    Swal.fire(
+      "Rango inválido",
+      "La fecha final no puede ser menor que la inicial",
+      "warning"
+    );
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("inspector", inspector);
-    formData.append("desde", desde);
-    formData.append("hasta", hasta);
+  const formData = new FormData();
+  formData.append("inspector", inspector);
+  formData.append("desde", desde);
+  formData.append("hasta", hasta);
 
-    fetch(base_url + "estadisticas/certificadosPorCiudadPorInspectorYRango", {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            const ctx = document.getElementById("graficoCiudadInspectorRango").getContext("2d");
-            if (window.graficoCiudadRango) {
-                window.graficoCiudadRango.destroy();
-            }
+  fetch(base_url + "estadisticas/certificadosPorCiudadPorInspectorYRango", {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const ctx = document
+        .getElementById("graficoCiudadInspectorRango")
+        .getContext("2d");
+      if (window.graficoCiudadRango) {
+        window.graficoCiudadRango.destroy();
+      }
 
-            window.graficoCiudadRango = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: data.map(item => item.city),
-                    datasets: [{
-                        label: "Certificados",
-                        data: data.map(item => item.total),
-                        backgroundColor: "rgba(75, 192, 192, 0.6)",
-                        borderColor: "rgba(75, 192, 192, 1)",
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    plugins: {
-                        datalabels: {
-                            anchor: 'top',
-                            align: 'inside',
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
-                            },
-                            formatter: value => value
-                        },
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: `${inspector} (${desde} a ${hasta})`
-                        }
-                    },
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
+      window.graficoCiudadRango = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: data.map((item) => item.city),
+          datasets: [
+            {
+              label: "Certificados",
+              data: data.map((item) => item.total),
+              backgroundColor: "rgba(75, 192, 192, 0.6)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            datalabels: {
+              anchor: "top",
+              align: "inside",
+              color: "#000",
+              font: {
+                weight: "bold",
+              },
+              formatter: (value) => value,
+            },
+            legend: {
+              display: false,
+            },
+            title: {
+              display: true,
+              text: `${inspector} (${desde} a ${hasta})`,
+            },
+          },
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+             
+            xAxes: [{
+                ticks: {
+                    maxRotation: 90,
+                    minRotation: 0,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
                 }
-            });
-        });
+                }],
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+    });
 }
-document.getElementById("filtroDesdeRangoCiudad")?.addEventListener("change", actualizarGraficoCiudadRango);
-document.getElementById("filtroHastaRangoCiudad")?.addEventListener("change", actualizarGraficoCiudadRango);
+document
+  .getElementById("filtroDesdeRangoCiudad")
+  ?.addEventListener("change", actualizarGraficoCiudadRango);
+document
+  .getElementById("filtroHastaRangoCiudad")
+  ?.addEventListener("change", actualizarGraficoCiudadRango);
 
-document.getElementById("filtroDesdeRangoEstado")?.addEventListener("change", actualizarGraficoEstadoRango);
-document.getElementById("filtroHastaRangoEstado")?.addEventListener("change", actualizarGraficoEstadoRango);
+document
+  .getElementById("filtroDesdeRangoEstado")
+  ?.addEventListener("change", actualizarGraficoEstadoRango);
+document
+  .getElementById("filtroHastaRangoEstado")
+  ?.addEventListener("change", actualizarGraficoEstadoRango);
 
 let graficoCiudadRango = null;
 let graficoEstadoRango = null;
 
 function actualizarGraficoCiudadRango() {
-    const desde = document.getElementById("filtroDesdeRangoCiudad").value;
-    const hasta = document.getElementById("filtroHastaRangoCiudad").value;
-    if (!desde || !hasta || hasta < desde) return;
+  const desde = document.getElementById("filtroDesdeRangoCiudad").value;
+  const hasta = document.getElementById("filtroHastaRangoCiudad").value;
+  if (!desde || !hasta || hasta < desde) return;
 
-    const formData = new FormData();
-    formData.append("desde", desde);
-    formData.append("hasta", hasta);
+  const formData = new FormData();
+  formData.append("desde", desde);
+  formData.append("hasta", hasta);
 
-    fetch(base_url + "estadisticas/certificadosPorCiudadEnRango", {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            const ctx = document.getElementById("graficoCertificadosPorCiudadRango").getContext("2d");
-            if (graficoCiudadRango) graficoCiudadRango.destroy();
+  fetch(base_url + "estadisticas/certificadosPorCiudadEnRango", {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const ctx = document
+        .getElementById("graficoCertificadosPorCiudadRango")
+        .getContext("2d");
+      if (graficoCiudadRango) graficoCiudadRango.destroy();
 
-            graficoCiudadRango = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: data.map(item => item.city),
-                    datasets: [{
-                        label: "Certificados",
-                        data: data.map(item => item.total),
-                        backgroundColor: "rgba(255, 159, 64, 0.6)",
-                        borderColor: "rgba(255, 159, 64, 1)",
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: `Certificados por Ciudad (${desde} a ${hasta})`
-                        },
-                        datalabels: {
-                            anchor: 'top',
-                            align: 'inside',
-                            color: '#000',
-                            font: { weight: 'bold' },
-                            formatter: v => v
-                        },
-                        legend: { display: false }
-                    },
-                    responsive: true,
-                     
- 
+      graficoCiudadRango = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: data.map((item) => item.city),
+          datasets: [
+            {
+              label: "Certificados",
+              data: data.map((item) => item.total),
+              backgroundColor: "rgba(255, 159, 64, 0.6)",
+              borderColor: "rgba(255, 159, 64, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: `Certificados por Ciudad (${desde} a ${hasta})`,
+            },
+            datalabels: {
+              anchor: "top",
+              align: "inside",
+              color: "#000",
+              font: { weight: "bold" },
+              formatter: (v) => v,
+            },
+            legend: { display: false },
+          },
+          scales:{
+             
+            xAxes: [{
+                ticks: {
+                    maxRotation: 90,
+                    minRotation: 0,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
                 }
-            });
-        });
+                }],
+          },
+          responsive: true,
+        },
+      });
+    });
 }
 
-
 function actualizarGraficoEstadoRango() {
-    const desde = document.getElementById("filtroDesdeRangoEstado").value;
-    const hasta = document.getElementById("filtroHastaRangoEstado").value;
-    if (!desde || !hasta || hasta < desde) return;
+  const desde = document.getElementById("filtroDesdeRangoEstado").value;
+  const hasta = document.getElementById("filtroHastaRangoEstado").value;
+  if (!desde || !hasta || hasta < desde) return;
 
-    const formData = new FormData();
-    formData.append("desde", desde);
-    formData.append("hasta", hasta);
+  const formData = new FormData();
+  formData.append("desde", desde);
+  formData.append("hasta", hasta);
 
-    fetch(base_url + "estadisticas/certificadosPorEstadoEnRango", {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            const ctx = document.getElementById("graficoCert").getContext("2d");
-            if (graficoEstadoRango) graficoEstadoRango.destroy();
+  fetch(base_url + "estadisticas/certificadosPorEstadoEnRango", {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const ctx = document.getElementById("graficoCert").getContext("2d");
+      if (graficoEstadoRango) graficoEstadoRango.destroy();
 
-            graficoEstadoRango = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: data.map(item => item.state),
-                    datasets: [{
-                        label: "Certificados",
-                        data: data.map(item => item.total),
-                        backgroundColor: "rgba(54, 162, 235, 0.6)",
-                        borderColor: "rgba(54, 162, 235, 1)",
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: `Certificados por Estado (${desde} a ${hasta})`
-                        },
-                        datalabels: {
-                            anchor: 'top',
-                            align: 'inside',
-                            color: '#000',
-                            font: { weight: 'bold' },
-                            formatter: v => v
-                        },
-                        legend: { display: false }
-                    },
-                    responsive: true,
-                   
- 
-                }
-            });
-        });
+      graficoEstadoRango = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: data.map((item) => item.state),
+          datasets: [
+            {
+              label: "Certificados",
+              data: data.map((item) => item.total),
+              backgroundColor: "rgba(54, 162, 235, 0.6)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: `Certificados por Estado (${desde} a ${hasta})`,
+            },
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#000",
+              font: { weight: "bold" },
+              formatter: (v) => v,
+            },
+            legend: { display: false },
+          },
+          responsive: true,
+        },
+      });
+    });
 }
 
 let graficoSucursal = null;
 
 function actualizarGraficoSucursal() {
-    const desdeInput = document.getElementById("fechaDesdeSucursales");
-    const hastaInput = document.getElementById("fechaHastaSucursales");
+  const desdeInput = document.getElementById("fechaDesdeSucursales");
+  const hastaInput = document.getElementById("fechaHastaSucursales");
 
-    const desde = desdeInput.value;
-    const hasta = hastaInput.value;
+  const desde = desdeInput.value;
+  const hasta = hastaInput.value;
 
-    if (!desde || !hasta) return;
+  if (!desde || !hasta) return;
 
-    if (hasta < desde) {
-        Swal.fire("Rango inválido", "La fecha final no puede ser menor que la inicial", "warning");
+  if (hasta < desde) {
+    Swal.fire(
+      "Rango inválido",
+      "La fecha final no puede ser menor que la inicial",
+      "warning"
+    );
 
-        // Opcional: limpiar valores o marcar los campos
-        hastaInput.classList.add("is-invalid");
+    // Opcional: limpiar valores o marcar los campos
+    hastaInput.classList.add("is-invalid");
+    return;
+  } else {
+    hastaInput.classList.remove("is-invalid");
+  }
+
+  fetch(base_url + "estadisticas/certificadosPorSucursalAgrupada", {
+    method: "POST",
+    body: new URLSearchParams({ desde, hasta }),
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.error) {
+        Swal.fire("Error", data.error, "error");
         return;
-    } else {
-        hastaInput.classList.remove("is-invalid");
-    }
+      }
 
-    fetch(base_url + "estadisticas/certificadosPorSucursalAgrupada", {
-        method: "POST",
-        body: new URLSearchParams({ desde, hasta }),
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.error) {
-            Swal.fire("Error", data.error, "error");
-            return;
-        }
+      const labels = data.map((item) => item.sucursal);
+      const valores = data.map((item) => item.total);
+      const colores = labels.map(
+        () => "#" + Math.floor(Math.random() * 16777215).toString(16)
+      );
 
-        const labels = data.map(item => item.sucursal);
-        const valores = data.map(item => item.total);
-        const colores = labels.map(() => "#" + Math.floor(Math.random()*16777215).toString(16));
+      const ctx = document.getElementById("graficoSucursales").getContext("2d");
 
-        const ctx = document.getElementById("graficoSucursales").getContext("2d");
-
-        if (graficoSucursal) {
-            graficoSucursal.destroy();
-        }
-
-        graficoSucursal = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: "Certificados por Sucursal",
-                    data: valores,
-                    backgroundColor: colores,
-                    borderWidth: 1
-                }]
+      if (graficoSucursal) {
+        graficoSucursal.destroy();
+      }
+      console.log(data);
+      graficoSucursal = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Certificados por Sucursal",
+              data: valores,
+              backgroundColor: colores,
+              borderWidth: 1,
             },
-                options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Certificados por Sucursal (por Fechas)'
-                    },
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: '#000',
-                        font: {
-                            weight: 'bold'
-                        },
-                        formatter: function (value) {
-                            return value;
-                        }
-                    },
-                    legend: {
-                        display: false
-                    }
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: "Certificados por Sucursal (por Fechas)",
+            },
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#000",
+              font: {
+                size: 12,
+                weight: "bold",
+              },
+              formatter: function (value) {
+                return value;
+              },
+            },
+            legend: {
+              display: true,
+              font: {
+                size: 25,
+                weight: "bold",
+              },
+            },
+          },
+          scales: {
+            xAxes: [{
+                ticks: {
+                    maxRotation: 50,
+                    minRotation: 30,
+                    padding: 10,
+                    autoSkip: false,
+                    fontSize: 10
                 }
-            }
-        });
+                }]
+          },
+          layout: {
+            padding: {
+              bottom: 60, // Espacio para etiquetas rotadas
+            },
+          },
+        },
+      });
     });
 }
 
 // Escucha los cambios en ambos campos
-document.getElementById("fechaDesdeSucursales").addEventListener("change", actualizarGraficoSucursal);
-document.getElementById("fechaHastaSucursales").addEventListener("change", actualizarGraficoSucursal);
+document
+  .getElementById("fechaDesdeSucursales")
+  .addEventListener("change", actualizarGraficoSucursal);
+document
+  .getElementById("fechaHastaSucursales")
+  .addEventListener("change", actualizarGraficoSucursal);
+
+//ESTE ES UN CODIGO GENERICO PARA PODER DESCARGAR CADA UNO DE LOS GRAFICOS GENERADOS
+//le mandamos como parametro el titulo del grafico, el id del CONTENEDOR del grafico, por ultimo el nombre del archivo
+
+function descargarPdfPorElemento(titulo, idElemento, nombreArchivo) {
+  const elemento = document.getElementById(idElemento); //creamos la constante elemento que se tomara del id del contenedor yen caso de que no exista nos mandara una alerta
+  if (!elemento) {
+    Swal.fire("Error", "No se encontró el gráfico a exportar", "error");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF(); //instanciamos el jspdf
+
+  html2canvas(elemento, {
+    useCORS: true,
+    scale: 2,
+  }).then((canvas) => {
+    const imgData = canvas.toDataURL("image/png");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = 190;
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.text(titulo, 10, 15);
+    pdf.addImage(imgData, "PNG", 10, 20, pdfWidth, pdfHeight);
+    pdf.save(nombreArchivo);
+  });
+}
+
+document
+  .getElementById("btnDescargarPdfSucursal")
+  ?.addEventListener("click", () => {
+    const canvas = document.getElementById("graficoSucursales");
+    const desde = document.getElementById("fechaDesdeSucursales").value;
+    const hasta = document.getElementById("fechaHastaSucursales").value;
+
+    // Validar existencia y tamaño del canvas
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Gráfico no disponible",
+        text: "No se ha generado el gráfico de certificados por sucursal aún.",
+      });
+      return;
+    }
+
+    // Validar contenido real en el canvas
+    const ctx = canvas.getContext("2d");
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const isEmpty = !pixels.some((channel) => channel !== 0);
+
+    if (isEmpty) {
+      Swal.fire({
+        icon: "warning",
+        title: "Gráfico vacío",
+        text: "El gráfico existe pero no contiene datos visibles.",
+      });
+      return;
+    }
+
+    const titulo = `Certificados por Sucursal (${desde} a ${hasta})`;
+    const nombreArchivo = `certificados_sucursal_${desde}_a_${hasta}.pdf`;
+
+    descargarPdfPorElemento(titulo, "contenedorSucursal", nombreArchivo);
+  });
+
+document
+  .getElementById("btnDescargarPdfCiudadRango")
+  ?.addEventListener("click", () => {
+    const canvas = document.getElementById("graficoCertificadosPorCiudadRango");
+    const desde = document.getElementById("filtroDesdeRangoCiudad").value;
+    const hasta = document.getElementById("filtroHastaRangoCiudad").value;
+
+    // Validar existencia y tamaño del canvas
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Gráfico no disponible",
+        text: "No se ha generado el gráfico por ciudad aún.",
+      });
+      return;
+    }
+
+    // Validar contenido real en el canvas
+    const ctx = canvas.getContext("2d");
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const isEmpty = !pixels.some((channel) => channel !== 0);
+
+    if (isEmpty) {
+      Swal.fire({
+        icon: "warning",
+        title: "Gráfico vacío",
+        text: "El gráfico existe pero no contiene datos visibles.",
+      });
+      return;
+    }
+
+    const titulo = `Certificados por Ciudad (${desde} a ${hasta})`;
+    const nombreArchivo = `certificados_ciudad_${desde}_a_${hasta}.pdf`;
+
+    descargarPdfPorElemento(titulo, "contenedorCiudadRango", nombreArchivo);
+  });
+
+document
+  .getElementById("btnDescargarPdfEstadosRango")
+  ?.addEventListener("click", () => {
+    const canvas = document.getElementById("graficoCert");
+    const desde = document.getElementById("filtroDesdeRangoEstado").value;
+    const hasta = document.getElementById("filtroHastaRangoEstado").value;
+
+    // Validar existencia y tamaño del canvas
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Gráfico no disponible",
+        text: "No se ha generado el gráfico por ciudad aún.",
+      });
+      return;
+    }
+
+    // Validar contenido real en el canvas
+    const ctx = canvas.getContext("2d");
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const isEmpty = !pixels.some((channel) => channel !== 0);
+
+    if (isEmpty) {
+      Swal.fire({
+        icon: "warning",
+        title: "Gráfico vacío",
+        text: "El gráfico existe pero no contiene datos visibles.",
+      });
+      return;
+    }
+
+    const titulo = `Certificados por Estado (${desde} a ${hasta})`;
+    const nombreArchivo = `certificados_estado_${desde}_a_${hasta}.pdf`;
+
+    descargarPdfPorElemento(
+      titulo,
+      "contenedorCertificadosEstados",
+      nombreArchivo
+    );
+  });

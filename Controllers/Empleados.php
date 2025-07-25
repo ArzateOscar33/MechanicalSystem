@@ -346,7 +346,7 @@ public function generarCredencial($id)
     ]);
     (new \chillerlan\QRCode\QRCode($optionsQR))->render($contenidoQR, $qrAbsolutePath);
 
-    $logoPath = BASE_URL . 'assets/images/logo-marco.png';
+    $logoPath = BASE_URL . 'assets/images/4.png';
     $fotoWebPath = BASE_URL . $empleado['photo_path'];
     //Conenido html para las credenciales
     $html = "
@@ -394,7 +394,7 @@ public function generarCredencial($id)
 
 
                 .header {
-                    background: #1c1e74;
+                    background: #89a7c0;
                     color: white;
                     padding: 10px 0;
                     text-align: center;
@@ -412,7 +412,7 @@ public function generarCredencial($id)
                 }
 
                 .header img.logo {
-                    width: 200px;
+                    width: 100px;
                     height: 100px;
                     display: block;
                     margin: 0 auto;
@@ -438,7 +438,7 @@ public function generarCredencial($id)
                 .foto {
                     width: 200px;
                     height: 200px;
-                    background: #1c1e74;
+                    background: #89a7c0;
                     border-radius: 12px;
                     margin: 10px auto;
                     text-align: center;
@@ -454,7 +454,7 @@ public function generarCredencial($id)
                 .datos {
                     font-size: 14px;
                     margin-top: 15px;
-                    color: #1c1e74;
+                    color: #050505ff;
                     width: 100%;
                     box-sizing: border-box;
                     padding: 0 10px;
@@ -467,7 +467,7 @@ public function generarCredencial($id)
                 }
 
                 .footer {
-                    background: #1c1e74;
+                    background: #89a7c0;
                     color: white;
                     padding: 8px 15px;
                     font-size: 12px;
@@ -482,12 +482,13 @@ public function generarCredencial($id)
                 }
 
                 .reverso {
-                    background: #1c1e74;
+                    background: #89a7c0;
                     color: white;
                     padding: 20px;
                     box-sizing: border-box;
                     position: relative;
                     height: 480px;
+                    border: 1px solid #050505ff;
                 }
 
                 .reverso h4 {
@@ -561,18 +562,17 @@ public function generarCredencial($id)
                         </div>
                     </div>
                 </div>
-
                 <div class='reverso'>
                     <h4>DIVISIÓN MÉXICO</h4>
                     <div class='qr'>
                         <img src='{$qrWebPath}' alt='Código QR del empleado'>
                     </div>
                     <div class='direccion'>
-                        Dirección: Cayetano Perez 240-I, Buena Vista,<br>
-                        Burócrata Ruiz Cortinez, 22406, Tijuana, B.C.
+                        Dirección: Cayetano Perez,Ext. 240,Int. 1.<br>
+                        Burócrata Ruiz Cortines, 22406, Tijuana, B.C.
                     </div>
                     <div class='rfc'>
-                        RFC: {$empleado['rfc']}
+                        RFC: FCO180803NX7
                     </div>
                 </div>
             </div>
@@ -671,7 +671,7 @@ public function generarTodasCredenciales()
                 }
                 .credencial { margin-right: 30px; }
                 .header {
-                    background: #1c1e74;
+                    background: #89a7c0;
                     color: white;
                     padding: 10px 0;
                     text-align: center;
@@ -709,7 +709,7 @@ public function generarTodasCredenciales()
                 .foto {
                     width: 200px;
                     height: 200px;
-                    background: #1c1e74;
+                    background: #89a7c0;
                     border-radius: 12px;
                     margin: 10px auto;
                     text-align: center;
@@ -723,7 +723,7 @@ public function generarTodasCredenciales()
                 .datos {
                     font-size: 14px;
                     margin-top: 15px;
-                    color: #1c1e74;
+                    color: #89a7c0;
                     width: 100%;
                     box-sizing: border-box;
                     padding: 0 10px;
@@ -733,7 +733,7 @@ public function generarTodasCredenciales()
                     width: 100%;
                 }
                 .footer {
-                    background: #1c1e74;
+                    background: #89a7c0;
                     color: white;
                     padding: 8px 15px;
                     font-size: 12px;
@@ -747,7 +747,7 @@ public function generarTodasCredenciales()
                     box-sizing: border-box;
                 }
                 .reverso {
-                    background: #1c1e74;
+                    background: #89a7c0;
                     color: white;
                     padding: 20px;
                     box-sizing: border-box;
@@ -819,7 +819,7 @@ public function generarTodasCredenciales()
                     Burócrata Ruiz Cortinez, 22406, Tijuana, B.C.
                 </div>
                 <div class='rfc'>
-                    RFC: {$empleado['rfc']}
+                    RFC: FCO180803NX7
                 </div>
             </div>
         </div>
