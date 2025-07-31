@@ -1724,8 +1724,9 @@ function actualizarGraficoCiudadRango() {
               text: `Certificados por Ciudad (${desde} a ${hasta})`,
             },
             datalabels: {
-              anchor: "top",
-              align: "inside",
+              anchor: "end",
+              align: "top",
+              clamp:true,
               color: "#000",
               font: { weight: "bold" },
               formatter: (v) => v,
@@ -1949,6 +1950,11 @@ function descargarPdfPorElemento(titulo, idElemento, nombreArchivo) {
   });
 }
 
+
+
+
+
+
 document
   .getElementById("btnDescargarPdfSucursal")
   ?.addEventListener("click", () => {
@@ -2060,6 +2066,48 @@ document
     descargarPdfPorElemento(
       titulo,
       "contenedorCertificadosEstados",
+      nombreArchivo
+    );
+  });
+
+
+  document
+  .getElementById("btnDescargarPdfCertificadosRangoFechas")
+  ?.addEventListener("click", () => {
+    const canvas = document.getElementById("graficoInspectorPorFechaRango");
+    const desde = document.getElementById("filtroDesdeRangoInspectores").value;
+    const hasta = document.getElementById("filtroHastaRangoInspectores").value;
+
+    // Validar existencia y tamaño del canvas
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Gráfico no disponible",
+        text: "No se ha generado el gráfico por ciudad aún.",
+      });
+      return;
+    }
+
+    // Validar contenido real en el canvas
+    const ctx = canvas.getContext("2d");
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const isEmpty = !pixels.some((channel) => channel !== 0);
+
+    if (isEmpty) {
+      Swal.fire({
+        icon: "warning",
+        title: "Gráfico vacío",
+        text: "El gráfico existe pero no contiene datos visibles.",
+      });
+      return;
+    }
+
+    const titulo = `Certificados por Rango de Fechas (${desde} a ${hasta})`;
+    const nombreArchivo = `certificados_${desde}_a_${hasta}.pdf`;
+
+    descargarPdfPorElemento(
+      titulo,
+      "contenedorCertificadosPorRangoFechas",
       nombreArchivo
     );
   });

@@ -414,7 +414,7 @@
 
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <label class="form-label">Desde</label>
+                                        <label class="form-label">Desde sa</label>
                                         <input type="date" id="filtroDesdeRangoInspectores" class="form-control mb-2"
                                             max="<?= date('Y-m-d') ?>">
                                     </div>
@@ -424,11 +424,13 @@
                                             max="<?= date('Y-m-d') ?>">
                                     </div>
                                 </div>
-
+                            <div id="contenedorCertificadosPorRangoFechas">
                                 <canvas id="graficoInspectorPorFechaRango" width="600" height="150"></canvas>
-
                             </div>
-
+                            </div>
+                                <button class="btn btn-primary mt-2" id="btnDescargarPdfCertificadosRangoFechas">
+                                Descargar PDF (Certificados por Rango de Fechas)
+                                </button>
                         </div>
                     </div>
                 </div>

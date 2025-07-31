@@ -349,196 +349,229 @@ public function generarCredencial($id)
     $logoPath = BASE_URL . 'assets/images/4.png';
     $fotoWebPath = BASE_URL . $empleado['photo_path'];
     //Conenido html para las credenciales
+    //Contenido html para las credenciales
     $html = "
- 
-        <html lang='es'>
+    <html lang='es'>
+    <head>
+        <meta charset='UTF-8'>
+        <title>Credencial Empleado</title>
+        <style>
+            @page {
+                margin: 0;
+                padding: 0;
+            }
 
-        <head>
-            <meta charset='UTF-8'>
-            <title>Credencial Empleado</title>
-            <style>
-                @page {
-                    margin: 0;
-                    padding: 0;
-                }
+            body {
+                margin: 0;
+                padding: 20px;
+                font-family: 'Segoe UI', sans-serif;
+                background: rgb(255, 255, 255);
+                text-align: center;
+            }
 
-                body {
-                    margin: 0;
-                    padding: 20px;
-                    font-family: 'Segoe UI', sans-serif;
-                    background: rgb(255, 255, 255);
-                    text-align: center;
-                }
+            .contenedor-credencial {
+                display: inline-block;
+                text-align: center;
+                transform: scale(0.65);
+                transform-origin: top left;
+            }
 
-                .contenedor-credencial {
-                    display: inline-block;
-                    text-align: center;
-                    transform: scale(0.65);
-                    transform-origin: top left;
-                }
+            .credencial,
+            .reverso {
+                width: 230pt;
+                height: 380pt;
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                display: inline-block;
+                vertical-align: top;
+                position: relative;
+                border: 1.5px solid #000;
+            }
 
-                .credencial,
-                .reverso {
-                    width: 200pt;
-                    height: 360pt;
-                    border-radius: 20px;
-                    overflow: hidden;
-                    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-                    display: inline-block;
-                    vertical-align: top;
-                }
+            .credencial {
+                margin-right: 0px;
+            }
 
-                .credencial {
-                    margin-right: 30px;
-                }
+            /* Agujero para perforación - mismo en ambas caras */
+            .agujero {
+                position: absolute;
+                width: 30pt;
+                height: 10pt;
+                background: white;
+                border: 2px solid #666;
+                border-radius: 8px;
+                top: 5pt;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 10;
+            }
 
+            .header {
+                background: #89a7c0;
+                color: white;
+                padding: 10px 0;
+                text-align: center;
+                height: 90px;
+                width: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
 
-                .header {
-                    background: #89a7c0;
-                    color: white;
-                    padding: 10px 0;
-                    text-align: center;
-                    height: 90px;
-                    width: 100%;
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                }
+            .header img.logo {
+                width: 100px;
+                height: 100px;
+                display: block;
+                margin: 0 auto;
+            }
 
-                .header img.logo {
-                    width: 100px;
-                    height: 100px;
-                    display: block;
-                    margin: 0 auto;
-                }
+            .body {
+                background: #f7f7ff;
+                padding: 0;
+                position: absolute;
+                top: 90px;
+                bottom: 40px; /* Espacio para el footer */
+                left: 0;
+                right: 0;
+                width: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
 
-                .body {
-                    background: #f7f7ff;
-                    padding: 0;
-                    position: absolute;
-                    top: 90px;
-                    /* Altura del header */
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    width: 100%;
-                    box-sizing: border-box;
-                    height: calc(100% - 90px);
-                    /* Altura total menos el header */
-                    overflow: hidden;
-                }
+            .foto {
+                width: 160px;
+                height: 160px;
+                background: #89a7c0;
+                border-radius: 12px;
+                margin: 15px auto;
+                text-align: center;
+                border: 2px solid #666;
+            }
 
+            .foto img {
+                width: 100%;
+                height: 100%;
+                border-radius: 12px;
+                object-fit: cover;
+            }
 
-                .foto {
-                    width: 200px;
-                    height: 200px;
-                    background: #89a7c0;
-                    border-radius: 12px;
-                    margin: 10px auto;
-                    text-align: center;
-                }
+            .datos {
+                font-size: 13.5px;
+                margin-top: 15px;
+                color: #050505ff;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 0 15px;
+            }
 
-                .foto img {
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 12px;
-                    object-fit: cover;
-                }
+            .datos table {
+                width: 100%;
+                border-collapse: collapse;
+            }
 
-                .datos {
-                    font-size: 14px;
-                    margin-top: 15px;
-                    color: #050505ff;
-                    width: 100%;
-                    box-sizing: border-box;
-                    padding: 0 10px;
-                }
+            .datos td {
+                padding: 3px 5px;
+                text-align: left;
+                vertical-align: top;
+            }
 
+            .datos td:first-child {
+                font-weight: bold;
+                width: 35%;
+            }
 
-                .datos div {
-                    margin: 5px 0;
-                    width: 100%;
-                }
+            .footer {
+                background: #89a7c0;
+                color: black;
+                padding: 8px 15px;
+                font-size: 11px;
+                text-align: left;
+                height: 24px;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+            }
 
-                .footer {
-                    background: #89a7c0;
-                    color: white;
-                    padding: 8px 15px;
-                    font-size: 12px;
-                    text-align: left;
-                    height: 24px;
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    width: 100%;
-                    box-sizing: border-box;
-                }
+            /* Estilos específicos para el reverso */
+            .reverso-content {
+                background: #89a7c0;
+                color: black;
+                padding: 0;
+                box-sizing: border-box;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
+            }
 
-                .reverso {
-                    background: #89a7c0;
-                    color: white;
-                    padding: 20px;
-                    box-sizing: border-box;
-                    position: relative;
-                    height: 480px;
-                    border: 1px solid #050505ff;
-                }
+            .reverso h4 {
+                margin: 60px 0 10px 0;
+                text-align: center;
+                font-size: 16px;
+            }
 
-                .reverso h4 {
-                    margin-top: 0;
-                    text-align: center;
-                }
+            .qr {
+                text-align: center;
+                margin: 30px auto;
+            }
 
-                .qr {
-                    text-align: center;
-                    margin: 40px auto;
-                }
+            .qr img {
+                width: 160px;
+                height: 160px;
+                background: white;
+                padding: 5px;
+                border-radius: 5px;
+            }
 
-                .qr img {
-                    width: 120px;
-                    height: 120px;
-                    background: white;
-                }
+            .direccion {
+                font-size: 14px;
+                line-height: 1.4;
+                text-align: center;
+                margin-top: 25px;
+            }
 
-                .direccion {
-                    font-size: 13px;
-                    line-height: 1.6;
-                    text-align: center;
-                    margin-top: 30px;
-                }
+            .rfc {
+                font-size: 14px;
+                line-height: 1.4;
+                text-align: center;
+                position: absolute;
+                bottom: 20px;
+                left: 0;
+                right: 0;
+                width: 100%;
+            }
+        </style>
+    </head>
 
-                .rfc {
-                    font-size: 13px;
-                    line-height: 1.6;
-                    text-align: center;
-                    position: absolute;
-                    bottom: 20px;
-                    left: 0;
-                    right: 0;
-                    width: 100%;
-                }
-            </style>
-        </head>
-
-        <body>
-            <div class='contenedor-credencial'>
-                <div class='reverso'>
-                    <div class='header'>
-                        <img src='{$logoPath}' class='logo' alt='Logo'>
+    <body>
+        <div class='contenedor-credencial'>
+            <!-- FRENTE DE LA CREDENCIAL -->
+            <div class='credencial'>
+                <div class='agujero'></div>
+                <div class='header'>
+                    <img src='{$logoPath}' class='logo' alt='Logo'>
+                </div>
+                <div class='body'>
+                    <div class='foto'>
+                        <img src='{$fotoWebPath}' alt='Foto'>
                     </div>
-                    <div class='body'>
-                        <div class='foto'>
-                            <img src='{$fotoWebPath}' alt='Foto'>
-                        </div>
-                        <div class='datos'>
-                        <table class='datos'>
+                    <div class='datos'>
+                        <table>
                             <tr>
                                 <td><strong>Nombre:</strong></td>
                                 <td>{$empleado['nombre_completo']}</td>
@@ -556,13 +589,17 @@ public function generarCredencial($id)
                                 <td>{$empleado['departamento']}</td>
                             </tr>
                         </table>
-                        </div>
-                        <div class='footer'>
-                            Fecha De Emisión: " . date('d/m/Y', strtotime($empleado['issue_date'])) . "
-                        </div>
                     </div>
                 </div>
-                <div class='reverso'>
+                <div class='footer'>
+                    Fecha De Emisión: " . date('d/m/Y', strtotime($empleado['issue_date'])) . "
+                </div>
+            </div>
+
+            <!-- REVERSO DE LA CREDENCIAL -->
+            <div class='reverso'>
+                <div class='agujero'></div>
+                <div class='reverso-content'>
                     <h4>DIVISIÓN MÉXICO</h4>
                     <div class='qr'>
                         <img src='{$qrWebPath}' alt='Código QR del empleado'>
@@ -576,10 +613,9 @@ public function generarCredencial($id)
                     </div>
                 </div>
             </div>
-        </body>
-
-        </html>";
-
+        </div>
+    </body>
+    </html>";
     // Generar PDF con Dompdf
     $options = new Dompdf\Options();
     $options->set('isRemoteEnabled', true);
@@ -620,7 +656,6 @@ public function generarTodasCredenciales()
         // Asegurarse de que tenga los datos necesarios
         $empleado['nombre_completo'] = trim($empleado['nombre_completo']);
         
-
         $fotoPath = !empty($empleado['photo_path']) ? $empleado['photo_path'] : 'assets/images/default.png';
 
         // Generar QR
@@ -636,16 +671,21 @@ public function generarTodasCredenciales()
         (new \chillerlan\QRCode\QRCode($optionsQR))->render($empleado['employee_number'], $qrAbsolutePath);
 
         $fotoWebPath = BASE_URL . $fotoPath;
-        $logoPath = BASE_URL . 'assets/images/logo-marco.png';
+        $logoPath = BASE_URL . 'assets/images/4.png';
         $fechaEmision = date('d/m/Y', strtotime($empleado['issue_date']));
 
-        // HTML por empleado
+        // HTML por empleado - USANDO EL MISMO ESTILO QUE LA FUNCIÓN INDIVIDUAL
         $html .= "
         <html lang='es'>
         <head>
             <meta charset='UTF-8'>
+            <title>Credencial Empleado</title>
             <style>
-                @page { margin: 0; padding: 0; }
+                @page {
+                    margin: 0;
+                    padding: 0;
+                }
+
                 body {
                     margin: 0;
                     padding: 20px;
@@ -653,23 +693,45 @@ public function generarTodasCredenciales()
                     background: rgb(255, 255, 255);
                     text-align: center;
                 }
+
                 .contenedor-credencial {
                     display: inline-block;
                     text-align: center;
                     transform: scale(0.65);
                     transform-origin: top left;
                 }
+
                 .credencial,
                 .reverso {
-                    width: 200pt;
-                    height: 360pt;
+                    width: 230pt;
+                    height: 380pt;
                     border-radius: 20px;
                     overflow: hidden;
                     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
                     display: inline-block;
                     vertical-align: top;
+                    position: relative;
+                    border: 1.5px solid #000;
                 }
-                .credencial { margin-right: 30px; }
+
+                .credencial {
+                    margin-right: 0px;
+                }
+
+                /* Agujero para perforación - mismo en ambas caras */
+                .agujero {
+                    position: absolute;
+                    width: 30pt;
+                    height: 10pt;
+                    background: white;
+                    border: 2px solid #666;
+                    border-radius: 8px;
+                    top: 5pt;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 10;
+                }
+
                 .header {
                     background: #89a7c0;
                     color: white;
@@ -687,56 +749,74 @@ public function generarTodasCredenciales()
                     justify-content: center;
                     align-items: center;
                 }
+
                 .header img.logo {
-                    width: 200px;
+                    width: 100px;
                     height: 100px;
                     display: block;
                     margin: 0 auto;
                 }
+
                 .body {
                     background: #f7f7ff;
                     padding: 0;
                     position: absolute;
                     top: 90px;
-                    bottom: 0;
+                    bottom: 40px; /* Espacio para el footer */
                     left: 0;
                     right: 0;
                     width: 100%;
                     box-sizing: border-box;
-                    height: calc(100% - 90px);
                     overflow: hidden;
                 }
+
                 .foto {
-                    width: 200px;
-                    height: 200px;
+                    width: 160px;
+                    height: 160px;
                     background: #89a7c0;
                     border-radius: 12px;
-                    margin: 10px auto;
+                    margin: 15px auto;
                     text-align: center;
+                    border: 2px solid #666;
                 }
+
                 .foto img {
                     width: 100%;
                     height: 100%;
                     border-radius: 12px;
                     object-fit: cover;
                 }
+
                 .datos {
-                    font-size: 14px;
+                    font-size: 13.5px;
                     margin-top: 15px;
-                    color: #89a7c0;
+                    color: #050505ff;
                     width: 100%;
                     box-sizing: border-box;
-                    padding: 0 10px;
+                    padding: 0 15px;
                 }
-                .datos div {
-                    margin: 5px 0;
+
+                .datos table {
                     width: 100%;
+                    border-collapse: collapse;
                 }
+
+                .datos td {
+                    padding: 3px 5px;
+                    text-align: left;
+                    vertical-align: top;
+                }
+
+                .datos td:first-child {
+                    font-weight: bold;
+                    width: 35%;
+                }
+
                 .footer {
                     background: #89a7c0;
-                    color: white;
+                    color: black;
                     padding: 8px 15px;
-                    font-size: 12px;
+                    font-size: 11px;
                     text-align: left;
                     height: 24px;
                     position: absolute;
@@ -745,37 +825,54 @@ public function generarTodasCredenciales()
                     right: 0;
                     width: 100%;
                     box-sizing: border-box;
+                    display: flex;
+                    align-items: center;
                 }
-                .reverso {
+
+                /* Estilos específicos para el reverso */
+                .reverso-content {
                     background: #89a7c0;
-                    color: white;
-                    padding: 20px;
+                    color: black;
+                    padding: 0;
                     box-sizing: border-box;
-                    position: relative;
-                    height: 480px;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    width: 100%;
+                    height: 100%;
                 }
+
                 .reverso h4 {
-                    margin-top: 0;
+                    margin: 60px 0 10px 0;
                     text-align: center;
+                    font-size: 16px;
                 }
+
                 .qr {
                     text-align: center;
-                    margin: 40px auto;
+                    margin: 30px auto;
                 }
+
                 .qr img {
-                    width: 120px;
-                    height: 120px;
+                    width: 160px;
+                    height: 160px;
                     background: white;
+                    padding: 5px;
+                    border-radius: 5px;
                 }
+
                 .direccion {
-                    font-size: 13px;
-                    line-height: 1.6;
+                    font-size: 14px;
+                    line-height: 1.4;
                     text-align: center;
-                    margin-top: 30px;
+                    margin-top: 25px;
                 }
+
                 .rfc {
-                    font-size: 13px;
-                    line-height: 1.6;
+                    font-size: 14px;
+                    line-height: 1.4;
                     text-align: center;
                     position: absolute;
                     bottom: 20px;
@@ -786,43 +883,61 @@ public function generarTodasCredenciales()
             </style>
         </head>
         <body>
-        <div class='contenedor-credencial'>
-            <div class='reverso'>
-                <div class='header'>
-                    <img src='{$logoPath}' class='logo' alt='Logo'>
-                </div>
-                <div class='body'>
-                    <div class='foto'>
-                        <img src='{$fotoWebPath}' alt='Foto'>
+            <div class='contenedor-credencial'>
+                <!-- FRENTE DE LA CREDENCIAL -->
+                <div class='credencial'>
+                    <div class='agujero'></div>
+                    <div class='header'>
+                        <img src='{$logoPath}' class='logo' alt='Logo'>
                     </div>
-                    <div class='datos'>
-                        <table class='datos'>
-                            <tr><td><strong>Nombre:</strong></td><td>{$empleado['nombre_completo']}</td></tr>
-                            <tr><td><strong>Puesto:</strong></td><td>{$empleado['puesto']}</td></tr>
-                            <tr><td><strong>No.Empleado:</strong></td><td>{$empleado['employee_number']}</td></tr>
-                            <tr><td><strong>Departamento:</strong></td><td>{$empleado['departamento']}</td></tr>
-                        </table>
+                    <div class='body'>
+                        <div class='foto'>
+                            <img src='{$fotoWebPath}' alt='Foto'>
+                        </div>
+                        <div class='datos'>
+                            <table>
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{$empleado['nombre_completo']}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Puesto:</strong></td>
+                                    <td>{$empleado['puesto']}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>No.Empleado:</strong></td>
+                                    <td>{$empleado['employee_number']}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Departamento:</strong></td>
+                                    <td>{$empleado['departamento']}</td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
                     <div class='footer'>
                         Fecha De Emisión: {$fechaEmision}
                     </div>
                 </div>
-            </div>
 
-            <div class='reverso'>
-                <h4>DIVISIÓN MÉXICO</h4>
-                <div class='qr'>
-                    <img src='{$qrWebPath}' alt='Código QR del empleado'>
-                </div>
-                <div class='direccion'>
-                    Dirección: Cayetano Perez 240-I, Buena Vista,<br>
-                    Burócrata Ruiz Cortinez, 22406, Tijuana, B.C.
-                </div>
-                <div class='rfc'>
-                    RFC: FCO180803NX7
+                <!-- REVERSO DE LA CREDENCIAL -->
+                <div class='reverso'>
+                    <div class='agujero'></div>
+                    <div class='reverso-content'>
+                        <h4>DIVISIÓN MÉXICO</h4>
+                        <div class='qr'>
+                            <img src='{$qrWebPath}' alt='Código QR del empleado'>
+                        </div>
+                        <div class='direccion'>
+                            Dirección: Cayetano Perez,Ext. 240,Int. 1.<br>
+                            Burócrata Ruiz Cortines, 22406, Tijuana, B.C.
+                        </div>
+                        <div class='rfc'>
+                            RFC: FCO180803NX7
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
         </body>
         </html>";
 
