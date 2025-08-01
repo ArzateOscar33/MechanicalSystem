@@ -346,7 +346,9 @@ public function generarCredencial($id)
     ]);
     (new \chillerlan\QRCode\QRCode($optionsQR))->render($contenidoQR, $qrAbsolutePath);
 
-    $logoPath = BASE_URL . 'assets/images/4.png';
+   // $logoPath = BASE_URL . 'assets/images/4.png'; //logo de FABST
+    
+    $logoPath = BASE_URL . 'assets/images/logo.png'; //logo de FABST
     $fotoWebPath = BASE_URL . $empleado['photo_path'];
     //Conenido html para las credenciales
     //Contenido html para las credenciales
@@ -408,7 +410,7 @@ public function generarCredencial($id)
             }
 
             .header {
-                background: #89a7c0;
+                background: #284096;
                 color: white;
                 padding: 10px 0;
                 text-align: center;
@@ -426,10 +428,10 @@ public function generarCredencial($id)
             }
 
             .header img.logo {
-                width: 100px;
-                height: 100px;
+                width: 130px;
+                height: 65px;
                 display: block;
-                margin: 0 auto;
+                margin: 15px auto;
             }
 
             .body {
@@ -448,7 +450,7 @@ public function generarCredencial($id)
             .foto {
                 width: 160px;
                 height: 160px;
-                background: #89a7c0;
+                background: #284096;
                 border-radius: 12px;
                 margin: 15px auto;
                 text-align: center;
@@ -488,8 +490,8 @@ public function generarCredencial($id)
             }
 
             .footer {
-                background: #89a7c0;
-                color: black;
+                background: #284096;
+                color: white;
                 padding: 8px 15px;
                 font-size: 11px;
                 text-align: left;
@@ -506,7 +508,7 @@ public function generarCredencial($id)
 
             /* Estilos específicos para el reverso */
             .reverso-content {
-                background: #89a7c0;
+                background: #284096;
                 color: black;
                 padding: 0;
                 box-sizing: border-box;
@@ -523,6 +525,7 @@ public function generarCredencial($id)
                 margin: 60px 0 10px 0;
                 text-align: center;
                 font-size: 16px;
+                color: white;
             }
 
             .qr {
@@ -543,6 +546,7 @@ public function generarCredencial($id)
                 line-height: 1.4;
                 text-align: center;
                 margin-top: 25px;
+                color: white;
             }
 
             .rfc {
@@ -554,6 +558,7 @@ public function generarCredencial($id)
                 left: 0;
                 right: 0;
                 width: 100%;
+                color: white;
             }
         </style>
     </head>
@@ -671,7 +676,8 @@ public function generarTodasCredenciales()
         (new \chillerlan\QRCode\QRCode($optionsQR))->render($empleado['employee_number'], $qrAbsolutePath);
 
         $fotoWebPath = BASE_URL . $fotoPath;
-        $logoPath = BASE_URL . 'assets/images/4.png';
+        //$logoPath = BASE_URL . 'assets/images/4.png'; //logo de FABST
+        $logoPath = BASE_URL . 'assets/images/logo.png'; //Logo Mechanical
         $fechaEmision = date('d/m/Y', strtotime($empleado['issue_date']));
 
         // HTML por empleado - USANDO EL MISMO ESTILO QUE LA FUNCIÓN INDIVIDUAL
@@ -733,7 +739,7 @@ public function generarTodasCredenciales()
                 }
 
                 .header {
-                    background: #89a7c0;
+                    background: #284096;
                     color: white;
                     padding: 10px 0;
                     text-align: center;
@@ -773,7 +779,7 @@ public function generarTodasCredenciales()
                 .foto {
                     width: 160px;
                     height: 160px;
-                    background: #89a7c0;
+                    background: #284096;
                     border-radius: 12px;
                     margin: 15px auto;
                     text-align: center;
@@ -813,7 +819,7 @@ public function generarTodasCredenciales()
                 }
 
                 .footer {
-                    background: #89a7c0;
+                    background: #284096;
                     color: black;
                     padding: 8px 15px;
                     font-size: 11px;
@@ -831,7 +837,7 @@ public function generarTodasCredenciales()
 
                 /* Estilos específicos para el reverso */
                 .reverso-content {
-                    background: #89a7c0;
+                    background: #284096;
                     color: black;
                     padding: 0;
                     box-sizing: border-box;
