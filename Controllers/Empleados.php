@@ -465,7 +465,7 @@ public function generarCredencial($id)
             }
 
             .datos {
-                font-size: 13.5px;
+                font-size: 15px;
                 margin-top: 15px;
                 color: #050505ff;
                 width: 100%;
@@ -493,7 +493,7 @@ public function generarCredencial($id)
                 background: #284096;
                 color: white;
                 padding: 8px 15px;
-                font-size: 11px;
+                font-size: 15px;
                 text-align: left;
                 height: 24px;
                 position: absolute;
@@ -542,7 +542,7 @@ public function generarCredencial($id)
             }
 
             .direccion {
-                font-size: 14px;
+                font-size: 16px;
                 line-height: 1.4;
                 text-align: center;
                 margin-top: 25px;
@@ -550,7 +550,7 @@ public function generarCredencial($id)
             }
 
             .rfc {
-                font-size: 14px;
+                font-size: 16px;
                 line-height: 1.4;
                 text-align: center;
                 position: absolute;
@@ -578,26 +578,26 @@ public function generarCredencial($id)
                     <div class='datos'>
                         <table>
                             <tr>
-                                <td><strong>Nombre:</strong></td>
+                                <td><strong>Name:</strong></td>
                                 <td>{$empleado['nombre_completo']}</td>
                             </tr>
                             <tr>
-                                <td><strong>Puesto:</strong></td>
+                                <td><strong>Position:</strong></td>
                                 <td>{$empleado['puesto']}</td>
                             </tr>
                             <tr>
-                                <td><strong>No.Empleado:</strong></td>
+                                <td><strong>Employee Number:</strong></td>
                                 <td>{$empleado['employee_number']}</td>
                             </tr>
                             <tr>
-                                <td><strong>Departamento:</strong></td>
+                                <td><strong>Department:</strong></td>
                                 <td>{$empleado['departamento']}</td>
                             </tr>
                         </table>
                     </div>
                 </div>
                 <div class='footer'>
-                    Fecha De Emisión: " . date('d/m/Y', strtotime($empleado['issue_date'])) . "
+                    Issue Date: " . date('d/m/Y', strtotime($empleado['issue_date'])) . "
                 </div>
             </div>
 
@@ -605,13 +605,13 @@ public function generarCredencial($id)
             <div class='reverso'>
                 <div class='agujero'></div>
                 <div class='reverso-content'>
-                    <h4>DIVISIÓN MÉXICO</h4>
+                    <h4> EEUU DIVISION</h4>
                     <div class='qr'>
                         <img src='{$qrWebPath}' alt='Código QR del empleado'>
                     </div>
                     <div class='direccion'>
-                        Dirección: Cayetano Perez,Ext. 240,Int. 1.<br>
-                        Burócrata Ruiz Cortines, 22406, Tijuana, B.C.
+                        Direction: 552 ALTA <br>
+                        RD STE BG. San Diego CA 92154-5715
                     </div>
                     <div class='rfc'>
                         RFC: FCO180803NX7
