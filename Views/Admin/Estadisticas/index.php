@@ -266,6 +266,7 @@
                                             <th>Nogales</th>
                                             <th>San Diego</th>
                                             <th>Tijuana</th>
+                                            <th>VIN</th>
                                             <th>Total por Dia</th>
                                         </tr>
                                     </thead>
@@ -278,6 +279,7 @@
                                             <td id="lunesNogales"></td>
                                             <td id="lunesSanDiego"></td>
                                             <td id="lunesTijuana"></td>
+                                            <td id="lunesVIN"></td>
                                             <td id="totalLunes"></td>
                                         </tr>
                                         <tr>
@@ -288,6 +290,7 @@
                                             <td id="martesNogales"></td>
                                             <td id="martesSanDiego"></td>
                                             <td id="martesTijuana"></td>
+                                            <td id="martesVIN"></td>
                                             <td id="totalMartes"></td>
                                         </tr>
                                         <tr>
@@ -298,6 +301,7 @@
                                             <td id="miercolesNogales"></td>
                                             <td id="miercolesSanDiego"></td>
                                             <td id="miercolesTijuana"></td>
+                                            <td id="miercolesVIN"></td>
                                             <td id="totalMiercoles"></td>
                                         </tr>
                                         <tr>
@@ -308,6 +312,7 @@
                                             <td id="juevesNogales"></td>
                                             <td id="juevesSanDiego"></td>
                                             <td id="juevesTijuana"></td>
+                                            <td id="juevesVIN"></td>
                                             <td id="totalJueves"></td>
                                         </tr>
                                         <tr>
@@ -318,6 +323,7 @@
                                             <td id="viernesNogales"></td>
                                             <td id="viernesSanDiego"></td>
                                             <td id="viernesTijuana"></td>
+                                            <td id="viernesVIN"></td>
                                             <td id="totalViernes"></td>
                                         </tr>
                                         <tr>
@@ -328,6 +334,7 @@
                                             <td id="sabadoNogales"></td>
                                             <td id="sabadoSanDiego"></td>
                                             <td id="sabadoTijuana"></td>
+                                            <td id="sabadoVIN"></td>
                                             <td id="totalSabado"></td>
                                         </tr>
                                         <tr>
@@ -338,6 +345,7 @@
                                             <td id="domingoNogales"></td>
                                             <td id="domingoSanDiego"></td>
                                             <td id="domingoTijuana"></td>
+                                            <td id="domingoVIN"></td>
                                             <td id="totalDomingo"></td>
                                         <tr>
                                             <td><strong>Total Por Ciudad</strong></td>
@@ -347,6 +355,7 @@
                                             <td id="totalNogales"></td>
                                             <td id="totalSanDiego"></td>
                                             <td id="totalTijuana"></td>
+                                            <td id="totalVIN"></td>
                                             <td id="totalGeneral"></td>
                                         </tr>
                                     </tbody>

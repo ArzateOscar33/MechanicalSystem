@@ -347,8 +347,8 @@ public function generarCredencial($id)
     (new \chillerlan\QRCode\QRCode($optionsQR))->render($contenidoQR, $qrAbsolutePath);
 
    // $logoPath = BASE_URL . 'assets/images/4.png'; //logo de FABST
-    
-    $logoPath = BASE_URL . 'assets/images/logo.png'; //logo de FABST
+    $logoPath = BASE_URL . 'assets/images/logcom1.png'; //logo de comercializadora
+    //$logoPath = BASE_URL . 'assets/images/logo.png'; //logo de FABST
     $fotoWebPath = BASE_URL . $empleado['photo_path'];
     //Conenido html para las credenciales
     //Contenido html para las credenciales
@@ -605,16 +605,16 @@ public function generarCredencial($id)
             <div class='reverso'>
                 <div class='agujero'></div>
                 <div class='reverso-content'>
-                    <h4> EEUU DIVISION</h4>
+                    <h4> U.S.A DIVISION</h4>
                     <div class='qr'>
                         <img src='{$qrWebPath}' alt='Código QR del empleado'>
                     </div>
                     <div class='direccion'>
-                        Direction: 552 ALTA <br>
-                        RD STE BG. San Diego CA 92154-5715
+                        Address: FRAY JUNIPERO SERRA 17607 <br>
+                        GARITA DE OTAY, TIJUANA B.C., CP. 22430
                     </div>
                     <div class='rfc'>
-                        RFC: FCO180803NX7
+                        RFC: CPM161006P28
                     </div>
                 </div>
             </div>
