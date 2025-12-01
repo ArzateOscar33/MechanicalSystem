@@ -184,4 +184,17 @@ class CrearCertificadosModel extends Query
                   AND `state` = ? AND `zip` = ? AND `latitude` = ? AND `longitude` = ?";
         return $this->select($sql, [$number, $street, $city, $state, $zip, $lat, $lon]);
     }
+
+    public function vinConCertificadoActivo($vin, $fechaReferencia)
+{
+    // Busca si existe algún certificado cuyo VIN coincida
+    // y cuya fecha de expiración sea igual o posterior a la nueva prueba.
+    $sql = "SELECT cert_number 
+            FROM certificates 
+            WHERE vin = ? 
+              AND expires >= ?
+            LIMIT 1";
+
+    return $this->select($sql, [$vin, $fechaReferencia]);
+}
 }

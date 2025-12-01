@@ -58,11 +58,20 @@ class CrearCertificados extends Controller
             $owner_name = $_POST['propietario'];
             $odometer = $_POST['odometro'];
             $inspector_name = $_POST['inspector'];
-            $test_date = $_POST['fecha'];
-            $expires = $_POST['fecha_expiracion'];
+            $test_date = $_POST['fecha']; 
+            $expires = date('Y-m-d', strtotime('+3 months', strtotime($test_date)));
             $source_file = 'manual';
             $phone = $_POST['telefono'] ?? null;
+            // VALIDAR si tiene un certificado vigente
+            $certExistente = $this->model->vinConCertificadoActivo($vin, $test_date);
 
+            if ($certExistente) {
+                $this->responderJSON(
+                    "Ya existe un certificado vigente para este VIN. Solo puedes generar uno nuevo cuando el actual haya expirado.",
+                    "warning"
+                );
+                return;
+            }
             $monitoreos = [
                 'Fallo Encendido' => $_POST['monitor_fallo_encendido'],
                 'Sistema Combustible' => $_POST['monitor_sistema_combustible'],

@@ -48,20 +48,25 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   fechaInput.addEventListener("change", function () {
-    const valor = fechaInput.value;
-    if (valor < fechaMinima) {
-      alertas("La fecha no puede ser anterior a hoy.", "warning");
-      fechaInput.value = "";
-      expiracionInput.value = "";
-      return;
-    }
-    const fecha = new Date(valor);
-    fecha.setFullYear(fecha.getFullYear() + 1);
-    const yyyy = fecha.getFullYear();
-    const mm = String(fecha.getMonth() + 1).padStart(2, "0");
-    const dd = String(fecha.getDate()).padStart(2, "0");
-    expiracionInput.value = `${yyyy}-${mm}-${dd}`;
-  });
+  const valor = fechaInput.value;
+  if (valor < fechaMinima) {
+    alertas("La fecha no puede ser anterior a hoy.", "warning");
+    fechaInput.value = "";
+    expiracionInput.value = "";
+    return;
+  }
+
+  const fecha = new Date(valor);
+
+  // ⬇️ Ahora sumamos 3 meses en lugar de 1 año
+  fecha.setMonth(fecha.getMonth() + 3);
+
+  const yyyy = fecha.getFullYear();
+  const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+  const dd = String(fecha.getDate()).padStart(2, "0");
+  expiracionInput.value = `${yyyy}-${mm}-${dd}`;
+});
+
 
   function actualizarVisibilidadDireccion() {
     const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
