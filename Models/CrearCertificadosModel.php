@@ -27,6 +27,32 @@ class CrearCertificadosModel extends Query
     }
 
     public function insertarCertificado(
+    $cert_number,
+    $vin,
+    $address_id,
+    $phone,
+    $year,
+    $mfg_in,
+    $make,
+    $owner_name,
+    $model,
+    $license_plate,
+    $odometer,
+    $inspector_id,
+    $created_by,    
+    $test_date,
+    $expires,
+    $source_file
+) {
+    $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
+
+    $sql = "INSERT INTO certificates (
+        cert_number, vin, address_id, phone, year, mfg_in, make,
+        owner_name, model, license_plate, odometer, inspector_id,
+        created_by, test_date, expires, source_file, zip_file_path
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    return $this->insertar($sql, [
         $cert_number,
         $vin,
         $address_id,
@@ -39,37 +65,14 @@ class CrearCertificadosModel extends Query
         $license_plate,
         $odometer,
         $inspector_id,
+        $created_by,   
         $test_date,
         $expires,
-        $source_file
-    ) {
-        $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
+        $source_file,
+        $zip_path
+    ]);
+}
 
-        $sql = "INSERT INTO certificates (
-            cert_number, vin, address_id, phone, year, mfg_in, make,
-            owner_name, model, license_plate, odometer, inspector_id,
-            test_date, expires, source_file, zip_file_path
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        return $this->insertar($sql, [
-            $cert_number,
-            $vin,
-            $address_id,
-            $phone,
-            $year,
-            $mfg_in,
-            $make,
-            $owner_name,
-            $model,
-            $license_plate,
-            $odometer,
-            $inspector_id,
-            $test_date,
-            $expires,
-            $source_file,
-            $zip_path
-        ]);
-    }
 
     public function insertarMonitoreo($cert_number, $tipo, $resultado)
     {

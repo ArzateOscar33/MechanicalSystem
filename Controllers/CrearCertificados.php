@@ -126,6 +126,7 @@ public function index()
                 $license_plate,
                 $odometer,
                 $inspector_id, // Usar inspector_id en lugar de inspector_name
+                $id_usuario,
                 $test_date,
                 $expires,
                 $source_file

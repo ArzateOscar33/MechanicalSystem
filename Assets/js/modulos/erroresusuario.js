@@ -104,17 +104,18 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Cargar certificados del día
-  fetch(base_url + "ErroresUsuario/getCertificados")
-    .then((res) => res.json())
-    .then((data) => {
-      const select = document.getElementById("cert_number");
-      data.forEach((cert) => {
-        const option = document.createElement("option");
-        option.value = cert.cert_number;
-        option.textContent = cert.cert_number;
-        select.appendChild(option);
-      });
+fetch(base_url + "ErroresUsuario/getCertificados")
+  .then((res) => res.json())
+  .then((data) => {
+    const select = document.getElementById("cert_number");
+    data.forEach((cert) => {
+      const option = document.createElement("option");
+      option.value = cert.cert_number;
+      option.textContent = cert.cert_number;
+      select.appendChild(option);
     });
+  });
+
 
   // Cargar campos corregibles
   fetch(base_url + "ErroresUsuario/getCamposPermitidos")

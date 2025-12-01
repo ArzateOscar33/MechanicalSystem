@@ -7,26 +7,28 @@ class ErroresUsuarioModel extends Query
     }
 
     // Obtener los certificados del día del usuario actual (solo los creados por él)
-    public function getCertificados($userId)
-    {
-        $patron = 'MEX' . $userId . '-%';
-        $sql = "SELECT cert_number 
-                FROM certificates 
-                WHERE cert_number LIKE ?";
-        return $this->selectAll($sql, [$patron]);
-    }
+public function getCertificados($userId)
+{
+    $sql = "SELECT cert_number 
+            FROM certificates 
+            WHERE created_by = ?
+              AND DATE(created_at) = CURDATE()
+            ORDER BY created_at DESC";
+    return $this->selectAll($sql, [$userId]);
+}
+
 
     // Verificar si el certificado pertenece al usuario y fue creado en los últimos 5 días
-    public function validarCertificadoUsuarioEnPlazo($certNumber, $userId)
-    {
-        $patron = 'MEX' . $userId . '-%';
-        $sql = "SELECT * 
-                FROM certificates 
-                WHERE cert_number = ? 
-                AND cert_number LIKE ?
-                AND created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY)";
-        return $this->select($sql, [$certNumber, $patron]);
-    }
+public function validarCertificadoUsuarioEnPlazo($certNumber, $userId)
+{
+    $sql = "SELECT * 
+            FROM certificates 
+            WHERE cert_number = ? 
+              AND created_by = ?
+              AND created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY)";
+    return $this->select($sql, [$certNumber, $userId]);
+}
+
 
     // Obtener el valor actual del campo indicado para ese certificado
 public function getValorActualCampo($certNumber, $campo)
@@ -54,15 +56,15 @@ public function getValorActualCampo($certNumber, $campo)
     }
 
     // Verificar si el certificado pertenece al usuario (sin importar la fecha)
-    public function validarCertificadoPorUsuario($certNumber, $userId)
-    {
-        $patron = 'MEX' . $userId . '-%';
-        $sql = "SELECT * 
-                FROM certificates 
-                WHERE cert_number = ? 
-                AND cert_number LIKE ?";
-        return $this->select($sql, [$certNumber, $patron]);
-    }
+public function validarCertificadoPorUsuario($certNumber, $userId)
+{
+    $sql = "SELECT * 
+            FROM certificates 
+            WHERE cert_number = ? 
+              AND created_by = ?";
+    return $this->select($sql, [$certNumber, $userId]);
+}
+
 
     // Obtener todos los campos corregibles desde la tabla correction_fields
     public function getCamposPermitidos()
