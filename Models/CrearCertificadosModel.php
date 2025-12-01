@@ -121,7 +121,7 @@ class CrearCertificadosModel extends Query
         return $this->selectAll($sql);
     }
 
-    public function contarCertificadosPorUsuario($id_usuario)
+   /* public function contarCertificadosPorUsuario($id_usuario)
     {
         $sql = "SELECT MAX(CAST(SUBSTRING_INDEX(cert_number, '-', -1) AS UNSIGNED)) AS ultimo 
             FROM certificates 
@@ -132,7 +132,7 @@ class CrearCertificadosModel extends Query
 
         return $res && $res['ultimo'] !== null ? intval($res['ultimo']) + 1 : 1;
     }
-
+*/
 
     public function obtenerDireccionPorId($id)
     {
@@ -196,5 +196,45 @@ class CrearCertificadosModel extends Query
             LIMIT 1";
 
     return $this->select($sql, [$vin, $fechaReferencia]);
+}
+ 
+ public function obtenerCertNumberPreliminar()
+{
+    $sql = "SELECT numero 
+            FROM secuencias_certificado 
+            WHERE certificado = 'CERTIFICADO'
+            LIMIT 1";
+    $res = $this->select($sql, []);
+
+    $actual = $res && isset($res['numero']) ? intval($res['numero']) : 0;
+    $siguiente = $actual + 1;
+
+    $consecutivo = str_pad($siguiente, 8, "0", STR_PAD_LEFT);
+    return 'MEX-' . $consecutivo;
+}
+
+/**
+ * 2) Número definitivo (actualiza + lee).
+ *    Este se usa SOLO al guardar el certificado.
+ */
+public function generarCertNumberGlobal()
+{
+    // Incrementar el número en BD
+    $sqlUpdate = "UPDATE secuencias_certificado 
+                  SET numero = numero + 1 
+                  WHERE certificado = 'CERTIFICADO'";
+    $this->save($sqlUpdate, []); // UPDATE
+
+    // Obtener el nuevo valor
+    $sqlSelect = "SELECT numero 
+                  FROM secuencias_certificado 
+                  WHERE certificado = 'CERTIFICADO'
+                  LIMIT 1";
+    $res = $this->select($sqlSelect, []);
+
+    $numero = $res && isset($res['numero']) ? intval($res['numero']) : 1;
+
+    $consecutivo = str_pad($numero, 8, "0", STR_PAD_LEFT);
+    return 'MEX-' . $consecutivo;
 }
 }

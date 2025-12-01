@@ -15,7 +15,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const requiredInputs = document.querySelectorAll(
     "#formularioCertificado input[required], #formularioCertificado select[required]"
   );
-
+const yearInput = document.getElementById("year");
+const numeroCertInput = document.getElementById("numero_certificado");
   // Establecer fecha mÃnima hoy
   const today = new Date();
   const yyyy = today.getFullYear();
@@ -24,7 +25,24 @@ document.addEventListener("DOMContentLoaded", function () {
   const fechaMinima = `${yyyy}-${mm}-${dd}`;
   fechaInput.setAttribute("min", fechaMinima);
   expiracionInput.readOnly = true;
+if (yearInput) {
+  const minYear = 1950;
+  const maxYear = yyyy + 1; // año actual + 1
 
+  yearInput.setAttribute("min", minYear);
+  yearInput.setAttribute("max", maxYear);
+
+  yearInput.addEventListener("change", function () {
+    const valor = parseInt(yearInput.value, 10);
+    if (isNaN(valor) || valor < minYear || valor > maxYear) {
+      alertas(
+        `El año del vehículo debe estar entre ${minYear} y ${maxYear}.`,
+        "warning"
+      );
+      yearInput.value = "";
+    }
+  });
+}
   if (inspectorSelect) {
     inspectorSelect.addEventListener("change", function () {
       const id = this.value;
@@ -88,6 +106,53 @@ document.addEventListener("DOMContentLoaded", function () {
     actualizarVisibilidadDireccion();
     cargarLatLonDireccion(selectDireccion.value);
   }
+// ⬇️ CAMPOS QUE QUEREMOS SIEMPRE EN MAYÚSCULAS
+const camposMayusculasIds = [
+  "numero",
+  "calle",
+  "ciudad",
+  "estado",
+  "zip",
+  "vin",
+  "marca",
+  "modelo",
+  "fabricado_en",
+  "placa",
+  "propietario",
+  "ebitn"
+];
+
+camposMayusculasIds.forEach((id) => {
+  const input = document.getElementById(id);
+  if (input) {
+    input.addEventListener("input", function () {
+      this.value = this.value.toUpperCase();
+    });
+  }
+});
+function actualizarNumeroCertificadoLocal() {
+  if (!numeroCertInput || !numeroCertInput.value) {
+    return;
+  }
+
+  const actual = numeroCertInput.value.trim(); // ej: "MEX-00000012"
+  const partes = actual.split("-");
+
+  if (partes.length !== 2) {
+    return; // formato inesperado, no hacemos nada
+  }
+
+  const prefijo = partes[0] + "-"; // "MEX-"
+  const parteNumerica = partes[1]; // "00000012"
+  const numero = parseInt(parteNumerica, 10);
+
+  if (isNaN(numero)) {
+    return;
+  }
+
+  const siguiente = (numero + 1).toString().padStart(parteNumerica.length, "0");
+  numeroCertInput.value = prefijo + siguiente; // "MEX-00000013"
+}
 
   function verificarCamposCompletos() {
     const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
@@ -167,15 +232,25 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log(this.responseText);
         const res = JSON.parse(this.responseText);
         alertas(res.msg, res.icono);
-        if (res.icono === "success") {
-          frm.reset();
-          qrCodeContainer.innerHTML = "";
-          imagenFirma.src = "";
-          firmaPreview.style.display = "none";
-          verificarCamposCompletos();
-          window.open(res.pdf_url, "_blank");
-          window.location.href = res.zip_url;
-        }
+if (res.icono === "success") {
+  // Guardamos el número actual ANTES del reset
+  const certActual = numeroCertInput ? numeroCertInput.value : "";
+
+  frm.reset();
+  qrCodeContainer.innerHTML = "";
+  imagenFirma.src = "";
+  firmaPreview.style.display = "none";
+
+  // Restaurar y calcular el siguiente número
+  if (numeroCertInput && certActual) {
+    numeroCertInput.value = certActual;
+    actualizarNumeroCertificadoLocal();
+  }
+
+  verificarCamposCompletos();
+  window.open(res.pdf_url, "_blank");
+  window.location.href = res.zip_url;
+}
       }
     };
   });

@@ -21,23 +21,23 @@ class CrearCertificados extends Controller
         }
     }
 
-    public function index()
-    {
-        if (empty($_SESSION['nombre_usuario'])) {
-            header('Location: ' . BASE_URL . 'admin');
-            exit;
-        }
-
-        $id_usuario = $_SESSION['id_usuario'] ?? 0;
-        $consecutivo = $this->model->contarCertificadosPorUsuario($id_usuario) + 1;
-        $cert_number = 'MEX' . $id_usuario . '-' . str_pad($consecutivo, 8, "0", STR_PAD_LEFT);
-
-        $data['title'] = 'Crear Certificado';
-        $data['cert_number'] = $cert_number;
-        $data['direcciones'] = $this->model->obtenerDirecciones();
-        $data['inspectores'] = $this->model->obtenerInspectores();
-        $this->views->getView('admin/CrearCertificados', "index", $data);
+public function index()
+{
+    if (empty($_SESSION['nombre_usuario'])) {
+        header('Location: ' . BASE_URL . 'admin');
+        exit;
     }
+
+    // Número PRELIMINAR: solo lectura, NO incrementa en BD
+    $cert_number = $this->model->obtenerCertNumberPreliminar();
+
+    $data['title'] = 'Crear Certificado';
+    $data['cert_number'] = $cert_number; // se muestra en el input readonly
+    $data['direcciones'] = $this->model->obtenerDirecciones();
+    $data['inspectores'] = $this->model->obtenerInspectores();
+    $this->views->getView('admin/CrearCertificados', "index", $data);
+}
+
     public function crear()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -46,9 +46,8 @@ class CrearCertificados extends Controller
             error_reporting(E_ALL);
 
             $id_usuario = $_SESSION['id_usuario'] ?? 0;
-            $consecutivo = $this->model->contarCertificadosPorUsuario($id_usuario);
-            $cert_number = 'MEX' . $id_usuario . '-' . str_pad($consecutivo, 8, "0", STR_PAD_LEFT);
-
+        // Número DEFINITIVO: incrementa secuencia en BD de forma segura
+        $cert_number = $this->model->generarCertNumberGlobal();
             $vin = $_POST['vin'];
             $year = $_POST['year'];
             $make = $_POST['marca'];
