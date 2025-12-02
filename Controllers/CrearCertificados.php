@@ -148,28 +148,31 @@ public function index()
             } catch (Exception $e) {
                 $this->model->registrarImportacionAlternativa('cert_manual_' . date('YmdHis'), 'success', '');
             }
+ 
+// RUTAS RELATIVAS (para URL o guardar en BD)
+$pdfRelPath = 'uploads/temp/' . $cert_number . '.pdf';
+$zipRelPath = 'uploads/certificates/' . $cert_number . '.zip';
 
-            // PDF + ZIP
-            $pdf_path = 'uploads/temp/' . $cert_number . '.pdf';
-            $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
+// RUTA FÍSICA (para escribir en disco)
+$pdfFullPath = BASE_PATH . $pdfRelPath;
 
-            // Generar los certificados - Pasamos la información del inspector
-            $this->generarCertificadoPDF($cert_number, $pdf_path, $_POST, $address_id, $inspector_id);
+// Generar el PDF (ruta física)
+$this->generarCertificadoPDF($cert_number, $pdfFullPath, $_POST, $address_id);
 
-            // Generar el archivo zip 
-            $this->generarArchivoZIP($cert_number, $pdf_path, $_FILES['imagenes']);
+// Generar el ZIP (ruta física + $_FILES)
+$this->generarArchivoZIP($cert_number, $pdfFullPath, $_FILES['imagenes']);
 
-            // Limpieza de temporales
-            $this->limpiarTemporales($cert_number);
+// Limpiar temporales
+$this->limpiarTemporales($cert_number);
 
-            // Respuesta final
-            echo json_encode([
-                'msg' => 'Certificado creado exitosamente',
-                'icono' => 'success',
-                'pdf_url' => BASE_URL . 'uploads/temp/' . $cert_number . '.pdf',
-                'zip_url' => BASE_URL . 'uploads/certificates/' . $cert_number . '.zip'
-            ], JSON_UNESCAPED_UNICODE);
-            exit;
+// Respuesta final (URLs)
+echo json_encode([
+    'msg'     => 'Certificado creado exitosamente',
+    'icono'   => 'success',
+    'pdf_url' => BASE_URL . $pdfRelPath,
+    'zip_url' => BASE_URL . $zipRelPath
+], JSON_UNESCAPED_UNICODE);
+exit;
         } else {
             $this->responderJSON("Solicitud inválida", "error");
         }
@@ -184,38 +187,47 @@ public function index()
             : $this->model->insertarInspector($data['inspector']);
         $inspector = $this->model->obtenerInspectorPorId($inspector_id);
         $inspector_name = $inspector ? $inspector['name'] : $data['inspector'];
-        $firmaRelPath = $inspector['direccion_firma'] ?? '';
-        $firmaFullPath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $firmaRelPath;
-        $firmaWebPath = BASE_URL . $firmaRelPath;
 
-        $firma_path = (file_exists($firmaFullPath)) ? $firmaWebPath : '';
+$firmaRelPath   = $inspector['direccion_firma'] ?? '';        // ej: "uploads/firmas/firma_123.png"
+$firmaFullPath  = BASE_PATH . $firmaRelPath;                  // físico
+$firmaWebPath   = BASE_URL  . $firmaRelPath;                  // URL
+$firma_path = (file_exists($firmaFullPath)) ? $firmaWebPath : '';
 
 
         // Rutas de logo y QR para web
         $logoPath = BASE_URL . 'assets/images/logo.png';
-        $qrPathRel = 'uploads/temp/' . $cert_number . '_qr.png';
-        $qrWebPath = BASE_URL . $qrPathRel;
-        $qrFileFullPath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $qrPathRel;
 
-        // Generar QR
-        $contenidoQR = "{$data['vin']}|{$data['propietario']}|{$data['fabricado_en']}|{$data['year']}|{$data['modelo']}|{$data['marca']}";
-        $optionsQR = new QROptions([
-            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
-            'eccLevel' => QRCode::ECC_L,
-        ]);
-        (new QRCode($optionsQR))->render($contenidoQR, $qrFileFullPath);
+// QR
+$qrPathRel      = 'uploads/temp/' . $cert_number . '_qr.png'; // relativo
+$qrWebPath      = BASE_URL  . $qrPathRel;                     // URL
+$qrFileFullPath = BASE_PATH . $qrPathRel;                     // físico
+
+// Generar QR
+$contenidoQR = "{$data['vin']}|{$data['propietario']}|{$data['fabricado_en']}|{$data['year']}|{$data['modelo']}|{$data['marca']}";
+$optionsQR = new QROptions([
+    'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+    'eccLevel'   => QRCode::ECC_L,
+]);
+(new QRCode($optionsQR))->render($contenidoQR, $qrFileFullPath);
 
         // Dirección
         $direccion = $this->model->obtenerDireccionPorId($address_id);
         $direccion_texto = "{$direccion['number']} {$direccion['street']}, {$direccion['city']}, {$direccion['state']} {$direccion['zip']}";
         $barcodeGenerator = new BarcodeGeneratorPNG();
+        file_put_contents(
+            BASE_PATH . "uploads/temp/{$cert_number}_vin_barcode.png",
+            $barcodeGenerator->getBarcode($data['vin'], $barcodeGenerator::TYPE_CODE_128)
+        );
 
-        file_put_contents("uploads/temp/{$cert_number}_vin_barcode.png", $barcodeGenerator->getBarcode($data['vin'], $barcodeGenerator::TYPE_CODE_128));
-        file_put_contents("uploads/temp/{$cert_number}_cert_barcode.png", $barcodeGenerator->getBarcode($cert_number, $barcodeGenerator::TYPE_CODE_128));
+        file_put_contents(
+            BASE_PATH . "uploads/temp/{$cert_number}_cert_barcode.png",
+            $barcodeGenerator->getBarcode($cert_number, $barcodeGenerator::TYPE_CODE_128)
+        );
 
-        // Rutas web para mostrar en el PDF
-        $vinBarcodeWeb = BASE_URL . 'uploads/temp/' . $cert_number . '_vin_barcode.png';
+        // Rutas web para el HTML
+        $vinBarcodeWeb  = BASE_URL . 'uploads/temp/' . $cert_number . '_vin_barcode.png';
         $certBarcodeWeb = BASE_URL . 'uploads/temp/' . $cert_number . '_cert_barcode.png';
+
         // Incluir imágenes subidas al PDF (copiarlas temporalmente en uploads/temp/)
         $imagenesHTML = '';
         if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_name'])) {
@@ -223,14 +235,19 @@ public function index()
             for ($i = 0; $i < $total; $i++) {
                 $nombreArchivo = basename($_FILES['imagenes']['name'][$i]);
                 $rutaTemp = $_FILES['imagenes']['tmp_name'][$i];
-                $rutaDestino = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreArchivo;
-                $rutaWeb = BASE_URL . $rutaDestino;
-                $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $rutaDestino;
+$rutaDestinoRel = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreArchivo;
+$rutaWeb        = BASE_URL  . $rutaDestinoRel;
+$rutaFisica     = BASE_PATH . $rutaDestinoRel;
+// Asegura carpeta
+$dir = dirname($rutaFisica);
+if (!is_dir($dir)) {
+    mkdir($dir, 0775, true);
+}
 
-                if (is_uploaded_file($rutaTemp)) {
-                    move_uploaded_file($rutaTemp, $rutaFisica);
-                    $imagenesHTML .= '<img src="' . $rutaWeb . '" width="200" height="200" style="margin:5px;">';
-                }
+if (is_uploaded_file($rutaTemp)) {
+    move_uploaded_file($rutaTemp, $rutaFisica);
+    $imagenesHTML .= '<img src="' . $rutaWeb . '" width="200" height="200" style="margin:5px;">';
+}
             }
         }
 
@@ -416,43 +433,54 @@ public function index()
     }
 
 
-    private function generarArchivoZIP($cert_number, $pdf_path, $imagenes)
-    {
-        $zip_path = "uploads/certificates/{$cert_number}.zip";
-        $zip = new ZipArchive();
+ private function generarArchivoZIP($cert_number, $pdf_path, $imagenes)
+{
+    // Ruta relativa y física del ZIP
+    $zipRelPath = "uploads/certificates/{$cert_number}.zip";
+    $zip_path   = BASE_PATH . $zipRelPath;
 
-        if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-
-            // Agregar PDF
-            if (file_exists($pdf_path)) {
-                $zip->addFile($pdf_path, basename($pdf_path));
-            }
-
-            // Agregar imágenes desde uploads/temp
-            $total = min(9, count($imagenes['name']));
-            for ($i = 0; $i < $total; $i++) {
-                $nombreOriginal = basename($imagenes['name'][$i]);
-                $rutaTemp = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreOriginal;
-
-                if (file_exists($rutaTemp)) {
-                    $zip->addFile($rutaTemp, 'imagenes/' . $nombreOriginal);
-                }
-            }
-
-            $zip->close();
-        }
+    // Asegura carpeta
+    $dirZip = dirname($zip_path);
+    if (!is_dir($dirZip)) {
+        mkdir($dirZip, 0775, true);
     }
 
+    $zip = new ZipArchive();
 
-    private function limpiarTemporales($cert_number)
-    {
-        $archivos = glob("uploads/temp/{$cert_number}_*");
-        foreach ($archivos as $archivo) {
-            if (is_file($archivo)) {
-                unlink($archivo);
+    if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
+
+        // Agregar PDF
+        if (file_exists($pdf_path)) {
+            $zip->addFile($pdf_path, basename($pdf_path));
+        }
+
+        // Agregar imágenes desde uploads/temp
+        $total = min(9, count($imagenes['name']));
+        for ($i = 0; $i < $total; $i++) {
+            $nombreOriginal = basename($imagenes['name'][$i]);
+            $rutaTempRel    = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreOriginal;
+            $rutaTempFis    = BASE_PATH . $rutaTempRel;
+
+            if (file_exists($rutaTempFis)) {
+                $zip->addFile($rutaTempFis, 'imagenes/' . $nombreOriginal);
             }
         }
+
+        $zip->close();
     }
+}
+
+
+
+private function limpiarTemporales($cert_number)
+{
+    $archivos = glob(BASE_PATH . "uploads/temp/{$cert_number}_*");
+    foreach ($archivos as $archivo) {
+        if (is_file($archivo)) {
+            unlink($archivo);
+        }
+    }
+}
     public function obtenerLatLon($id)
     {
         $data = $this->model->obtenerDireccionPorId($id);

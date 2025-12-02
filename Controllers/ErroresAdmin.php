@@ -182,26 +182,42 @@ class ErroresAdmin extends Controller
             }
         }
         $imagenes = [];
+if ($field_name === 'images') {
+    $rutaTempRel = 'uploads/temp/' . $cert_number;
+    $rutaTempFis = BASE_PATH . $rutaTempRel;
 
-        if ($field_name === 'images') {
-            $rutaTemp = 'uploads/temp/' . $cert_number;
-            if (is_dir($rutaTemp)) {
-                $archivosTemp = glob($rutaTemp . '/*.{jpg,jpeg,png,JPG,JPEG,PNG}', GLOB_BRACE);
-                $imagenes = $archivosTemp ?: [];
-            }
+    // Asegura la carpeta
+    if (!is_dir($rutaTempFis)) {
+        mkdir($rutaTempFis, 0775, true);
+    }
 
-            // Si se usaron imágenes del input directamente
-            if (!empty($_FILES['imagenes']['tmp_name'][0])) {
-                $total = min(9, count($_FILES['imagenes']['tmp_name']));
-                for ($i = 0; $i < $total; $i++) {
-                    $tmpName = $_FILES['imagenes']['tmp_name'][$i];
-                    $nombre = $_FILES['imagenes']['name'][$i];
-                    $destino = $rutaTemp . '/' . uniqid("img_{$i}_") . '.' . pathinfo($nombre, PATHINFO_EXTENSION);
-                    move_uploaded_file($tmpName, $destino);
-                    $imagenes[] = $destino;
-                }
-            }
+    // Imágenes temporales existentes
+    if (is_dir($rutaTempFis)) {
+        $archivosTemp = glob($rutaTempFis . '/*.{jpg,jpeg,png,JPG,JPEG,PNG}', GLOB_BRACE);
+        $imagenes = [];
+
+        foreach ($archivosTemp ?: [] as $archivoFisico) {
+            // Convertir a ruta relativa
+            $imagenes[] = str_replace(BASE_PATH, '', $archivoFisico);
         }
+    }
+
+    // Imágenes nuevas desde el input
+    if (!empty($_FILES['imagenes']['tmp_name'][0])) {
+        $total = min(9, count($_FILES['imagenes']['tmp_name']));
+        for ($i = 0; $i < $total; $i++) {
+            $tmpName = $_FILES['imagenes']['tmp_name'][$i];
+            $nombre  = $_FILES['imagenes']['name'][$i];
+
+            $destinoRel = $rutaTempRel . '/' . uniqid("img_{$i}_") . '.' . pathinfo($nombre, PATHINFO_EXTENSION);
+            $destinoFis = BASE_PATH . $destinoRel;
+
+            move_uploaded_file($tmpName, $destinoFis);
+            $imagenes[] = $destinoRel; // siempre relativo
+        }
+    }
+}
+
 
         // Regenerar ZIP y PDF con nuevas imágenes si existen
         $this->generarPDFyZIP($cert_number, $imagenes);
@@ -253,54 +269,69 @@ class ErroresAdmin extends Controller
         }
 
 
-        // 4.  Definir ruta de trabajo del PDF
-        $pdf_path = "uploads/temp/{$cert_number}.pdf";
+// 4. Definir ruta del PDF (relativa + física)
+$pdfRelPath = "uploads/temp/{$cert_number}.pdf";
+$pdf_path   = BASE_PATH . $pdfRelPath;
 
         // 5. Validar rutas de imágenes con path absoluto
         $imagenesValidas = [];
 
-        foreach ($imagenes as $rutaRelativa) {
-            $rutaFull = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $rutaRelativa;
-            if (file_exists($rutaFull)) {
-                $imagenesValidas[] = $rutaFull;
-            }
-        }
+foreach ($imagenes as $rutaRelativa) {
+    $rutaFull = BASE_PATH . $rutaRelativa;
+    if (file_exists($rutaFull)) {
+        $imagenesValidas[] = $rutaRelativa; // guardamos la relativa, no la absoluta
+    }
+}
+if (empty($imagenesValidas)) {
+    // No había nuevas, extraemos las viejas del ZIP (devuelve relativas)
+    $imagenes = $this->extraerImagenesZIPExistente($cert_number);
+} else {
+    $imagenes = $imagenesValidas;
+}
 
-        if (empty($imagenesValidas)) {
-            // No había nuevas, extraemos las viejas del ZIP
-            $imagenes = $this->extraerImagenesZIPExistente($cert_number);
-        } else {
-            // Usamos las rutas absolutas de las nuevas
-            $imagenes = $imagenesValidas;
-        }
+// 6. Generar PDF con esas imágenes
+$this->generarCertificadoPDF($cert_number, $pdf_path, $data, $data['address_id'], $imagenes);
 
-        // 6. Generar PDF con esas imágenes
-        $this->generarCertificadoPDF($cert_number, $pdf_path, $data, $data['address_id'], $imagenes);
+// 7. Generar ZIP con PDF e imágenes
+$this->generarArchivoZIP($cert_number, $pdf_path, $imagenes);
+sleep(2);
 
-        // 7. Generar ZIP con PDF e imágenes
-        $this->generarArchivoZIP($cert_number, $pdf_path, $imagenes);
-        sleep(2);
-        // 7. Limpiar archivos temporales
-        $this->limpiarTemporales($cert_number);
+// 8. Limpiar temporales
+$this->limpiarTemporales($cert_number);
     }
 
 
-    private function generarArchivoZIP($cert_number, $pdf_path, $imagenes)
-    {
-        $zip_path = "uploads/certificates/{$cert_number}.zip";
-        $zip = new ZipArchive();
+private function generarArchivoZIP($cert_number, $pdf_path, $imagenes)
+{
+    $zipRelPath = "uploads/certificates/{$cert_number}.zip";
+    $zip_path   = BASE_PATH . $zipRelPath;
 
-        if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-            // Agregar el PDF
+    // Asegura carpeta
+    $dirZip = dirname($zip_path);
+    if (!is_dir($dirZip)) {
+        mkdir($dirZip, 0775, true);
+    }
+
+    $zip = new ZipArchive();
+
+    if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
+        // Agregar el PDF (ya es ruta física)
+        if (file_exists($pdf_path)) {
             $zip->addFile($pdf_path, basename($pdf_path));
-
-            foreach ($imagenes as $img) {
-                $zip->addFile($img, 'imagenes/' . basename($img));
-            }
-
-            $zip->close();
         }
+
+        // Agregar imágenes (relativas -> físicas)
+        foreach ($imagenes as $imgRel) {
+            $imgFis = BASE_PATH . $imgRel;
+            if (file_exists($imgFis)) {
+                $zip->addFile($imgFis, 'imagenes/' . basename($imgRel));
+            }
+        }
+
+        $zip->close();
     }
+}
+
 
     private function generarCertificadoPDF($cert_number, $pdf_path, $data, $address_id, $imagenes = [])
     {
@@ -309,64 +340,71 @@ class ErroresAdmin extends Controller
         $inspector = $this->model->obtenerInspectorPorId($inspector_id);
         $inspector_name = $inspector ? $inspector['name'] : $data['inspector_name'];
         $firmaPath = '';
-        if (!empty($inspector['direccion_firma'])) {
-            $firmaFullPath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $inspector['direccion_firma'];
-            if (file_exists($firmaFullPath)) {
-                $firmaBase64 = base64_encode(file_get_contents($firmaFullPath));
-                $mime = mime_content_type($firmaFullPath);
-                $firmaPath = 'data:' . $mime . ';base64,' . $firmaBase64;
-            }
-        }
+if (!empty($inspector['direccion_firma'])) {
+    $firmaRelPath  = $inspector['direccion_firma'];   // ej: "uploads/firmas/firma_x.png"
+    $firmaFullPath = BASE_PATH . $firmaRelPath;
+    if (file_exists($firmaFullPath)) {
+        $firmaBase64 = base64_encode(file_get_contents($firmaFullPath));
+        $mime        = mime_content_type($firmaFullPath);
+        $firmaPath   = 'data:' . $mime . ';base64,' . $firmaBase64;
+    }
+}
 
         // Rutas de logo y QR para web
         $logoPath = BASE_URL . 'assets/images/logo.png';
-        $qrPathRel = 'uploads/temp/' . $cert_number . '_qr.png';
-        $qrWebPath = BASE_URL . $qrPathRel;
-        $qrFileFullPath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $qrPathRel;
+// QR
+$qrPathRel      = 'uploads/temp/' . $cert_number . '_qr.png';
+$qrWebPath      = BASE_URL  . $qrPathRel;
+$qrFileFullPath = BASE_PATH . $qrPathRel;
 
         // Generar QR
-        $contenidoQR = "{$data['vin']}|{$data['propietario']}|{$data['fabricado_en']}|{$data['year']}|{$data['modelo']}|{$data['marca']}";
-        $optionsQR = new \chillerlan\QRCode\QROptions([
-            'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
-            'eccLevel' => \chillerlan\QRCode\QRCode::ECC_L,
-        ]);
-        (new \chillerlan\QRCode\QRCode($optionsQR))->render($contenidoQR, $qrFileFullPath);
+$contenidoQR = "{$data['vin']}|{$data['propietario']}|{$data['fabricado_en']}|{$data['year']}|{$data['modelo']}|{$data['marca']}";
+$optionsQR = new QROptions([
+    'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+    'eccLevel'   => QRCode::ECC_L,
+]);
+(new QRCode($optionsQR))->render($contenidoQR, $qrFileFullPath);
 
         // Dirección
         $direccion = $this->model->obtenerDireccionPorId($address_id);
         $direccion_texto = "{$direccion['number']} {$direccion['street']}, {$direccion['city']}, {$direccion['state']} {$direccion['zip']}";
-        $barcodeGenerator = new \Picqer\Barcode\BarcodeGeneratorPNG();
 
-        file_put_contents("uploads/temp/{$cert_number}_vin_barcode.png", $barcodeGenerator->getBarcode($data['vin'], $barcodeGenerator::TYPE_CODE_128));
-        file_put_contents("uploads/temp/{$cert_number}_cert_barcode.png", $barcodeGenerator->getBarcode($cert_number, $barcodeGenerator::TYPE_CODE_128));
+        // Códigos de barras
+$barcodeGenerator = new BarcodeGeneratorPNG();
 
-        $vinBarcodeWeb = BASE_URL . 'uploads/temp/' . $cert_number . '_vin_barcode.png';
-        $certBarcodeWeb = BASE_URL . 'uploads/temp/' . $cert_number . '_cert_barcode.png';
+file_put_contents(
+    BASE_PATH . "uploads/temp/{$cert_number}_vin_barcode.png",
+    $barcodeGenerator->getBarcode($data['vin'], $barcodeGenerator::TYPE_CODE_128)
+);
+file_put_contents(
+    BASE_PATH . "uploads/temp/{$cert_number}_cert_barcode.png",
+    $barcodeGenerator->getBarcode($cert_number, $barcodeGenerator::TYPE_CODE_128)
+);
 
-        $imagenesHTML = '';
+$vinBarcodeWeb  = BASE_URL . "uploads/temp/{$cert_number}_vin_barcode.png";
+$certBarcodeWeb = BASE_URL . "uploads/temp/{$cert_number}_cert_barcode.png";
+$imagenesHTML = '';
 
-        if (!empty($imagenes)) {
-            foreach ($imagenes as $rutaFull) {
-                // rutaFull ya viene absoluta si aplicaste el paso anterior,
-                // si no, conviértela aquí también:
-                $rutaFisica = strpos($rutaFull, $_SERVER['DOCUMENT_ROOT']) === 0
-                    ? $rutaFull
-                    : $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $rutaFull;
+if (!empty($imagenes)) {
+    foreach ($imagenes as $rutaRel) {
+        $rutaFisica = BASE_PATH . $rutaRel;
 
-                if (file_exists($rutaFisica)) {
-                    $ext = pathinfo($rutaFisica, PATHINFO_EXTENSION);
-                    $mime = $ext === 'png' ? 'image/png' : 'image/jpeg';
-                    $imgData = base64_encode(file_get_contents($rutaFisica));
-                    $imagenesHTML .= sprintf(
-                        '<img src="data:%s;base64,%s" style="width:200px; height:200px; margin:5px;">',
-                        $mime,
-                        $imgData
-                    );
-                }
-            }
-        } else {
-            $imagenesHTML .= '<p style="color: red;">No se encontraron imágenes para mostrar.</p>';
+        if (file_exists($rutaFisica)) {
+            $ext  = strtolower(pathinfo($rutaFisica, PATHINFO_EXTENSION));
+            $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+
+            $imgData = base64_encode(file_get_contents($rutaFisica));
+
+            $imagenesHTML .= sprintf(
+                '<img src="data:%s;base64,%s" style="width:200px; height:200px; margin:5px;">',
+                $mime,
+                $imgData
+            );
         }
+    }
+} else {
+    $imagenesHTML .= '<p style="color: red;">No se encontraron imágenes para mostrar.</p>';
+}
 
 
         // Monitoreos
@@ -554,32 +592,40 @@ class ErroresAdmin extends Controller
     }
 
 
-    private function extraerImagenesZIPExistente($cert_number)
-    {
-        $zip_path = "uploads/certificates/{$cert_number}.zip";
-        $temp_dir = "uploads/temp/{$cert_number}_old";
+private function extraerImagenesZIPExistente($cert_number)
+{
+    $zipRelPath  = "uploads/certificates/{$cert_number}.zip";
+    $zip_path    = BASE_PATH . $zipRelPath;
+    $tempDirRel  = "uploads/temp/{$cert_number}_old";
+    $temp_dir    = BASE_PATH . $tempDirRel;
 
-        if (!file_exists($zip_path)) {
-            return [];
-        }
-
-        if (!file_exists($temp_dir)) {
-            mkdir($temp_dir, 0777, true);
-        }
-
-        $zip = new ZipArchive();
-        if ($zip->open($zip_path) === TRUE) {
-            $zip->extractTo($temp_dir); // Extrae TODO el contenido con estructura
-            $zip->close();
-        } else {
-            return [];
-        }
-
-        // ✅ Asegúrate de que busque dentro de /imagenes/
-        $imagenesExtraidas = glob($temp_dir . '/imagenes/*.{jpg,jpeg,png,JPG,JPEG,PNG}', GLOB_BRACE);
-
-        return $imagenesExtraidas ?: [];
+    if (!file_exists($zip_path)) {
+        return [];
     }
+
+    if (!file_exists($temp_dir)) {
+        mkdir($temp_dir, 0777, true);
+    }
+
+    $zip = new ZipArchive();
+    if ($zip->open($zip_path) === TRUE) {
+        $zip->extractTo($temp_dir);
+        $zip->close();
+    } else {
+        return [];
+    }
+
+    $imagenesExtraidasFis = glob($temp_dir . '/imagenes/*.{jpg,jpeg,png,JPG,JPEG,PNG}', GLOB_BRACE);
+
+    // Devolver SIEMPRE rutas relativas
+    $imagenesRel = [];
+    foreach ($imagenesExtraidasFis ?: [] as $fileFis) {
+        $imagenesRel[] = str_replace(BASE_PATH, '', $fileFis);
+    }
+
+    return $imagenesRel;
+}
+
 
 
 
@@ -597,77 +643,73 @@ class ErroresAdmin extends Controller
         die();
     }
 
-    private function limpiarTemporales($cert_number)
-    {
-        $temp_dir = "uploads/temp/";
-        $prefixes = [
-            "{$cert_number}.pdf",
-            "{$cert_number}_qr.png",
-            "{$cert_number}_vin_barcode.png",
-            "{$cert_number}_cert_barcode.png",
-        ];
+private function limpiarTemporales($cert_number)
+{
+    $tempDirRel = 'uploads/temp/';
+    $tempDirFis = BASE_PATH . $tempDirRel;
 
-        // 1. Eliminar archivos individuales (PDF, QR, códigos de barra)
-        foreach ($prefixes as $filename) {
-            $ruta = $temp_dir . $filename;
-            if (file_exists($ruta)) {
-                unlink($ruta);
-            }
-        }
+    $prefixes = [
+        "{$cert_number}.pdf",
+        "{$cert_number}_qr.png",
+        "{$cert_number}_vin_barcode.png",
+        "{$cert_number}_cert_barcode.png",
+    ];
 
-        // 2. Eliminar imágenes temporales generadas al subir
-        $pattern_imgs = glob($temp_dir . "{$cert_number}_img_*");
-        foreach ($pattern_imgs as $file) {
-            if (is_file($file)) {
-                unlink($file);
-            }
-        }
-
-        // 3. Eliminar imágenes generadas desde ZIP
-        $pattern_zip_imgs = glob($temp_dir . "{$cert_number}_zip_img_*");
-        foreach ($pattern_zip_imgs as $file) {
-            if (is_file($file)) {
-                unlink($file);
-            }
-        }
-
-        // 4. Eliminar carpeta de imágenes extraídas del ZIP
-        $dir_zip_old = $temp_dir . "{$cert_number}_old";
-        if (is_dir($dir_zip_old)) {
-            $files = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($dir_zip_old, RecursiveDirectoryIterator::SKIP_DOTS),
-                RecursiveIteratorIterator::CHILD_FIRST
-            );
-            foreach ($files as $file) {
-                ($file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname()));
-            }
-            rmdir($dir_zip_old);
-        }
-
-        // 5. Eliminar carpeta con imágenes sugeridas (uploads/temp/{cert_number}/)
-        $carpetaSugeridas = "uploads/temp/{$cert_number}/";
-        if (is_dir($carpetaSugeridas)) {
-            $archivos = glob($carpetaSugeridas . '*');
-            foreach ($archivos as $archivo) {
-                if (is_file($archivo)) {
-                    unlink($archivo);
-                }
-            }
-            rmdir($carpetaSugeridas);
+    // 1. Eliminar archivos individuales
+    foreach ($prefixes as $filename) {
+        $ruta = $tempDirFis . $filename;
+        if (file_exists($ruta)) {
+            unlink($ruta);
         }
     }
+
+    // 2. Imágenes temporales generadas al subir
+    foreach (glob($tempDirFis . "{$cert_number}_img_*") as $file) {
+        if (is_file($file)) unlink($file);
+    }
+
+    // 3. Imágenes generadas desde ZIP
+    foreach (glob($tempDirFis . "{$cert_number}_zip_img_*") as $file) {
+        if (is_file($file)) unlink($file);
+    }
+
+    // 4. Carpeta de imágenes extraídas del ZIP
+    $dir_zip_old = $tempDirFis . "{$cert_number}_old";
+    if (is_dir($dir_zip_old)) {
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir_zip_old, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($files as $file) {
+            $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
+        }
+        rmdir($dir_zip_old);
+    }
+
+    // 5. Carpeta con imágenes sugeridas uploads/temp/{cert_number}/
+    $carpetaSugeridasFis = BASE_PATH . "uploads/temp/{$cert_number}/";
+    if (is_dir($carpetaSugeridasFis)) {
+        foreach (glob($carpetaSugeridasFis . '*') as $archivo) {
+            if (is_file($archivo)) unlink($archivo);
+        }
+        rmdir($carpetaSugeridasFis);
+    }
+}
+
 
 
     public function verImagenesTemporales($cert_number)
     {
-        $ruta = 'uploads/temp/' . $cert_number . '/';
-        $imagenes = [];
+ $rutaRel = 'uploads/temp/' . $cert_number . '/';
+$rutaFis = BASE_PATH . $rutaRel;
+$imagenes = [];
 
-        if (is_dir($ruta)) {
-            foreach (glob($ruta . "*.{jpg,jpeg,png,JPG,JPEG,PNG}", GLOB_BRACE) as $img) {
-                $imagenes[] = BASE_URL . str_replace('uploads/', 'uploads/', $img);
-            }
-        }
+if (is_dir($rutaFis)) {
+    foreach (glob($rutaFis . "*.{jpg,jpeg,png,JPG,JPEG,PNG}", GLOB_BRACE) as $imgFis) {
+        $rel = str_replace(BASE_PATH, '', $imgFis);
+        $imagenes[] = BASE_URL . $rel;
+    }
+}
 
         echo json_encode($imagenes);
         die();

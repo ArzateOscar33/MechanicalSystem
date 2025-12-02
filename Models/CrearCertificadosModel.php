@@ -213,7 +213,7 @@ class CrearCertificadosModel extends Query
     $siguiente = $actual + 1;
 
     $consecutivo = str_pad($siguiente, 8, "0", STR_PAD_LEFT);
-    return 'MEX-' . $consecutivo;
+    return 'MEX-' . $consecutivo;//AUQI SE PUEDE CAMBIAR EL NOMBRE DEL CERTIFICADO
 }
 
 /**

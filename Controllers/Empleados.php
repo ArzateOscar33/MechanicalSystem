@@ -84,19 +84,28 @@ class Empleados extends Controller
             }
 
             // PROCESAR FOTO
-            $fotoRuta = null;
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
-                $nombreFoto = 'empleado_' . uniqid() . '.' . $ext;
-                $destino = 'assets/empleados/fotografia/' . $nombreFoto;
+$fotoRuta = null;
+if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+    $ext        = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
+    $nombreFoto = 'empleado_' . uniqid() . '.' . $ext;
 
-                if (move_uploaded_file($_FILES['photo']['tmp_name'], $destino)) {
-                    $fotoRuta = $destino;
-                } else {
-                    echo json_encode(['msg' => 'Error al subir la fotografía', 'icono' => 'error']);
-                    return;
-                }
-            }
+    $uploadDirRel = 'assets/empleados/fotografia/';      // lo que se guarda en BD
+    $uploadDirFis = BASE_PATH . $uploadDirRel;           // carpeta física
+
+    if (!is_dir($uploadDirFis)) {
+        mkdir($uploadDirFis, 0755, true);
+    }
+
+    $destinoRel = $uploadDirRel . $nombreFoto;           // "assets/empleados/fotografia/xxx.png"
+    $destinoFis = BASE_PATH . $destinoRel;               // físico
+
+    if (move_uploaded_file($_FILES['photo']['tmp_name'], $destinoFis)) {
+        $fotoRuta = $destinoRel;                         // EN BD guardas SOLO la relativa
+    } else {
+        echo json_encode(['msg' => 'Error al subir la fotografía', 'icono' => 'error']);
+        return;
+    }
+}
 
             // REGISTRO FINAL
             $registro = [
@@ -170,26 +179,37 @@ class Empleados extends Controller
             }
 
             // PROCESAR FOTO
-            $fotoRuta = $_POST['foto_actual'];
+$fotoRuta = $_POST['foto_actual'];   // relativa que viene de BD
 
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
-                $nombreFoto = 'empleado_' . uniqid() . '.' . $ext;
-                $destino = 'assets/empleados/fotografia/' . $nombreFoto;
+if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+    $ext        = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
+    $nombreFoto = 'empleado_' . uniqid() . '.' . $ext;
 
-                if (move_uploaded_file($_FILES['photo']['tmp_name'], $destino)) {
-                    // ✅ Borra la imagen anterior si existe y es diferente de la nueva
-                    if (!empty($_POST['foto_actual']) && file_exists($_POST['foto_actual'])) {
-                        unlink($_POST['foto_actual']);
-                    }
+    $uploadDirRel = 'assets/empleados/fotografia/';
+    $uploadDirFis = BASE_PATH . $uploadDirRel;
 
-                    // Asigna nueva ruta
-                    $fotoRuta = $destino;
-                } else {
-                    echo json_encode(['msg' => 'Error al subir la nueva fotografía', 'icono' => 'error']);
-                    return;
-                }
+    if (!is_dir($uploadDirFis)) {
+        mkdir($uploadDirFis, 0755, true);
+    }
+
+    $destinoRel = $uploadDirRel . $nombreFoto;
+    $destinoFis = BASE_PATH . $destinoRel;
+
+    if (move_uploaded_file($_FILES['photo']['tmp_name'], $destinoFis)) {
+        // borra la imagen anterior (ruta relativa)
+        if (!empty($_POST['foto_actual'])) {
+            $fotoAnteriorFis = BASE_PATH . $_POST['foto_actual'];
+            if (file_exists($fotoAnteriorFis)) {
+                unlink($fotoAnteriorFis);
             }
+        }
+
+        $fotoRuta = $destinoRel; // guardamos la nueva ruta relativa
+    } else {
+        echo json_encode(['msg' => 'Error al subir la nueva fotografía', 'icono' => 'error']);
+        return;
+    }
+}
 
 
             $registro = [
@@ -256,9 +276,12 @@ class Empleados extends Controller
 
             if ($res) {
                 // Eliminar físicamente la foto si existe
-                if (!empty($fotoRuta) && file_exists($fotoRuta)) {
-                    unlink($fotoRuta);
+            if (!empty($fotoRuta)) {
+                $fotoFis = BASE_PATH . $fotoRuta;
+                if (file_exists($fotoFis)) {
+                    unlink($fotoFis);
                 }
+            }
 
                 echo json_encode(['msg' => 'Empleado eliminado correctamente', 'icono' => 'success']);
             } else {
@@ -329,15 +352,16 @@ public function generarCredencial($id)
     $empleado['puesto'] = $this->model->getNombrePuesto($empleado['position_id']);
     $empleado['departamento'] = $this->model->getNombreDepartamento($empleado['department_id']);
 
-    $rutaFolder = 'assets/empleados/credencial/';
-    if (!file_exists($rutaFolder)) {
-        mkdir($rutaFolder, 0755, true);
-    }
+    $rutaFolderRel = 'assets/empleados/credencial/';
+    $rutaFolderFis  = BASE_PATH . $rutaFolderRel;
+if (!is_dir($rutaFolderFis)) {
+    mkdir($rutaFolderFis, 0755, true);
+}
 
-    $qrFilename = 'qr_' . $empleado['employee_number'] . '.png';
-    $qrRelativePath = $rutaFolder . $qrFilename;
-    $qrAbsolutePath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $qrRelativePath;
-    $qrWebPath = BASE_URL . $qrRelativePath;
+$qrFilename     = 'qr_' . $empleado['employee_number'] . '.png';
+$qrRelativePath = $rutaFolderRel . $qrFilename;   // relativo
+$qrAbsolutePath = BASE_PATH . $qrRelativePath;    // físico
+$qrWebPath      = BASE_URL  . $qrRelativePath;    // URL
 
     $contenidoQR = $empleado['employee_number'];
     $optionsQR = new \chillerlan\QRCode\QROptions([
@@ -631,12 +655,14 @@ public function generarCredencial($id)
     $dompdf->setPaper('a4','landscape');
     $dompdf->render();
 
-    $pdfPath = $rutaFolder . 'credencial_' . $empleado['employee_number'] . '.pdf';
-    file_put_contents($pdfPath, $dompdf->output());
+$pdfRelPath = $rutaFolderRel . 'credencial_' . $empleado['employee_number'] . '.pdf';
+$pdfFisPath = BASE_PATH . $pdfRelPath;
 
-    if (file_exists($qrAbsolutePath)) {
-        unlink($qrAbsolutePath);
-    }
+file_put_contents($pdfFisPath, $dompdf->output());
+
+if (file_exists($qrAbsolutePath)) {
+    unlink($qrAbsolutePath);
+}
 
     $dompdf->stream('credencial_' . $empleado['employee_number'] . '.pdf', ['Attachment' => true]);
     exit;
@@ -652,10 +678,12 @@ public function generarTodasCredenciales()
     }
 
     $html = '';
-    $rutaFolder = 'assets/empleados/credencial/';
-    if (!file_exists($rutaFolder)) {
-        mkdir($rutaFolder, 0755, true);
-    }
+$rutaFolderRel = 'assets/empleados/credencial/';
+$rutaFolderFis  = BASE_PATH . $rutaFolderRel;
+
+if (!is_dir($rutaFolderFis)) {
+    mkdir($rutaFolderFis, 0755, true);
+}
 
     foreach ($empleados as $empleado) {
         // Asegurarse de que tenga los datos necesarios
@@ -665,9 +693,9 @@ public function generarTodasCredenciales()
 
         // Generar QR
         $qrFilename = 'qr_' . $empleado['employee_number'] . '.png';
-        $qrRelativePath = $rutaFolder . $qrFilename;
-        $qrAbsolutePath = $_SERVER['DOCUMENT_ROOT'] . '/MechanicalSystem/' . $qrRelativePath;
-        $qrWebPath = BASE_URL . $qrRelativePath;
+$qrRelativePath = $rutaFolderRel . $qrFilename;  // relativo
+$qrAbsolutePath = BASE_PATH . $qrRelativePath;   // físico
+$qrWebPath      = BASE_URL  . $qrRelativePath;   // URL
 
         $optionsQR = new \chillerlan\QRCode\QROptions([
             'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
@@ -961,12 +989,17 @@ public function generarTodasCredenciales()
     $dompdf->setPaper('a4', 'landscape');
     $dompdf->render();
 
-    $filename = 'credenciales_todas.pdf';
-    $outputPath = $rutaFolder . $filename;
-    file_put_contents($outputPath, $dompdf->output());
+$filename      = 'credenciales_todas.pdf';
+$outputRelPath = $rutaFolderRel . $filename;
+$outputFisPath = BASE_PATH . $outputRelPath;
 
-    echo json_encode(['status' => 'success', 'url' => BASE_URL . $outputPath]);
-    exit;
+file_put_contents($outputFisPath, $dompdf->output());
+
+echo json_encode([
+    'status' => 'success',
+    'url'    => BASE_URL . $outputRelPath  // URL pública
+]);
+exit;
 }
 
 
