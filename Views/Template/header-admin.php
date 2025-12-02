@@ -114,6 +114,7 @@
                         <ul>
                             <li><a href="<?php echo BASE_URL . 'Departamentos'; ?>"><i class='fas fa-book  m-2'></i>Departamentos</a></li>
                             <li><a href="<?php echo BASE_URL . 'Empleados'; ?>"><i class='fas fa-user-tie  m-2'></i>Empleados</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Puestos'; ?>"><i class='fas fa-sitemap  m-2'></i>Puestos</a></li>
                         </ul>
                     </li>
                 <?php endif; ?>
