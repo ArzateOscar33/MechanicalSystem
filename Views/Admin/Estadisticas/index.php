@@ -607,7 +607,7 @@
 </div>
 
 <?php include_once 'Views/template/footer-admin.php'; ?>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/chartjs-plugin-datalabels@0.7.0"></script>  
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/estadisticas.js"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/graficosEstadisticosDuplicados.js"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/tablasDuplicados.js"></script>

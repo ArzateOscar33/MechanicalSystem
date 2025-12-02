@@ -132,9 +132,9 @@
 
 <script src="<?php echo BASE_URL; ?>assets/js/es-ES.js"></script>
 <!-- html2canvas para capturar gráficos -->
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+ <script src="<?php echo BASE_URL; ?>assets/js/html2canvas.min.js"></script>  
 
 <!-- jsPDF para generar el PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="<?php echo BASE_URL; ?>assets/js/jspdf.umd.min.js"></script>   
 <!-- jsPDF autoTable -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="<?php echo BASE_URL; ?>assets/js/jspdf.plugin.autotable.min.js"></script> 
