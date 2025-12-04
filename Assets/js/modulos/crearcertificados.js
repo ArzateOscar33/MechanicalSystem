@@ -15,9 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const requiredInputs = document.querySelectorAll(
     "#formularioCertificado input[required], #formularioCertificado select[required]"
   );
-const yearInput = document.getElementById("year");
-const numeroCertInput = document.getElementById("numero_certificado");
-  // Establecer fecha mÃnima hoy
+  const yearInput = document.getElementById("year");
+  const numeroCertInput = document.getElementById("numero_certificado");
+
+  // Establecer fecha mínima hoy
   const today = new Date();
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth() + 1).padStart(2, "0");
@@ -25,24 +26,33 @@ const numeroCertInput = document.getElementById("numero_certificado");
   const fechaMinima = `${yyyy}-${mm}-${dd}`;
   fechaInput.setAttribute("min", fechaMinima);
   expiracionInput.readOnly = true;
-if (yearInput) {
-  const minYear = 1950;
-  const maxYear = yyyy + 1; // año actual + 1
 
-  yearInput.setAttribute("min", minYear);
-  yearInput.setAttribute("max", maxYear);
+  // Flag para evitar envíos múltiples
+  let enviando = false;
+  // Botón submit (ajusta si tienes un id específico)
+  const btnSubmit = frm.querySelector('button[type="submit"], input[type="submit"]');
+  const originalBtnText =
+    btnSubmit && btnSubmit.tagName === "BUTTON" ? btnSubmit.textContent : null;
 
-  yearInput.addEventListener("change", function () {
-    const valor = parseInt(yearInput.value, 10);
-    if (isNaN(valor) || valor < minYear || valor > maxYear) {
-      alertas(
-        `El año del vehículo debe estar entre ${minYear} y ${maxYear}.`,
-        "warning"
-      );
-      yearInput.value = "";
-    }
-  });
-}
+  if (yearInput) {
+    const minYear = 1950;
+    const maxYear = yyyy + 1; // año actual + 1
+
+    yearInput.setAttribute("min", minYear);
+    yearInput.setAttribute("max", maxYear);
+
+    yearInput.addEventListener("change", function () {
+      const valor = parseInt(yearInput.value, 10);
+      if (isNaN(valor) || valor < minYear || valor > maxYear) {
+        alertas(
+          `El año del vehículo debe estar entre ${minYear} y ${maxYear}.`,
+          "warning"
+        );
+        yearInput.value = "";
+      }
+    });
+  }
+
   if (inspectorSelect) {
     inspectorSelect.addEventListener("change", function () {
       const id = this.value;
@@ -52,8 +62,8 @@ if (yearInput) {
         return;
       }
       fetch(base_url + "CrearCertificados/obtenerFirmaInspector/" + id)
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.firma) {
             imagenFirma.src = data.firma;
             firmaPreview.style.display = "block";
@@ -66,25 +76,24 @@ if (yearInput) {
   }
 
   fechaInput.addEventListener("change", function () {
-  const valor = fechaInput.value;
-  if (valor < fechaMinima) {
-    alertas("La fecha no puede ser anterior a hoy.", "warning");
-    fechaInput.value = "";
-    expiracionInput.value = "";
-    return;
-  }
+    const valor = fechaInput.value;
+    if (valor < fechaMinima) {
+      alertas("La fecha no puede ser anterior a hoy.", "warning");
+      fechaInput.value = "";
+      expiracionInput.value = "";
+      return;
+    }
 
-  const fecha = new Date(valor);
+    const fecha = new Date(valor);
 
-  // ⬇️ Ahora sumamos 3 meses en lugar de 1 año
-  fecha.setMonth(fecha.getMonth() + 3);
+    // Ahora sumamos 3 meses en lugar de 1 año
+    fecha.setMonth(fecha.getMonth() + 3);
 
-  const yyyy = fecha.getFullYear();
-  const mm = String(fecha.getMonth() + 1).padStart(2, "0");
-  const dd = String(fecha.getDate()).padStart(2, "0");
-  expiracionInput.value = `${yyyy}-${mm}-${dd}`;
-});
-
+    const yyyy = fecha.getFullYear();
+    const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+    const dd = String(fecha.getDate()).padStart(2, "0");
+    expiracionInput.value = `${yyyy}-${mm}-${dd}`;
+  });
 
   function actualizarVisibilidadDireccion() {
     const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
@@ -106,53 +115,55 @@ if (yearInput) {
     actualizarVisibilidadDireccion();
     cargarLatLonDireccion(selectDireccion.value);
   }
-// ⬇️ CAMPOS QUE QUEREMOS SIEMPRE EN MAYÚSCULAS
-const camposMayusculasIds = [
-  "numero",
-  "calle",
-  "ciudad",
-  "estado",
-  "zip",
-  "vin",
-  "marca",
-  "modelo",
-  "fabricado_en",
-  "placa",
-  "propietario",
-  "ebitn"
-];
 
-camposMayusculasIds.forEach((id) => {
-  const input = document.getElementById(id);
-  if (input) {
-    input.addEventListener("input", function () {
-      this.value = this.value.toUpperCase();
-    });
+  // CAMPOS QUE QUEREMOS SIEMPRE EN MAYÚSCULAS
+  const camposMayusculasIds = [
+    "numero",
+    "calle",
+    "ciudad",
+    "estado",
+    "zip",
+    "vin",
+    "marca",
+    "modelo",
+    "fabricado_en",
+    "placa",
+    "propietario",
+    "ebitn",
+  ];
+
+  camposMayusculasIds.forEach((id) => {
+    const input = document.getElementById(id);
+    if (input) {
+      input.addEventListener("input", function () {
+        this.value = this.value.toUpperCase();
+      });
+    }
+  });
+
+  function actualizarNumeroCertificadoLocal() {
+    if (!numeroCertInput || !numeroCertInput.value) {
+      return;
+    }
+
+    const actual = numeroCertInput.value.trim(); // ej: "MEX-00000012"
+    const partes = actual.split("-");
+
+    if (partes.length !== 2) {
+      return; // formato inesperado, no hacemos nada
+    }
+
+    const prefijo = partes[0] + "-"; // "MEX-"
+    const parteNumerica = partes[1]; // "00000012"
+    const numero = parseInt(parteNumerica, 10);
+
+    if (isNaN(numero)) {
+      return;
+    }
+
+    const siguiente = (numero + 1).toString().padStart(parteNumerica.length, "0");
+    numeroCertInput.value = prefijo + siguiente; // "MEX-00000013"
   }
-});
-function actualizarNumeroCertificadoLocal() {
-  if (!numeroCertInput || !numeroCertInput.value) {
-    return;
-  }
-
-  const actual = numeroCertInput.value.trim(); // ej: "MEX-00000012"
-  const partes = actual.split("-");
-
-  if (partes.length !== 2) {
-    return; // formato inesperado, no hacemos nada
-  }
-
-  const prefijo = partes[0] + "-"; // "MEX-"
-  const parteNumerica = partes[1]; // "00000012"
-  const numero = parseInt(parteNumerica, 10);
-
-  if (isNaN(numero)) {
-    return;
-  }
-
-  const siguiente = (numero + 1).toString().padStart(parteNumerica.length, "0");
-  numeroCertInput.value = prefijo + siguiente; // "MEX-00000013"
-}
 
   function verificarCamposCompletos() {
     const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
@@ -181,7 +192,7 @@ function actualizarNumeroCertificadoLocal() {
     const marca = document.querySelector("#marca").value.trim();
 
     if (!vin || !propietario || !fabricadoEn || !year || !modelo || !marca) {
-      alertas("Faltan campos para generar el cÃģdigo QR", "warning");
+      alertas("Faltan campos para generar el código QR", "warning");
       return;
     }
 
@@ -198,6 +209,11 @@ function actualizarNumeroCertificadoLocal() {
   frm.addEventListener("submit", function (e) {
     e.preventDefault();
 
+    // Si ya se está enviando, ignoramos el submit
+    if (enviando) {
+      return;
+    }
+
     const valorFecha = fechaInput.value;
     const valorExp = expiracionInput.value;
 
@@ -212,12 +228,19 @@ function actualizarNumeroCertificadoLocal() {
     }
 
     if (valorExp <= valorFecha) {
-      alertas("La fecha de expiraciÃģn debe ser posterior a la del certificado.", "warning");
+      alertas("La fecha de expiración debe ser posterior a la del certificado.", "warning");
       return;
     }
 
     if (nuevoInspectorCheck && nuevoInspectorCheck.checked) {
       inspectorSelect.value = nuevoInspectorInput.value;
+    }
+
+    // Bloqueamos el envío
+    enviando = true;
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      if (btnSubmit.tagName === "BUTTON") btnSubmit.textContent = "Generando...";
     }
 
     const data = new FormData(frm);
@@ -228,29 +251,70 @@ function actualizarNumeroCertificadoLocal() {
     http.send(data);
 
     http.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        console.log(this.responseText);
-        const res = JSON.parse(this.responseText);
-        alertas(res.msg, res.icono);
-if (res.icono === "success") {
-  // Guardamos el número actual ANTES del reset
-  const certActual = numeroCertInput ? numeroCertInput.value : "";
+      if (this.readyState !== 4) {
+        return;
+      }
 
-  frm.reset();
-  qrCodeContainer.innerHTML = "";
-  imagenFirma.src = "";
-  firmaPreview.style.display = "none";
+      // En este punto la petición terminó
+      enviando = false;
 
-  // Restaurar y calcular el siguiente número
-  if (numeroCertInput && certActual) {
-    numeroCertInput.value = certActual;
-    actualizarNumeroCertificadoLocal();
-  }
+      if (this.status !== 200) {
+        // Error HTTP, reactivamos botón
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
+            btnSubmit.textContent = originalBtnText;
+          }
+        }
+        alertas("Ocurrió un error al generar el certificado.", "error");
+        return;
+      }
 
-  verificarCamposCompletos();
-  window.open(res.pdf_url, "_blank");
-  window.location.href = res.zip_url;
-}
+      console.log(this.responseText);
+      let res;
+      try {
+        res = JSON.parse(this.responseText);
+      } catch (err) {
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
+            btnSubmit.textContent = originalBtnText;
+          }
+        }
+        alertas("Respuesta inválida del servidor.", "error");
+        return;
+      }
+
+      alertas(res.msg, res.icono);
+
+      if (res.icono === "success") {
+        // Guardamos el número actual ANTES del reset
+        const certActual = numeroCertInput ? numeroCertInput.value : "";
+
+        frm.reset();
+        qrCodeContainer.innerHTML = "";
+        imagenFirma.src = "";
+        firmaPreview.style.display = "none";
+
+        // Restaurar y calcular el siguiente número
+        if (numeroCertInput && certActual) {
+          numeroCertInput.value = certActual;
+          actualizarNumeroCertificadoLocal();
+        }
+
+        verificarCamposCompletos();
+        window.open(res.pdf_url, "_blank");
+        window.location.href = res.zip_url;
+        // No reactivamos el botón aquí porque la página cambiará
+        return;
+      }
+
+      // Si no fue success, reactivamos el botón
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
+          btnSubmit.textContent = originalBtnText;
+        }
       }
     };
   });

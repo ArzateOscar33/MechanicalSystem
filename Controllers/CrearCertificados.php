@@ -38,145 +38,161 @@ public function index()
     $this->views->getView('admin/CrearCertificados', "index", $data);
 }
 
-    public function crear()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            ini_set('display_errors', 1);
-            ini_set('display_startup_errors', 1);
-            error_reporting(E_ALL);
+public function crear()
+{
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
 
-            $id_usuario = $_SESSION['id_usuario'] ?? 0;
-        // Número DEFINITIVO: incrementa secuencia en BD de forma segura
-        $cert_number = $this->model->generarCertNumberGlobal();
-            $vin = $_POST['vin'];
-            $year = $_POST['year'];
-            $make = $_POST['marca'];
-            $model = $_POST['modelo'];
-            $mfg_in = $_POST['fabricado_en'];
-            $license_plate = $_POST['placa'];
-            $owner_name = $_POST['propietario'];
-            $odometer = $_POST['odometro'];
-            $inspector_name = $_POST['inspector'];
-            $test_date = $_POST['fecha']; 
-            $expires = date('Y-m-d', strtotime('+3 months', strtotime($test_date)));
-            $source_file = 'manual';
-            $phone = $_POST['telefono'] ?? null;
-            // VALIDAR si tiene un certificado vigente
-            $certExistente = $this->model->vinConCertificadoActivo($vin, $test_date);
+        $id_usuario = $_SESSION['id_usuario'] ?? 0;
 
-            if ($certExistente) {
-                $this->responderJSON(
-                    "Ya existe un certificado vigente para este VIN. Solo puedes generar uno nuevo cuando el actual haya expirado.",
-                    "warning"
-                );
-                return;
-            }
-            $monitoreos = [
-                'Fallo Encendido' => $_POST['monitor_fallo_encendido'],
-                'Sistema Combustible' => $_POST['monitor_sistema_combustible'],
-                'Catalizador Integral' => $_POST['monitor_integral_catalizador'],
-                'Catalizador' => $_POST['monitor_catalizador'],
-                'Sensor C2' => $_POST['monitor_sensor_c2'],
-                'Resultado General' => $_POST['resultado_prueba']
-            ];
+        // 🔹 1) Tomamos todos los datos del POST
+        $vin            = $_POST['vin'];
+        $year           = $_POST['year'];
+        $make           = $_POST['marca'];
+        $model          = $_POST['modelo'];
+        $mfg_in         = $_POST['fabricado_en'];
+        $license_plate  = $_POST['placa'];
+        $owner_name     = $_POST['propietario'];
+        $odometer       = $_POST['odometro'];
+        $inspector_name = $_POST['inspector'];
+        $test_date      = $_POST['fecha'];
+        $expires        = date('Y-m-d', strtotime('+3 months', strtotime($test_date)));
+        $source_file    = 'manual';
+        $phone          = $_POST['telefono'] ?? null;
 
-            $latitud = $_POST['latitud'] ?? null;
-            $longitud = $_POST['longitud'] ?? null;
+        // 🔹 2) Validar si ya tiene un certificado vigente ANTES de tocar la secuencia
+        $certExistente = $this->model->vinConCertificadoActivo($vin, $test_date);
+        if ($certExistente) {
+            $this->responderJSON(
+                "Ya existe un certificado vigente para este VIN. Solo puedes generar uno nuevo cuando el actual haya expirado.",
+                "warning"
+            );
+            return;
+        }
 
-            if (!empty($_POST['direccion_existente'])) {
-                $address_id = $_POST['direccion_existente'];
-            } else {
-                $number = $_POST['numero'];
-                $street = $_POST['calle'];
-                $city = $_POST['ciudad'];
-                $state = $_POST['estado'];
-                $zip = $_POST['zip'];
+        // Monitoreos
+        $monitoreos = [
+            'Fallo Encendido'       => $_POST['monitor_fallo_encendido'],
+            'Sistema Combustible'   => $_POST['monitor_sistema_combustible'],
+            'Catalizador Integral'  => $_POST['monitor_integral_catalizador'],
+            'Catalizador'           => $_POST['monitor_catalizador'],
+            'Sensor C2'             => $_POST['monitor_sensor_c2'],
+            'Resultado General'     => $_POST['resultado_prueba']
+        ];
 
-                $direccion = $this->model->consultarDireccionConCoordenadas($number, $street, $city, $state, $zip, $latitud, $longitud);
-                if ($direccion) {
-                    $address_id = $direccion['id'];
-                } else {
-                    $address_id = $this->model->insertarDireccionConCoordenadas($number, $street, $city, $state, $zip, $latitud, $longitud);
-                }
-            }
+        // Coordenadas
+        $latitud  = $_POST['latitud'] ?? null;
+        $longitud = $_POST['longitud'] ?? null;
 
+        // 🔹 3) Resolver dirección (existente o nueva) ANTES del consecutivo
+        if (!empty($_POST['direccion_existente'])) {
+            $address_id = $_POST['direccion_existente'];
+        } else {
+            $number = $_POST['numero'];
+            $street = $_POST['calle'];
+            $city   = $_POST['ciudad'];
+            $state  = $_POST['estado'];
+            $zip    = $_POST['zip'];
 
-            // Verificar si existe el inspector o crear uno nuevo
-            $inspector_input = $_POST['inspector'];
-
-            if (!is_numeric($inspector_input)) {
-                $this->responderJSON("Inspector no válido: debe seleccionar uno existente", "error");
-                return;
-            }
-
-            $inspector_id = intval($inspector_input);
-
-
-            // Insertar certificado con inspector_id
-            $insert = $this->model->insertarCertificado(
-                $cert_number,
-                $vin,
-                $address_id,
-                $phone,
-                $year,
-                $mfg_in,
-                $make,
-                $owner_name,
-                $model,
-                $license_plate,
-                $odometer,
-                $inspector_id, // Usar inspector_id en lugar de inspector_name
-                $id_usuario,
-                $test_date,
-                $expires,
-                $source_file
+            $direccion = $this->model->consultarDireccionConCoordenadas(
+                $number,
+                $street,
+                $city,
+                $state,
+                $zip,
+                $latitud,
+                $longitud
             );
 
-            if ($insert === false || $insert === null) {
-                $this->responderJSON("Error al crear el certificado", "error");
-                return;
+            if ($direccion) {
+                $address_id = $direccion['id'];
+            } else {
+                $address_id = $this->model->insertarDireccionConCoordenadas(
+                    $number,
+                    $street,
+                    $city,
+                    $state,
+                    $zip,
+                    $latitud,
+                    $longitud
+                );
             }
-
-            // Monitoreos
-            foreach ($monitoreos as $tipo => $resultado) {
-                $this->model->insertarMonitoreo($cert_number, $tipo, $resultado);
-            }
-
-            // Log importación
-            try {
-                $this->model->registrarImportacion('cert_manual_' . date('YmdHis'), 'success', '', $id_usuario);
-            } catch (Exception $e) {
-                $this->model->registrarImportacionAlternativa('cert_manual_' . date('YmdHis'), 'success', '');
-            }
- 
-// RUTAS RELATIVAS (para URL o guardar en BD)
-$pdfRelPath = 'uploads/temp/' . $cert_number . '.pdf';
-$zipRelPath = 'uploads/certificates/' . $cert_number . '.zip';
-
-// RUTA FÍSICA (para escribir en disco)
-$pdfFullPath = BASE_PATH . $pdfRelPath;
-
-// Generar el PDF (ruta física)
-$this->generarCertificadoPDF($cert_number, $pdfFullPath, $_POST, $address_id);
-
-// Generar el ZIP (ruta física + $_FILES)
-$this->generarArchivoZIP($cert_number, $pdfFullPath, $_FILES['imagenes']);
-
-// Limpiar temporales
-$this->limpiarTemporales($cert_number);
-
-// Respuesta final (URLs)
-echo json_encode([
-    'msg'     => 'Certificado creado exitosamente',
-    'icono'   => 'success',
-    'pdf_url' => BASE_URL . $pdfRelPath,
-    'zip_url' => BASE_URL . $zipRelPath
-], JSON_UNESCAPED_UNICODE);
-exit;
-        } else {
-            $this->responderJSON("Solicitud inválida", "error");
         }
+
+        // 🔹 4) Validar inspector ANTES del consecutivo
+        $inspector_input = $_POST['inspector'];
+
+        if (!is_numeric($inspector_input)) {
+            $this->responderJSON("Inspector no válido: debe seleccionar uno existente", "error");
+            return;
+        }
+
+        $inspector_id = intval($inspector_input);
+
+        // 🔹 5) AHORA SÍ: generar número DEFINITIVO (solo si todo lo anterior está OK)
+        $cert_number = $this->model->generarCertNumberGlobal(); // 👈 AQUÍ LO MOVEMOS
+
+        // 🔹 6) Insertar certificado
+        $insert = $this->model->insertarCertificado(
+            $cert_number,
+            $vin,
+            $address_id,
+            $phone,
+            $year,
+            $mfg_in,
+            $make,
+            $owner_name,
+            $model,
+            $license_plate,
+            $odometer,
+            $inspector_id,
+            $id_usuario,
+            $test_date,
+            $expires,
+            $source_file
+        );
+
+        if ($insert === false || $insert === null) {
+            $this->responderJSON("Error al crear el certificado", "error");
+            return;
+        }
+
+        // 🔹 7) Monitoreos
+        foreach ($monitoreos as $tipo => $resultado) {
+            $this->model->insertarMonitoreo($cert_number, $tipo, $resultado);
+        }
+
+        // 🔹 8) Log importación
+        try {
+            $this->model->registrarImportacion('cert_manual_' . date('YmdHis'), 'success', '', $id_usuario);
+        } catch (Exception $e) {
+            $this->model->registrarImportacionAlternativa('cert_manual_' . date('YmdHis'), 'success', '');
+        }
+
+        // 🔹 9) Generar PDF y ZIP usando el cert_number definitivo
+        $pdfRelPath = 'uploads/temp/' . $cert_number . '.pdf';
+        $zipRelPath = 'uploads/certificates/' . $cert_number . '.zip';
+
+        $pdfFullPath = BASE_PATH . $pdfRelPath;
+
+        $this->generarCertificadoPDF($cert_number, $pdfFullPath, $_POST, $address_id);
+        $this->generarArchivoZIP($cert_number, $pdfFullPath, $_FILES['imagenes']);
+        $this->limpiarTemporales($cert_number);
+
+        echo json_encode([
+            'msg'     => 'Certificado creado exitosamente',
+            'icono'   => 'success',
+            'pdf_url' => BASE_URL . $pdfRelPath,
+            'zip_url' => BASE_URL . $zipRelPath
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    } else {
+        $this->responderJSON("Solicitud inválida", "error");
     }
+}
+
 
 
     private function generarCertificadoPDF($cert_number, $pdf_path, $data, $address_id)
