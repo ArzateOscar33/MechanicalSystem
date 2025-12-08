@@ -7,15 +7,36 @@ class ErroresUsuarioModel extends Query
     }
 
     // Obtener los certificados del día del usuario actual (solo los creados por él)
+// Obtener los certificados del usuario actual (sin limitar al día)
 public function getCertificados($userId)
 {
     $sql = "SELECT cert_number 
             FROM certificates 
             WHERE created_by = ?
-              AND DATE(created_at) = CURDATE()
             ORDER BY created_at DESC";
     return $this->selectAll($sql, [$userId]);
 }
+/*
+//SI QUEREMOS QUE SEA DE 30 DIAS 
+public function getCertificados($userId, $dias = 30)
+{
+    $params = [$userId];
+    $sql = "SELECT cert_number 
+            FROM certificates 
+            WHERE created_by = ?";
+
+    if (!is_null($dias)) {
+        $sql .= " AND created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)";
+        $params[] = (int)$dias;
+    }
+
+    $sql .= " ORDER BY created_at DESC";
+
+    return $this->selectAll($sql, $params);
+}
+
+
+*/
 
 
     // Verificar si el certificado pertenece al usuario y fue creado en los últimos 5 días

@@ -33,7 +33,7 @@
           <div class="mb-3">
             <label for="cert_number" class="form-label">Número de Certificado</label>
             <select class="form-select" name="cert_number" id="cert_number">
-              <option value="">-- Seleccione un certificado del día --</option>
+              <option value="">-- Seleccione un certificado --</option>
             </select>
           </div>
 

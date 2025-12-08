@@ -24,6 +24,9 @@ class ErroresUsuario extends Controller
     {
         $userId = $_SESSION['id_usuario'];
         $certs = $this->model->getCertificados($userId);
+        // Ejemplo: últimos 30 días (puedes cambiar a null para todos)
+        //$certs = $this->model->getCertificados($userId, 30);
+
         echo json_encode($certs);
         die();
     }
