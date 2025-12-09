@@ -594,7 +594,7 @@
                         <div class="card-body mb-5">
                             <h6 class="mb-0">Duplicados por Ciudad (Mensual)</h6>
                             <div class="chart-container-2 mt-4 mb-5 ">
-                                <canvas id="duplicadosCiudadMensual" height="55" class="mb-5 w-100 h-80"></canvas>
+                                <canvas id="duplicadosCiudadMensual" height="55" class="mb-5  h-60"></canvas>
                             </div>
                         </div>
                     </div>
