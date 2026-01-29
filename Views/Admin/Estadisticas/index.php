@@ -588,18 +588,19 @@
                         </div>
                     </div>
                 </div>
-                <!-- Gráfico de Duplicados por Ciudad (Mensual) -->
+                <!-- Gráfico de Duplicados por Ciudad (Mensual) 
                 <div class="col">
                     <div class="card radius-10 ">
                         <div class="card-body mb-5">
                             <h6 class="mb-0">Duplicados por Ciudad (Mensual)</h6>
-                            <div class="chart-container-2 mt-4 mb-5 ">
-                                <canvas id="duplicadosCiudadMensual" height="55" class="mb-5  h-60"></canvas>
+                            
+                            <div class="chart-container-3 mt-4 mb-5   " style="height:400px; border:1px solid red">
+                                <canvas id="duplicadosCiudadMensual"  class="" style="width:auto; height:auto ;border:1px solid blue"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
-
+-->
             </div>
         </div>
     </div>

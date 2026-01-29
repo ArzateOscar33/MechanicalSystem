@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     duplicadosPorCiudad();
     duplicadosPorEstado();
-    duplicadosCiudadMensual();
+    //duplicadosCiudadMensual();
 });
 
 function duplicadosPorCiudad() {
@@ -145,7 +145,7 @@ function duplicadosPorEstado() {
     };
 }
 
-
+/*
 function duplicadosCiudadMensual() {
     const url = base_url + "estadisticas/duplicadosMensualesPorCiudad";
     fetch(url)
@@ -216,7 +216,7 @@ function duplicadosCiudadMensual() {
             });
         });
 }
-
+*/
 // Convertir "2025-04" → "Abr"
 function formatearMes(fecha) {
     const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
