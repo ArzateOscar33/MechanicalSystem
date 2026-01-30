@@ -207,17 +207,68 @@
             </div>
 
             <!-- Imágenes y Códigos QR -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Imágenes</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="imagenes" class="form-label">Fotografías del Vehículo</label>
-                        <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/*" multiple required>
-                    </div>
-                </div>
-            </div>
+<!-- Imágenes -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h5>Imágenes </h5>
+  </div>
+
+  <div class="card-body">
+ 
+
+    <!--
+      Mantengo id="imagenes" y name="imagenes[]" para NO romper tu JS/controlador.
+      Uso múltiples inputs con el MISMO name="imagenes[]" para que PHP siga armando $_FILES['imagenes'] como arreglo.
+      El ORDEN de los inputs define el índice [0..7] que usarás luego para mapear a fotoVin..fotoTaller.
+    -->
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">1) Foto VIN (fotoVin)</label>
+        <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/jpeg" required>
+        <div class="form-text">Debe verse claramente el VIN.</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">2) Foto Frente (fotoFrente)</label>
+        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">3) Foto Atrás (fotoAtras)</label>
+        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">4) Foto Piloto (fotoPiloto)</label>
+        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">5) Foto Pasajero (fotoPasajero)</label>
+        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">6) Foto Puerta (fotoPuerta)</label>
+        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">7) Foto Scanner (fotoScanner)</label>
+        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">8) Foto Taller (fotoTaller)</label>
+        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+      </div>
+    </div>
+
+    <input type="hidden" name="foto_Extension" id="foto_Extension" value="jpg">
+  </div>
+</div>
+
 
             <div class="card mb-4" hidden>
                 <div class="card-header">

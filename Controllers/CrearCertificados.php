@@ -177,17 +177,30 @@ public function crear()
 
         $pdfFullPath = BASE_PATH . $pdfRelPath;
 
-        $this->generarCertificadoPDF($cert_number, $pdfFullPath, $_POST, $address_id);
+        // 9.1) Generar PDF y mover imágenes a temp (AHORA nos regresa rutas físicas en temp)
+        $tempImgs = $this->generarCertificadoPDF($cert_number, $pdfFullPath, $_POST, $address_id);
+
+        // 9.2) ZIP (igual que siempre, sigue tomando de uploads/temp)
         $this->generarArchivoZIP($cert_number, $pdfFullPath, $_FILES['imagenes']);
+
+        // 9.3) Enviar a API externa ANTES de limpiar temporales
+        $apiResp = $this->enviarCertificadoSmogsBackups($cert_number, $_POST, $address_id, $pdfFullPath, $tempImgs);
+
+        // 9.4) Limpiar temporales al final
         $this->limpiarTemporales($cert_number);
 
+        // 9.5) Respuesta al frontend (agrego info api por transparencia)
         echo json_encode([
-            'msg'     => 'Certificado creado exitosamente',
-            'icono'   => 'success',
-            'pdf_url' => BASE_URL . $pdfRelPath,
-            'zip_url' => BASE_URL . $zipRelPath
+            'msg'       => 'Certificado creado exitosamente',
+            'icono'     => 'success',
+            'pdf_url'   => BASE_URL . $pdfRelPath,
+            'zip_url'   => BASE_URL . $zipRelPath,
+            'api_ok'    => $apiResp['ok'] ?? false,
+            'api_status'=> $apiResp['status'] ?? 0,
+            'api_msg'   => $apiResp['api_msg'] ?? ''
         ], JSON_UNESCAPED_UNICODE);
         exit;
+
     } else {
         $this->responderJSON("Solicitud inválida", "error");
     }
@@ -195,7 +208,8 @@ public function crear()
 
 
 
-    private function generarCertificadoPDF($cert_number, $pdf_path, $data, $address_id)
+    private function generarCertificadoPDF($cert_number, $pdf_path, $data, $address_id): array
+
     {
         // Obtener el nombre del inspector
         $inspector_id = is_numeric($data['inspector'])
@@ -245,27 +259,41 @@ $optionsQR = new QROptions([
         $certBarcodeWeb = BASE_URL . 'uploads/temp/' . $cert_number . '_cert_barcode.png';
 
         // Incluir imágenes subidas al PDF (copiarlas temporalmente en uploads/temp/)
-        $imagenesHTML = '';
-        if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_name'])) {
-            $total = min(9, count($_FILES['imagenes']['tmp_name']));
-            for ($i = 0; $i < $total; $i++) {
-                $nombreArchivo = basename($_FILES['imagenes']['name'][$i]);
-                $rutaTemp = $_FILES['imagenes']['tmp_name'][$i];
-$rutaDestinoRel = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreArchivo;
-$rutaWeb        = BASE_URL  . $rutaDestinoRel;
-$rutaFisica     = BASE_PATH . $rutaDestinoRel;
-// Asegura carpeta
-$dir = dirname($rutaFisica);
-if (!is_dir($dir)) {
-    mkdir($dir, 0775, true);
+         $imagenesHTML = '';
+$tempImgs = [];
+
+if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_name'])) {
+    $total = count($_FILES['imagenes']['tmp_name']); // ahora deben ser 8
+    for ($i = 0; $i < $total; $i++) {
+        $nombreArchivo = basename($_FILES['imagenes']['name'][$i]);
+        $rutaTemp      = $_FILES['imagenes']['tmp_name'][$i];
+
+        $rutaDestinoRel = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreArchivo;
+        $rutaWeb        = BASE_URL  . $rutaDestinoRel;
+        $rutaFisica     = BASE_PATH . $rutaDestinoRel;
+
+        // Asegura carpeta
+        $dir = dirname($rutaFisica);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        if (is_uploaded_file($rutaTemp)) {
+            move_uploaded_file($rutaTemp, $rutaFisica);
+
+            // 1) Para el PDF (como ya lo hacías)
+            $imagenesHTML .= '<img src="' . $rutaWeb . '" width="200" height="200" style="margin:5px;">';
+
+            // 2) Para la API (ruta física para base64)
+            $tempImgs[] = [
+                'index' => $i,
+                'name'  => $nombreArchivo,
+                'path'  => $rutaFisica,
+            ];
+        }
+    }
 }
 
-if (is_uploaded_file($rutaTemp)) {
-    move_uploaded_file($rutaTemp, $rutaFisica);
-    $imagenesHTML .= '<img src="' . $rutaWeb . '" width="200" height="200" style="margin:5px;">';
-}
-            }
-        }
 
         // HTML del PDF
               // HTML del PDF
@@ -434,6 +462,8 @@ if (is_uploaded_file($rutaTemp)) {
         $dompdf->render();
 
         file_put_contents($pdf_path, $dompdf->output());
+        return $tempImgs;
+
     }
 
     public function obtenerFirmaInspector($id)
@@ -486,6 +516,105 @@ if (is_uploaded_file($rutaTemp)) {
     }
 }
 
+private function enviarCertificadoSmogsBackups(
+    string $cert_number,
+    array $post,
+    int $address_id,
+    string $pdfFullPath,
+    array $tempImgs
+): array
+{
+    // 1) Validaciones mínimas de archivos
+    if (!file_exists($pdfFullPath)) {
+        return ['ok' => false, 'status' => 0, 'api_msg' => 'PDF no encontrado para envío API'];
+    }
+    if (count($tempImgs) < 8) {
+        return ['ok' => false, 'status' => 0, 'api_msg' => 'Faltan imágenes para envío API (se requieren 8)'];
+    }
+
+    // 2) Dirección completa (la API requiere lat/lon y teléfono también)
+    $direccion = $this->model->obtenerDireccionPorId($address_id);
+
+    // 3) Preparar payload "API" (urlencoded)
+    //    OJO: aquí pongo los campos base; luego lo afinamos con el PDF de SmogsBackups.
+    $payload = [];
+
+    // Credenciales en body (como definimos en Helpers)
+    $payload = array_merge($payload, api_credentials('smogs_backups'));
+
+    // Campos típicos (los nombres EXACTOS los ajustamos con tu PDF)
+    $payload['vin']          = $post['vin'] ?? '';
+    $payload['cert_number']  = $cert_number;
+
+    // Ejemplo de mapping de PASA/FALLA -> PASS/FAIL (lo afinamos)
+    $payload['testignicion']   = (($post['monitor_fallo_encendido'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
+    $payload['testfuel']       = (($post['monitor_sistema_combustible'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
+    $payload['testcat']        = (($post['monitor_catalizador'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
+    $payload['testcat2']       = (($post['monitor_integral_catalizador'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
+    $payload['testo2']         = (($post['monitor_sensor_c2'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
+    $payload['resultado']      = (($post['resultado_prueba'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
+
+    $payload['odometer']     = $post['odometro'] ?? '';
+    $payload['licensePlate'] = $post['placa'] ?? '';
+
+    $payload['latitud']      = $direccion['latitude'] ?? ($post['latitud'] ?? '');
+    $payload['longitud']     = $direccion['longitude'] ?? ($post['longitud'] ?? '');
+    $payload['telefono']     = $post['telefono'] ?? '';
+
+    // 4) Adjuntos: PDF y fotos en base64
+    $payload['certificadoPdf'] = base64_encode(file_get_contents($pdfFullPath));
+
+    // Fotos por índice (orden fijo que definimos en la vista)
+    $fotoMap = [
+        0 => 'fotoVin',
+        1 => 'fotoFrente',
+        2 => 'fotoAtras',
+        3 => 'fotoPiloto',
+        4 => 'fotoPasajero',
+        5 => 'fotoPuerta',
+        6 => 'fotoScanner',
+        7 => 'fotoTaller',
+    ];
+
+    foreach ($tempImgs as $img) {
+        $i = (int)($img['index'] ?? -1);
+        if ($i < 0 || !isset($fotoMap[$i])) continue;
+
+        $field = $fotoMap[$i];
+        if (file_exists($img['path'])) {
+            $payload[$field] = base64_encode(file_get_contents($img['path']));
+        }
+    }
+
+    // Extensión requerida por la API
+    $payload['foto_Extension'] = $post['foto_Extension'] ?? 'jpg';
+
+    // 5) Enviar (usa Helpers + ApiClient)
+    // En testing te vas a Postman Echo; en production al real.
+    $api = api_client('smogs_backups');
+
+    // Postman Echo usa /post, la API real usa su endpoint propio.
+    // Aquí lo dejamos configurable: si estás en testing, usamos "/post"
+    $cfg = api_config('smogs_backups');
+    $path = (!empty($cfg['mode']) && $cfg['mode'] === 'testing') ? '/post' : '/Mechanical/Emissions'; // AJUSTAR con el PDF real
+
+    $resp = $api->postUrlEncoded($path, $payload);
+
+    // 6) Mensaje simple para tu UI
+    $apiMsg = '';
+    if (!empty($resp['json'])) {
+        // Postman Echo regresa fields en json; la API real regresa codigo/descripcion
+        $apiMsg = $resp['json']['descripcion'] ?? ($resp['json']['message'] ?? '');
+    }
+
+    return [
+        'ok'       => $resp['ok'] ?? false,
+        'status'   => $resp['status'] ?? 0,
+        'api_msg'  => $apiMsg,
+        'raw'      => $resp['body'] ?? '',
+        'json'     => $resp['json'] ?? null,
+    ];
+}
 
 
 private function limpiarTemporales($cert_number)
