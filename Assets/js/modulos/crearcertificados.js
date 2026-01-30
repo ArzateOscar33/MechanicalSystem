@@ -12,11 +12,24 @@ document.addEventListener("DOMContentLoaded", function () {
   const inspectorSelect = document.getElementById("inspector");
   const nuevoInspectorCheck = document.getElementById("nuevo_inspector_check");
   const nuevoInspectorInput = document.getElementById("nuevo_inspector");
-  const requiredInputs = document.querySelectorAll(
-    "#formularioCertificado input[required], #formularioCertificado select[required]"
-  );
   const yearInput = document.getElementById("year");
   const numeroCertInput = document.getElementById("numero_certificado");
+
+  // ===== NUEVO: fotos requeridas por API (8) =====
+  const EXPECTED_PHOTOS = [
+    "Foto VIN (fotoVin)",
+    "Foto Frente (fotoFrente)",
+    "Foto Atrás (fotoAtras)",
+    "Foto Piloto (fotoPiloto)",
+    "Foto Pasajero (fotoPasajero)",
+    "Foto Puerta (fotoPuerta)",
+    "Foto Scanner (fotoScanner)",
+    "Foto Taller (fotoTaller)",
+  ];
+
+  // ===== Base URL (si no existe en tu global, deja esto como está) =====
+  // Tu código ya usa base_url; asumo que existe globalmente.
+  // const base_url = window.base_url || "";
 
   // Establecer fecha mínima hoy
   const today = new Date();
@@ -24,99 +37,22 @@ document.addEventListener("DOMContentLoaded", function () {
   const mm = String(today.getMonth() + 1).padStart(2, "0");
   const dd = String(today.getDate()).padStart(2, "0");
   const fechaMinima = `${yyyy}-${mm}-${dd}`;
-  fechaInput.setAttribute("min", fechaMinima);
-  expiracionInput.readOnly = true;
+  if (fechaInput) fechaInput.setAttribute("min", fechaMinima);
+  if (expiracionInput) expiracionInput.readOnly = true;
 
   // Flag para evitar envíos múltiples
   let enviando = false;
-  // Botón submit (ajusta si tienes un id específico)
-  const btnSubmit = frm.querySelector('button[type="submit"], input[type="submit"]');
-  const originalBtnText =
-    btnSubmit && btnSubmit.tagName === "BUTTON" ? btnSubmit.textContent : null;
 
-  if (yearInput) {
-    const minYear = 1950;
-    const maxYear = yyyy + 1; // año actual + 1
+  // Botón submit
+  const btnSubmit = frm ? frm.querySelector('button[type="submit"], input[type="submit"]') : null;
+  const originalBtnText = btnSubmit && btnSubmit.tagName === "BUTTON" ? btnSubmit.textContent : null;
 
-    yearInput.setAttribute("min", minYear);
-    yearInput.setAttribute("max", maxYear);
+  // Inputs required (NO usamos esto para validar fotos; fotos las validamos aparte)
+  const requiredInputs = document.querySelectorAll(
+    "#formularioCertificado input[required], #formularioCertificado select[required]"
+  );
 
-    yearInput.addEventListener("change", function () {
-      const valor = parseInt(yearInput.value, 10);
-      if (isNaN(valor) || valor < minYear || valor > maxYear) {
-        alertas(
-          `El año del vehículo debe estar entre ${minYear} y ${maxYear}.`,
-          "warning"
-        );
-        yearInput.value = "";
-      }
-    });
-  }
-
-  if (inspectorSelect) {
-    inspectorSelect.addEventListener("change", function () {
-      const id = this.value;
-      if (!id) {
-        firmaPreview.style.display = "none";
-        imagenFirma.src = "";
-        return;
-      }
-      fetch(base_url + "CrearCertificados/obtenerFirmaInspector/" + id)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.firma) {
-            imagenFirma.src = data.firma;
-            firmaPreview.style.display = "block";
-          } else {
-            firmaPreview.style.display = "none";
-            imagenFirma.src = "";
-          }
-        });
-    });
-  }
-
-  fechaInput.addEventListener("change", function () {
-    const valor = fechaInput.value;
-    if (valor < fechaMinima) {
-      alertas("La fecha no puede ser anterior a hoy.", "warning");
-      fechaInput.value = "";
-      expiracionInput.value = "";
-      return;
-    }
-
-    const fecha = new Date(valor);
-
-    // Ahora sumamos 3 meses en lugar de 1 año
-    fecha.setMonth(fecha.getMonth() + 3);
-
-    const yyyy = fecha.getFullYear();
-    const mm = String(fecha.getMonth() + 1).padStart(2, "0");
-    const dd = String(fecha.getDate()).padStart(2, "0");
-    expiracionInput.value = `${yyyy}-${mm}-${dd}`;
-  });
-
-  function actualizarVisibilidadDireccion() {
-    const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
-    if (usandoDireccionExistente) {
-      camposNuevaDireccion.style.display = "none";
-      telefonoInput.required = false;
-    } else {
-      camposNuevaDireccion.style.display = "block";
-      telefonoInput.required = true;
-    }
-    verificarCamposCompletos();
-  }
-
-  if (selectDireccion) {
-    selectDireccion.addEventListener("change", function () {
-      actualizarVisibilidadDireccion();
-      cargarLatLonDireccion(selectDireccion.value);
-    });
-    actualizarVisibilidadDireccion();
-    cargarLatLonDireccion(selectDireccion.value);
-  }
-
-  // CAMPOS QUE QUEREMOS SIEMPRE EN MAYÚSCULAS
+  // ===== Helpers: mayúsculas =====
   const camposMayusculasIds = [
     "numero",
     "calle",
@@ -131,7 +67,6 @@ document.addEventListener("DOMContentLoaded", function () {
     "propietario",
     "ebitn",
   ];
-
   camposMayusculasIds.forEach((id) => {
     const input = document.getElementById(id);
     if (input) {
@@ -141,183 +76,327 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  function actualizarNumeroCertificadoLocal() {
-    if (!numeroCertInput || !numeroCertInput.value) {
-      return;
-    }
+  // ===== Validación year =====
+  if (yearInput) {
+    const minYear = 1950;
+    const maxYear = yyyy + 1;
+    yearInput.setAttribute("min", minYear);
+    yearInput.setAttribute("max", maxYear);
 
-    const actual = numeroCertInput.value.trim(); // ej: "MEX-00000012"
-    const partes = actual.split("-");
-
-    if (partes.length !== 2) {
-      return; // formato inesperado, no hacemos nada
-    }
-
-    const prefijo = partes[0] + "-"; // "MEX-"
-    const parteNumerica = partes[1]; // "00000012"
-    const numero = parseInt(parteNumerica, 10);
-
-    if (isNaN(numero)) {
-      return;
-    }
-
-    const siguiente = (numero + 1).toString().padStart(parteNumerica.length, "0");
-    numeroCertInput.value = prefijo + siguiente; // "MEX-00000013"
+    yearInput.addEventListener("change", function () {
+      const valor = parseInt(yearInput.value, 10);
+      if (isNaN(valor) || valor < minYear || valor > maxYear) {
+        alertas(`El año del vehículo debe estar entre ${minYear} y ${maxYear}.`, "warning");
+        yearInput.value = "";
+      }
+    });
   }
 
+  // ===== Firma inspector =====
+  if (inspectorSelect) {
+    inspectorSelect.addEventListener("change", function () {
+      const id = this.value;
+      if (!id) {
+        if (firmaPreview) firmaPreview.style.display = "none";
+        if (imagenFirma) imagenFirma.src = "";
+        return;
+      }
+
+      fetch(base_url + "CrearCertificados/obtenerFirmaInspector/" + id)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.firma) {
+            if (imagenFirma) imagenFirma.src = data.firma;
+            if (firmaPreview) firmaPreview.style.display = "block";
+          } else {
+            if (firmaPreview) firmaPreview.style.display = "none";
+            if (imagenFirma) imagenFirma.src = "";
+          }
+        })
+        .catch(() => {
+          if (firmaPreview) firmaPreview.style.display = "none";
+          if (imagenFirma) imagenFirma.src = "";
+        });
+    });
+  }
+
+  // ===== Fecha expiración +3 meses =====
+  if (fechaInput && expiracionInput) {
+    fechaInput.addEventListener("change", function () {
+      const valor = fechaInput.value;
+      if (valor < fechaMinima) {
+        alertas("La fecha no puede ser anterior a hoy.", "warning");
+        fechaInput.value = "";
+        expiracionInput.value = "";
+        return;
+      }
+
+      const fecha = new Date(valor);
+      fecha.setMonth(fecha.getMonth() + 3);
+
+      const y = fecha.getFullYear();
+      const m = String(fecha.getMonth() + 1).padStart(2, "0");
+      const d = String(fecha.getDate()).padStart(2, "0");
+      expiracionInput.value = `${y}-${m}-${d}`;
+    });
+  }
+
+  // ===== Dirección existente vs nueva =====
+  function actualizarVisibilidadDireccion() {
+    const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
+    if (usandoDireccionExistente) {
+      if (camposNuevaDireccion) camposNuevaDireccion.style.display = "none";
+      if (telefonoInput) telefonoInput.required = false;
+    } else {
+      if (camposNuevaDireccion) camposNuevaDireccion.style.display = "block";
+      if (telefonoInput) telefonoInput.required = true;
+    }
+    verificarCamposCompletos();
+  }
+
+  if (selectDireccion) {
+    selectDireccion.addEventListener("change", function () {
+      actualizarVisibilidadDireccion();
+      cargarLatLonDireccion(selectDireccion.value);
+    });
+    actualizarVisibilidadDireccion();
+    cargarLatLonDireccion(selectDireccion.value);
+  }
+
+  // ===== Número certificado local +1 (solo UI) =====
+  function actualizarNumeroCertificadoLocal() {
+    if (!numeroCertInput || !numeroCertInput.value) return;
+
+    const actual = numeroCertInput.value.trim();
+    const partes = actual.split("-");
+    if (partes.length !== 2) return;
+
+    const prefijo = partes[0] + "-";
+    const parteNumerica = partes[1];
+    const numero = parseInt(parteNumerica, 10);
+    if (isNaN(numero)) return;
+
+    const siguiente = (numero + 1).toString().padStart(parteNumerica.length, "0");
+    numeroCertInput.value = prefijo + siguiente;
+  }
+
+  // ===== QR enable/disable (no considera files) =====
   function verificarCamposCompletos() {
     const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
     const incompletos = Array.from(requiredInputs).some((input) => {
-      if (usandoDireccionExistente && camposNuevaDireccion.contains(input)) {
+      // si usa dirección existente, ignoramos los required dentro del bloque de nueva dirección
+      if (usandoDireccionExistente && camposNuevaDireccion && camposNuevaDireccion.contains(input)) {
         return false;
       }
-      return input.type !== "file" && !input.value.trim();
+
+      // IGNORAMOS validación de files aquí (las fotos se validan aparte en submit)
+      if (input.type === "file") return false;
+
+      return !String(input.value || "").trim();
     });
-    generarQRBtn.disabled = incompletos;
+
+    if (generarQRBtn) generarQRBtn.disabled = incompletos;
   }
 
   requiredInputs.forEach((input) => {
     input.addEventListener("input", verificarCamposCompletos);
     input.addEventListener("change", verificarCamposCompletos);
   });
-
   verificarCamposCompletos();
 
-  generarQRBtn.addEventListener("click", function () {
-    const vin = document.querySelector("#vin").value.trim();
-    const propietario = document.querySelector("#propietario").value.trim();
-    const fabricadoEn = document.querySelector("#fabricado_en").value.trim();
-    const year = document.querySelector("#year").value.trim();
-    const modelo = document.querySelector("#modelo").value.trim();
-    const marca = document.querySelector("#marca").value.trim();
+  // ===== QR Generación =====
+  if (generarQRBtn) {
+    generarQRBtn.addEventListener("click", function () {
+      const vin = (document.querySelector("#vin")?.value || "").trim();
+      const propietario = (document.querySelector("#propietario")?.value || "").trim();
+      const fabricadoEn = (document.querySelector("#fabricado_en")?.value || "").trim();
+      const year = (document.querySelector("#year")?.value || "").trim();
+      const modelo = (document.querySelector("#modelo")?.value || "").trim();
+      const marca = (document.querySelector("#marca")?.value || "").trim();
 
-    if (!vin || !propietario || !fabricadoEn || !year || !modelo || !marca) {
-      alertas("Faltan campos para generar el código QR", "warning");
-      return;
-    }
+      if (!vin || !propietario || !fabricadoEn || !year || !modelo || !marca) {
+        alertas("Faltan campos para generar el código QR", "warning");
+        return;
+      }
 
-    const contenidoQR = `${vin}|${propietario}|${fabricadoEn}|${year}|${modelo}|${marca}`;
-    qrCodeContainer.innerHTML = "";
+      const contenidoQR = `${vin}|${propietario}|${fabricadoEn}|${year}|${modelo}|${marca}`;
+      if (qrCodeContainer) qrCodeContainer.innerHTML = "";
 
-    new QRCode(qrCodeContainer, {
-      text: contenidoQR,
-      width: 256,
-      height: 256,
+      new QRCode(qrCodeContainer, { text: contenidoQR, width: 256, height: 256 });
     });
-  });
+  }
 
-  frm.addEventListener("submit", function (e) {
-    e.preventDefault();
+  // ===== NUEVO: Validación estricta de fotos para API =====
+  function getPhotoInputs() {
+    // En tu vista nueva tendrás 8 inputs con name="imagenes[]"
+    return Array.from(frm.querySelectorAll('input[type="file"][name="imagenes[]"]'));
+  }
 
-    // Si ya se está enviando, ignoramos el submit
-    if (enviando) {
-      return;
+  function isJpgFile(file) {
+    if (!file) return false;
+    const name = (file.name || "").toLowerCase();
+    const type = (file.type || "").toLowerCase();
+
+    const byExt = name.endsWith(".jpg") || name.endsWith(".jpeg");
+    const byMime = type === "image/jpeg";
+
+    // Permitimos por extensión o por mime (hay navegadores que no ponen mime consistente)
+    return byExt || byMime;
+  }
+
+  function validarFotosApi() {
+    const photoInputs = getPhotoInputs();
+
+    if (photoInputs.length !== EXPECTED_PHOTOS.length) {
+      alertas(
+        `La vista no coincide con la configuración esperada. Se requieren ${EXPECTED_PHOTOS.length} campos de foto.`,
+        "error"
+      );
+      return false;
     }
 
-    const valorFecha = fechaInput.value;
-    const valorExp = expiracionInput.value;
+    for (let i = 0; i < photoInputs.length; i++) {
+      const input = photoInputs[i];
+      const files = input.files;
 
-    if (!valorFecha) {
-      alertas("La fecha del certificado es obligatoria.", "warning");
-      return;
+      if (!files || files.length !== 1) {
+        alertas(`Falta: ${EXPECTED_PHOTOS[i]}`, "warning");
+        input.focus();
+        return false;
+      }
+
+      const file = files[0];
+      if (!isJpgFile(file)) {
+        alertas(`La ${EXPECTED_PHOTOS[i]} debe ser JPG/JPEG. Archivo: ${file.name}`, "warning");
+        input.focus();
+        return false;
+      }
     }
 
-    if (valorFecha < fechaMinima) {
-      alertas("La fecha del certificado no puede ser anterior a hoy.", "warning");
-      return;
-    }
+    // Asegurar hidden foto_Extension = jpg (si existe)
+    const ext = document.getElementById("foto_Extension");
+    if (ext) ext.value = "jpg";
 
-    if (valorExp <= valorFecha) {
-      alertas("La fecha de expiración debe ser posterior a la del certificado.", "warning");
-      return;
-    }
+    return true;
+  }
 
-    if (nuevoInspectorCheck && nuevoInspectorCheck.checked) {
-      inspectorSelect.value = nuevoInspectorInput.value;
-    }
+  // ===== Submit =====
+  if (frm) {
+    frm.addEventListener("submit", function (e) {
+      e.preventDefault();
 
-    // Bloqueamos el envío
-    enviando = true;
-    if (btnSubmit) {
-      btnSubmit.disabled = true;
-      if (btnSubmit.tagName === "BUTTON") btnSubmit.textContent = "Generando...";
-    }
+      if (enviando) return;
 
-    const data = new FormData(frm);
-    const url = base_url + "CrearCertificados/crear";
+      const valorFecha = fechaInput ? fechaInput.value : "";
+      const valorExp = expiracionInput ? expiracionInput.value : "";
 
-    const http = new XMLHttpRequest();
-    http.open("POST", url, true);
-    http.send(data);
-
-    http.onreadystatechange = function () {
-      if (this.readyState !== 4) {
+      if (!valorFecha) {
+        alertas("La fecha del certificado es obligatoria.", "warning");
+        return;
+      }
+      if (valorFecha < fechaMinima) {
+        alertas("La fecha del certificado no puede ser anterior a hoy.", "warning");
+        return;
+      }
+      if (valorExp && valorExp <= valorFecha) {
+        alertas("La fecha de expiración debe ser posterior a la del certificado.", "warning");
         return;
       }
 
-      // En este punto la petición terminó
-      enviando = false;
-
-      if (this.status !== 200) {
-        // Error HTTP, reactivamos botón
-        if (btnSubmit) {
-          btnSubmit.disabled = false;
-          if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
-            btnSubmit.textContent = originalBtnText;
-          }
+      // Inspector alternativo (si existe en tu UI)
+      if (nuevoInspectorCheck && nuevoInspectorInput && inspectorSelect) {
+        if (nuevoInspectorCheck.checked) {
+          inspectorSelect.value = nuevoInspectorInput.value;
         }
-        alertas("Ocurrió un error al generar el certificado.", "error");
+      }
+
+      // ===== NUEVO: validar fotos API antes de enviar =====
+      if (!validarFotosApi()) {
         return;
       }
 
-      console.log(this.responseText);
-      let res;
-      try {
-        res = JSON.parse(this.responseText);
-      } catch (err) {
-        if (btnSubmit) {
-          btnSubmit.disabled = false;
-          if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
-            btnSubmit.textContent = originalBtnText;
-          }
-        }
-        alertas("Respuesta inválida del servidor.", "error");
-        return;
-      }
-
-      alertas(res.msg, res.icono);
-
-      if (res.icono === "success") {
-        // Guardamos el número actual ANTES del reset
-        const certActual = numeroCertInput ? numeroCertInput.value : "";
-
-        frm.reset();
-        qrCodeContainer.innerHTML = "";
-        imagenFirma.src = "";
-        firmaPreview.style.display = "none";
-
-        // Restaurar y calcular el siguiente número
-        if (numeroCertInput && certActual) {
-          numeroCertInput.value = certActual;
-          actualizarNumeroCertificadoLocal();
-        }
-
-        verificarCamposCompletos();
-        window.open(res.pdf_url, "_blank");
-        window.location.href = res.zip_url;
-        // No reactivamos el botón aquí porque la página cambiará
-        return;
-      }
-
-      // Si no fue success, reactivamos el botón
+      // Bloqueamos el envío
+      enviando = true;
       if (btnSubmit) {
-        btnSubmit.disabled = false;
-        if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
-          btnSubmit.textContent = originalBtnText;
-        }
+        btnSubmit.disabled = true;
+        if (btnSubmit.tagName === "BUTTON") btnSubmit.textContent = "Generando...";
       }
-    };
-  });
+
+      const data = new FormData(frm);
+      const url = base_url + "CrearCertificados/crear";
+
+      const http = new XMLHttpRequest();
+      http.open("POST", url, true);
+      http.send(data);
+
+      http.onreadystatechange = function () {
+        if (this.readyState !== 4) return;
+
+        enviando = false;
+
+        if (this.status !== 200) {
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            if (btnSubmit.tagName === "BUTTON" && originalBtnText) btnSubmit.textContent = originalBtnText;
+          }
+          alertas("Ocurrió un error al generar el certificado.", "error");
+          return;
+        }
+
+        let res;
+        try {
+          res = JSON.parse(this.responseText);
+        } catch (err) {
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            if (btnSubmit.tagName === "BUTTON" && originalBtnText) btnSubmit.textContent = originalBtnText;
+          }
+          alertas("Respuesta inválida del servidor.", "error");
+          return;
+        }
+
+        // Mensaje principal
+        alertas(res.msg || "Proceso finalizado", res.icono || "info");
+
+        // Si quieres avisar estado API externo (sin romper nada):
+        // (Solo mostrará si tu backend ya lo retorna)
+        if (typeof res.api_ok !== "undefined") {
+          if (res.api_ok) {
+            console.log("API externa OK", res.api_status, res.api_msg || "");
+          } else {
+            console.warn("API externa FALLÓ", res.api_status, res.api_msg || "");
+          }
+        }
+
+        if (res.icono === "success") {
+          const certActual = numeroCertInput ? numeroCertInput.value : "";
+
+          frm.reset();
+          if (qrCodeContainer) qrCodeContainer.innerHTML = "";
+          if (imagenFirma) imagenFirma.src = "";
+          if (firmaPreview) firmaPreview.style.display = "none";
+
+          // Restaurar y calcular el siguiente número (solo UI)
+          if (numeroCertInput && certActual) {
+            numeroCertInput.value = certActual;
+            actualizarNumeroCertificadoLocal();
+          }
+
+          verificarCamposCompletos();
+
+          // Mantengo tu flujo
+          if (res.pdf_url) window.open(res.pdf_url, "_blank");
+          if (res.zip_url) window.location.href = res.zip_url;
+          return;
+        }
+
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          if (btnSubmit.tagName === "BUTTON" && originalBtnText) btnSubmit.textContent = originalBtnText;
+        }
+      };
+    });
+  }
 });
 
 function cargarLatLonDireccion(id) {
@@ -325,13 +404,20 @@ function cargarLatLonDireccion(id) {
   const latInput = document.getElementById("latitud");
   const lonInput = document.getElementById("longitud");
 
+  if (!latInput || !lonInput) return;
+
   if (id) {
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
         latInput.value = data.latitude || "";
         lonInput.value = data.longitude || "";
-        latInput.parentElement.parentElement.style.display = "none";
+
+        // oculta bloque lat/lon cuando se trae de dirección existente
+        if (latInput.parentElement && latInput.parentElement.parentElement) {
+          latInput.parentElement.parentElement.style.display = "none";
+        }
+
         latInput.required = false;
         lonInput.required = false;
       })
@@ -339,19 +425,27 @@ function cargarLatLonDireccion(id) {
         console.error("Error al obtener lat/lon:", error);
         latInput.value = "";
         lonInput.value = "";
-        latInput.parentElement.parentElement.style.display = "block";
+
+        if (latInput.parentElement && latInput.parentElement.parentElement) {
+          latInput.parentElement.parentElement.style.display = "block";
+        }
+
         latInput.required = true;
         lonInput.required = true;
       });
   } else {
     latInput.value = "";
     lonInput.value = "";
-    latInput.parentElement.parentElement.style.display = "block";
+
+    if (latInput.parentElement && latInput.parentElement.parentElement) {
+      latInput.parentElement.parentElement.style.display = "block";
+    }
+
     latInput.required = true;
     lonInput.required = true;
   }
 }
 
 function alertas(msg, icono) {
-  Swal.fire("Aviso", msg.toUpperCase(), icono);
+  Swal.fire("Aviso", String(msg || "").toUpperCase(), icono || "info");
 }

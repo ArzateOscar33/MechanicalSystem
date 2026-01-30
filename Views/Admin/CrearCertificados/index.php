@@ -225,7 +225,7 @@
     <div class="row g-3">
       <div class="col-md-6">
         <label class="form-label">1) Foto VIN (fotoVin)</label>
-        <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/jpeg" required>
+        <input type="file" class="form-control"  name="imagenes[]" accept="image/jpeg" required>
         <div class="form-text">Debe verse claramente el VIN.</div>
       </div>
 

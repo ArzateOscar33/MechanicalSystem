@@ -240,4 +240,44 @@ public function generarCertNumberGlobal()
     $consecutivo = str_pad($numero, 8, "0", STR_PAD_LEFT);
     return 'MEX-' . $consecutivo;
 }
+
+
+//INSERCIONES PARA REGISTRO DE LA API 
+public function siguienteAttemptApiEmissions(string $cert_number): int
+{
+    $sql = "SELECT COALESCE(MAX(attempt), 0) + 1 AS n
+            FROM api_emissions_sync_log
+            WHERE cert_number = ?";
+    $row = $this->select($sql, [$cert_number]);
+    return (int)($row['n'] ?? 1);
+}
+
+public function insertarApiEmissionsSyncLog(array $d): int
+{
+    $sql = "INSERT INTO api_emissions_sync_log
+            (cert_number, vin, mode, endpoint,
+             payload_sha256, pdf_sha256, photos_sha256_json,
+             http_status, api_result, api_description, response_raw,
+             attempt, sent_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+
+    return (int)$this->insertar($sql, [
+        $d['cert_number'] ?? '',
+        $d['vin'] ?? '',
+        $d['mode'] ?? 'production',
+        $d['endpoint'] ?? '',
+
+        $d['payload_sha256'] ?? '',
+        $d['pdf_sha256'] ?? '',
+        $d['photos_sha256_json'] ?? '{}',
+
+        (int)($d['http_status'] ?? 0),
+        $d['api_result'] ?? null,
+        $d['api_description'] ?? null,
+        $d['response_raw'] ?? null,
+
+        (int)($d['attempt'] ?? 1),
+    ]);
+}
+
 }

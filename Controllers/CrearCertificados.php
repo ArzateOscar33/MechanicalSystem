@@ -21,95 +21,82 @@ class CrearCertificados extends Controller
         }
     }
 
-public function index()
-{
-    if (empty($_SESSION['nombre_usuario'])) {
-        header('Location: ' . BASE_URL . 'admin');
-        exit;
-    }
-
-    // Número PRELIMINAR: solo lectura, NO incrementa en BD
-    $cert_number = $this->model->obtenerCertNumberPreliminar();
-
-    $data['title'] = 'Crear Certificado';
-    $data['cert_number'] = $cert_number; // se muestra en el input readonly
-    $data['direcciones'] = $this->model->obtenerDirecciones();
-    $data['inspectores'] = $this->model->obtenerInspectores();
-    $this->views->getView('admin/CrearCertificados', "index", $data);
-}
-
-public function crear()
-{
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        ini_set('display_errors', 1);
-        ini_set('display_startup_errors', 1);
-        error_reporting(E_ALL);
-
-        $id_usuario = $_SESSION['id_usuario'] ?? 0;
-
-        // 🔹 1) Tomamos todos los datos del POST
-        $vin            = $_POST['vin'];
-        $year           = $_POST['year'];
-        $make           = $_POST['marca'];
-        $model          = $_POST['modelo'];
-        $mfg_in         = $_POST['fabricado_en'];
-        $license_plate  = $_POST['placa'];
-        $owner_name     = $_POST['propietario'];
-        $odometer       = $_POST['odometro'];
-        $inspector_name = $_POST['inspector'];
-        $test_date      = $_POST['fecha'];
-        $expires        = date('Y-m-d', strtotime('+3 months', strtotime($test_date)));
-        $source_file    = 'manual';
-        $phone          = $_POST['telefono'] ?? null;
-
-        // 🔹 2) Validar si ya tiene un certificado vigente ANTES de tocar la secuencia
-        $certExistente = $this->model->vinConCertificadoActivo($vin, $test_date);
-        if ($certExistente) {
-            $this->responderJSON(
-                "Ya existe un certificado vigente para este VIN. Solo puedes generar uno nuevo cuando el actual haya expirado.",
-                "warning"
-            );
-            return;
+    public function index()
+    {
+        if (empty($_SESSION['nombre_usuario'])) {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
         }
 
-        // Monitoreos
-        $monitoreos = [
-            'Fallo Encendido'       => $_POST['monitor_fallo_encendido'],
-            'Sistema Combustible'   => $_POST['monitor_sistema_combustible'],
-            'Catalizador Integral'  => $_POST['monitor_integral_catalizador'],
-            'Catalizador'           => $_POST['monitor_catalizador'],
-            'Sensor C2'             => $_POST['monitor_sensor_c2'],
-            'Resultado General'     => $_POST['resultado_prueba']
-        ];
+        // Número PRELIMINAR: solo lectura, NO incrementa en BD
+        $cert_number = $this->model->obtenerCertNumberPreliminar();
 
-        // Coordenadas
-        $latitud  = $_POST['latitud'] ?? null;
-        $longitud = $_POST['longitud'] ?? null;
+        $data['title'] = 'Crear Certificado';
+        $data['cert_number'] = $cert_number; // se muestra en el input readonly
+        $data['direcciones'] = $this->model->obtenerDirecciones();
+        $data['inspectores'] = $this->model->obtenerInspectores();
+        $this->views->getView('admin/CrearCertificados', "index", $data);
+    }
 
-        // 🔹 3) Resolver dirección (existente o nueva) ANTES del consecutivo
-        if (!empty($_POST['direccion_existente'])) {
-            $address_id = $_POST['direccion_existente'];
-        } else {
-            $number = $_POST['numero'];
-            $street = $_POST['calle'];
-            $city   = $_POST['ciudad'];
-            $state  = $_POST['estado'];
-            $zip    = $_POST['zip'];
+    public function crear()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            ini_set('display_errors', 1);
+            ini_set('display_startup_errors', 1);
+            error_reporting(E_ALL);
 
-            $direccion = $this->model->consultarDireccionConCoordenadas(
-                $number,
-                $street,
-                $city,
-                $state,
-                $zip,
-                $latitud,
-                $longitud
-            );
+            $id_usuario = $_SESSION['id_usuario'] ?? 0;
 
-            if ($direccion) {
-                $address_id = $direccion['id'];
+            // 🔹 1) Tomamos todos los datos del POST
+            $vin            = $_POST['vin'];
+            $year           = $_POST['year'];
+            $make           = $_POST['marca'];
+            $model          = $_POST['modelo'];
+            $mfg_in         = $_POST['fabricado_en'];
+            $license_plate  = $_POST['placa'];
+            $owner_name     = $_POST['propietario'];
+            $odometer       = $_POST['odometro'];
+            $inspector_name = $_POST['inspector'];
+            $test_date      = $_POST['fecha'];
+            $expires        = date('Y-m-d', strtotime('+3 months', strtotime($test_date)));
+            $source_file    = 'manual';
+            $phone          = $_POST['telefono'] ?? null;
+
+            // 🔹 2) Validar si ya tiene un certificado vigente ANTES de tocar la secuencia
+            $certExistente = $this->model->vinConCertificadoActivo($vin, $test_date);
+            if ($certExistente) {
+                $this->responderJSON(
+                    "Ya existe un certificado vigente para este VIN. Solo puedes generar uno nuevo cuando el actual haya expirado.",
+                    "warning"
+                );
+                return;
+            }
+
+            // Monitoreos
+            $monitoreos = [
+                'Fallo Encendido'       => $_POST['monitor_fallo_encendido'],
+                'Sistema Combustible'   => $_POST['monitor_sistema_combustible'],
+                'Catalizador Integral'  => $_POST['monitor_integral_catalizador'],
+                'Catalizador'           => $_POST['monitor_catalizador'],
+                'Sensor C2'             => $_POST['monitor_sensor_c2'],
+                'Resultado General'     => $_POST['resultado_prueba']
+            ];
+
+            // Coordenadas
+            $latitud  = $_POST['latitud'] ?? null;
+            $longitud = $_POST['longitud'] ?? null;
+
+            // 🔹 3) Resolver dirección (existente o nueva) ANTES del consecutivo
+            if (!empty($_POST['direccion_existente'])) {
+                $address_id = $_POST['direccion_existente'];
             } else {
-                $address_id = $this->model->insertarDireccionConCoordenadas(
+                $number = $_POST['numero'];
+                $street = $_POST['calle'];
+                $city   = $_POST['ciudad'];
+                $state  = $_POST['estado'];
+                $zip    = $_POST['zip'];
+
+                $direccion = $this->model->consultarDireccionConCoordenadas(
                     $number,
                     $street,
                     $city,
@@ -118,93 +105,105 @@ public function crear()
                     $latitud,
                     $longitud
                 );
+
+                if ($direccion) {
+                    $address_id = $direccion['id'];
+                } else {
+                    $address_id = $this->model->insertarDireccionConCoordenadas(
+                        $number,
+                        $street,
+                        $city,
+                        $state,
+                        $zip,
+                        $latitud,
+                        $longitud
+                    );
+                }
             }
+
+            // 🔹 4) Validar inspector ANTES del consecutivo
+            $inspector_input = $_POST['inspector'];
+
+            if (!is_numeric($inspector_input)) {
+                $this->responderJSON("Inspector no válido: debe seleccionar uno existente", "error");
+                return;
+            }
+
+            $inspector_id = intval($inspector_input);
+
+            // 🔹 5) AHORA SÍ: generar número DEFINITIVO (solo si todo lo anterior está OK)
+            $cert_number = $this->model->generarCertNumberGlobal(); // 👈 AQUÍ LO MOVEMOS
+
+            // 🔹 6) Insertar certificado
+            $insert = $this->model->insertarCertificado(
+                $cert_number,
+                $vin,
+                $address_id,
+                $phone,
+                $year,
+                $mfg_in,
+                $make,
+                $owner_name,
+                $model,
+                $license_plate,
+                $odometer,
+                $inspector_id,
+                $id_usuario,
+                $test_date,
+                $expires,
+                $source_file
+            );
+
+            if ($insert === false || $insert === null) {
+                $this->responderJSON("Error al crear el certificado", "error");
+                return;
+            }
+
+            // 🔹 7) Monitoreos
+            foreach ($monitoreos as $tipo => $resultado) {
+                $this->model->insertarMonitoreo($cert_number, $tipo, $resultado);
+            }
+
+            // 🔹 8) Log importación
+            try {
+                $this->model->registrarImportacion('cert_manual_' . date('YmdHis'), 'success', '', $id_usuario);
+            } catch (Exception $e) {
+                $this->model->registrarImportacionAlternativa('cert_manual_' . date('YmdHis'), 'success', '');
+            }
+
+            // 🔹 9) Generar PDF y ZIP usando el cert_number definitivo
+            $pdfRelPath = 'uploads/temp/' . $cert_number . '.pdf';
+            $zipRelPath = 'uploads/certificates/' . $cert_number . '.zip';
+
+            $pdfFullPath = BASE_PATH . $pdfRelPath;
+
+            // 9.1) Generar PDF y mover imágenes a temp (AHORA nos regresa rutas físicas en temp)
+            $tempImgs = $this->generarCertificadoPDF($cert_number, $pdfFullPath, $_POST, $address_id);
+
+            // 9.2) ZIP (igual que siempre, sigue tomando de uploads/temp)
+            $this->generarArchivoZIP($cert_number, $pdfFullPath, $_FILES['imagenes']);
+
+            // 9.3) Enviar a API externa ANTES de limpiar temporales
+            $apiResp = $this->enviarCertificadoSmogsBackups($cert_number, $_POST, $address_id, $pdfFullPath, $tempImgs);
+
+            // 9.4) Limpiar temporales al final
+            $this->limpiarTemporales($cert_number);
+
+            // 9.5) Respuesta al frontend (agrego info api por transparencia)
+            echo json_encode([
+                'msg'       => 'Certificado creado exitosamente',
+                'icono'     => 'success',
+                'pdf_url'   => BASE_URL . $pdfRelPath,
+                'zip_url'   => BASE_URL . $zipRelPath,
+                'api_ok'    => $apiResp['ok'] ?? false,
+                'api_status' => $apiResp['status'] ?? 0,
+                'api_msg'   => $apiResp['api_msg'] ?? ''
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        } else {
+            $this->responderJSON("Solicitud inválida", "error");
         }
-
-        // 🔹 4) Validar inspector ANTES del consecutivo
-        $inspector_input = $_POST['inspector'];
-
-        if (!is_numeric($inspector_input)) {
-            $this->responderJSON("Inspector no válido: debe seleccionar uno existente", "error");
-            return;
-        }
-
-        $inspector_id = intval($inspector_input);
-
-        // 🔹 5) AHORA SÍ: generar número DEFINITIVO (solo si todo lo anterior está OK)
-        $cert_number = $this->model->generarCertNumberGlobal(); // 👈 AQUÍ LO MOVEMOS
-
-        // 🔹 6) Insertar certificado
-        $insert = $this->model->insertarCertificado(
-            $cert_number,
-            $vin,
-            $address_id,
-            $phone,
-            $year,
-            $mfg_in,
-            $make,
-            $owner_name,
-            $model,
-            $license_plate,
-            $odometer,
-            $inspector_id,
-            $id_usuario,
-            $test_date,
-            $expires,
-            $source_file
-        );
-
-        if ($insert === false || $insert === null) {
-            $this->responderJSON("Error al crear el certificado", "error");
-            return;
-        }
-
-        // 🔹 7) Monitoreos
-        foreach ($monitoreos as $tipo => $resultado) {
-            $this->model->insertarMonitoreo($cert_number, $tipo, $resultado);
-        }
-
-        // 🔹 8) Log importación
-        try {
-            $this->model->registrarImportacion('cert_manual_' . date('YmdHis'), 'success', '', $id_usuario);
-        } catch (Exception $e) {
-            $this->model->registrarImportacionAlternativa('cert_manual_' . date('YmdHis'), 'success', '');
-        }
-
-        // 🔹 9) Generar PDF y ZIP usando el cert_number definitivo
-        $pdfRelPath = 'uploads/temp/' . $cert_number . '.pdf';
-        $zipRelPath = 'uploads/certificates/' . $cert_number . '.zip';
-
-        $pdfFullPath = BASE_PATH . $pdfRelPath;
-
-        // 9.1) Generar PDF y mover imágenes a temp (AHORA nos regresa rutas físicas en temp)
-        $tempImgs = $this->generarCertificadoPDF($cert_number, $pdfFullPath, $_POST, $address_id);
-
-        // 9.2) ZIP (igual que siempre, sigue tomando de uploads/temp)
-        $this->generarArchivoZIP($cert_number, $pdfFullPath, $_FILES['imagenes']);
-
-        // 9.3) Enviar a API externa ANTES de limpiar temporales
-        $apiResp = $this->enviarCertificadoSmogsBackups($cert_number, $_POST, $address_id, $pdfFullPath, $tempImgs);
-
-        // 9.4) Limpiar temporales al final
-        $this->limpiarTemporales($cert_number);
-
-        // 9.5) Respuesta al frontend (agrego info api por transparencia)
-        echo json_encode([
-            'msg'       => 'Certificado creado exitosamente',
-            'icono'     => 'success',
-            'pdf_url'   => BASE_URL . $pdfRelPath,
-            'zip_url'   => BASE_URL . $zipRelPath,
-            'api_ok'    => $apiResp['ok'] ?? false,
-            'api_status'=> $apiResp['status'] ?? 0,
-            'api_msg'   => $apiResp['api_msg'] ?? ''
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
-
-    } else {
-        $this->responderJSON("Solicitud inválida", "error");
     }
-}
 
 
 
@@ -218,27 +217,27 @@ public function crear()
         $inspector = $this->model->obtenerInspectorPorId($inspector_id);
         $inspector_name = $inspector ? $inspector['name'] : $data['inspector'];
 
-$firmaRelPath   = $inspector['direccion_firma'] ?? '';        // ej: "uploads/firmas/firma_123.png"
-$firmaFullPath  = BASE_PATH . $firmaRelPath;                  // físico
-$firmaWebPath   = BASE_URL  . $firmaRelPath;                  // URL
-$firma_path = (file_exists($firmaFullPath)) ? $firmaWebPath : '';
+        $firmaRelPath   = $inspector['direccion_firma'] ?? '';        // ej: "uploads/firmas/firma_123.png"
+        $firmaFullPath  = BASE_PATH . $firmaRelPath;                  // físico
+        $firmaWebPath   = BASE_URL  . $firmaRelPath;                  // URL
+        $firma_path = (file_exists($firmaFullPath)) ? $firmaWebPath : '';
 
 
         // Rutas de logo y QR para web
         $logoPath = BASE_URL . 'assets/images/logo.png';
 
-// QR
-$qrPathRel      = 'uploads/temp/' . $cert_number . '_qr.png'; // relativo
-$qrWebPath      = BASE_URL  . $qrPathRel;                     // URL
-$qrFileFullPath = BASE_PATH . $qrPathRel;                     // físico
+        // QR
+        $qrPathRel      = 'uploads/temp/' . $cert_number . '_qr.png'; // relativo
+        $qrWebPath      = BASE_URL  . $qrPathRel;                     // URL
+        $qrFileFullPath = BASE_PATH . $qrPathRel;                     // físico
 
-// Generar QR
-$contenidoQR = "{$data['vin']}|{$data['propietario']}|{$data['fabricado_en']}|{$data['year']}|{$data['modelo']}|{$data['marca']}";
-$optionsQR = new QROptions([
-    'outputType' => QRCode::OUTPUT_IMAGE_PNG,
-    'eccLevel'   => QRCode::ECC_L,
-]);
-(new QRCode($optionsQR))->render($contenidoQR, $qrFileFullPath);
+        // Generar QR
+        $contenidoQR = "{$data['vin']}|{$data['propietario']}|{$data['fabricado_en']}|{$data['year']}|{$data['modelo']}|{$data['marca']}";
+        $optionsQR = new QROptions([
+            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+            'eccLevel'   => QRCode::ECC_L,
+        ]);
+        (new QRCode($optionsQR))->render($contenidoQR, $qrFileFullPath);
 
         // Dirección
         $direccion = $this->model->obtenerDireccionPorId($address_id);
@@ -259,44 +258,44 @@ $optionsQR = new QROptions([
         $certBarcodeWeb = BASE_URL . 'uploads/temp/' . $cert_number . '_cert_barcode.png';
 
         // Incluir imágenes subidas al PDF (copiarlas temporalmente en uploads/temp/)
-         $imagenesHTML = '';
-$tempImgs = [];
+        $imagenesHTML = '';
+        $tempImgs = [];
 
-if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_name'])) {
-    $total = count($_FILES['imagenes']['tmp_name']); // ahora deben ser 8
-    for ($i = 0; $i < $total; $i++) {
-        $nombreArchivo = basename($_FILES['imagenes']['name'][$i]);
-        $rutaTemp      = $_FILES['imagenes']['tmp_name'][$i];
+        if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_name'])) {
+            $total = count($_FILES['imagenes']['tmp_name']); // ahora deben ser 8
+            for ($i = 0; $i < $total; $i++) {
+                $nombreArchivo = basename($_FILES['imagenes']['name'][$i]);
+                $rutaTemp      = $_FILES['imagenes']['tmp_name'][$i];
 
-        $rutaDestinoRel = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreArchivo;
-        $rutaWeb        = BASE_URL  . $rutaDestinoRel;
-        $rutaFisica     = BASE_PATH . $rutaDestinoRel;
+                $rutaDestinoRel = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreArchivo;
+                $rutaWeb        = BASE_URL  . $rutaDestinoRel;
+                $rutaFisica     = BASE_PATH . $rutaDestinoRel;
 
-        // Asegura carpeta
-        $dir = dirname($rutaFisica);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0775, true);
+                // Asegura carpeta
+                $dir = dirname($rutaFisica);
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0775, true);
+                }
+
+                if (is_uploaded_file($rutaTemp)) {
+                    move_uploaded_file($rutaTemp, $rutaFisica);
+
+                    // 1) Para el PDF (como ya lo hacías)
+                    $imagenesHTML .= '<img src="' . $rutaWeb . '" width="200" height="200" style="margin:5px;">';
+
+                    // 2) Para la API (ruta física para base64)
+                    $tempImgs[] = [
+                        'index' => $i,
+                        'name'  => $nombreArchivo,
+                        'path'  => $rutaFisica,
+                    ];
+                }
+            }
         }
-
-        if (is_uploaded_file($rutaTemp)) {
-            move_uploaded_file($rutaTemp, $rutaFisica);
-
-            // 1) Para el PDF (como ya lo hacías)
-            $imagenesHTML .= '<img src="' . $rutaWeb . '" width="200" height="200" style="margin:5px;">';
-
-            // 2) Para la API (ruta física para base64)
-            $tempImgs[] = [
-                'index' => $i,
-                'name'  => $nombreArchivo,
-                'path'  => $rutaFisica,
-            ];
-        }
-    }
-}
 
 
         // HTML del PDF
-              // HTML del PDF
+        // HTML del PDF
         $html = '
           <style>
                 body {
@@ -463,7 +462,6 @@ if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_
 
         file_put_contents($pdf_path, $dompdf->output());
         return $tempImgs;
-
     }
 
     public function obtenerFirmaInspector($id)
@@ -479,42 +477,42 @@ if (isset($_FILES['imagenes']['tmp_name']) && is_array($_FILES['imagenes']['tmp_
     }
 
 
- private function generarArchivoZIP($cert_number, $pdf_path, $imagenes)
-{
-    // Ruta relativa y física del ZIP
-    $zipRelPath = "uploads/certificates/{$cert_number}.zip";
-    $zip_path   = BASE_PATH . $zipRelPath;
+    private function generarArchivoZIP($cert_number, $pdf_path, $imagenes)
+    {
+        // Ruta relativa y física del ZIP
+        $zipRelPath = "uploads/certificates/{$cert_number}.zip";
+        $zip_path   = BASE_PATH . $zipRelPath;
 
-    // Asegura carpeta
-    $dirZip = dirname($zip_path);
-    if (!is_dir($dirZip)) {
-        mkdir($dirZip, 0775, true);
-    }
-
-    $zip = new ZipArchive();
-
-    if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-
-        // Agregar PDF
-        if (file_exists($pdf_path)) {
-            $zip->addFile($pdf_path, basename($pdf_path));
+        // Asegura carpeta
+        $dirZip = dirname($zip_path);
+        if (!is_dir($dirZip)) {
+            mkdir($dirZip, 0775, true);
         }
 
-        // Agregar imágenes desde uploads/temp
-        $total = min(9, count($imagenes['name']));
-        for ($i = 0; $i < $total; $i++) {
-            $nombreOriginal = basename($imagenes['name'][$i]);
-            $rutaTempRel    = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreOriginal;
-            $rutaTempFis    = BASE_PATH . $rutaTempRel;
+        $zip = new ZipArchive();
 
-            if (file_exists($rutaTempFis)) {
-                $zip->addFile($rutaTempFis, 'imagenes/' . $nombreOriginal);
+        if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
+
+            // Agregar PDF
+            if (file_exists($pdf_path)) {
+                $zip->addFile($pdf_path, basename($pdf_path));
             }
-        }
 
-        $zip->close();
+            // Agregar imágenes desde uploads/temp
+            $total = min(8, count($imagenes['name']));
+            for ($i = 0; $i < $total; $i++) {
+                $nombreOriginal = basename($imagenes['name'][$i]);
+                $rutaTempRel    = 'uploads/temp/' . $cert_number . '_img_' . $i . '_' . $nombreOriginal;
+                $rutaTempFis    = BASE_PATH . $rutaTempRel;
+
+                if (file_exists($rutaTempFis)) {
+                    $zip->addFile($rutaTempFis, 'imagenes/' . $nombreOriginal);
+                }
+            }
+
+            $zip->close();
+        }
     }
-}
 
 private function enviarCertificadoSmogsBackups(
     string $cert_number,
@@ -522,49 +520,68 @@ private function enviarCertificadoSmogsBackups(
     int $address_id,
     string $pdfFullPath,
     array $tempImgs
-): array
-{
-    // 1) Validaciones mínimas de archivos
-    if (!file_exists($pdfFullPath)) {
-        return ['ok' => false, 'status' => 0, 'api_msg' => 'PDF no encontrado para envío API'];
-    }
-    if (count($tempImgs) < 8) {
-        return ['ok' => false, 'status' => 0, 'api_msg' => 'Faltan imágenes para envío API (se requieren 8)'];
-    }
+): array {
 
-    // 2) Dirección completa (la API requiere lat/lon y teléfono también)
+    // 1) Dirección (para lat/lon)
     $direccion = $this->model->obtenerDireccionPorId($address_id);
 
-    // 3) Preparar payload "API" (urlencoded)
-    //    OJO: aquí pongo los campos base; luego lo afinamos con el PDF de SmogsBackups.
-    $payload = [];
+    // Helpers
+    $toPassFail = function ($val): string {
+        $v = strtoupper(trim((string)$val));
+        return ($v === 'PASA' || $v === 'PASS') ? 'PASS' : 'FAIL';
+    };
 
-    // Credenciales en body (como definimos en Helpers)
+    $fmtFecha = function ($yyyyMmDd): string {
+        $s = trim((string)$yyyyMmDd);
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
+            [$y, $m, $d] = explode('-', $s);
+            return $d . '-' . $m . '-' . $y;
+        }
+        return date('d-m-Y');
+    };
+
+    // 2) Config / mode
+    $api = api_client('smogs_backups');
+    $cfg = api_config('smogs_backups');
+    $isTesting = (!empty($cfg['mode']) && $cfg['mode'] === 'testing');
+
+    $path = $isTesting ? '/post' : '/Mechanical/Emissions';
+
+    // 3) Validaciones de archivos SOLO si NO es testing
+    if (!$isTesting) {
+        if (!file_exists($pdfFullPath)) {
+            return ['ok' => false, 'status' => 0, 'api_msg' => 'PDF no encontrado para envío API'];
+        }
+        if (count($tempImgs) < 8) {
+            return ['ok' => false, 'status' => 0, 'api_msg' => 'Faltan imágenes para envío API (se requieren 8)'];
+        }
+    }
+
+    // 4) Payload base (sin adjuntos)
+    $payload = [];
     $payload = array_merge($payload, api_credentials('smogs_backups'));
 
-    // Campos típicos (los nombres EXACTOS los ajustamos con tu PDF)
     $payload['vin']          = $post['vin'] ?? '';
-    $payload['cert_number']  = $cert_number;
-
-    // Ejemplo de mapping de PASA/FALLA -> PASS/FAIL (lo afinamos)
-    $payload['testignicion']   = (($post['monitor_fallo_encendido'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
-    $payload['testfuel']       = (($post['monitor_sistema_combustible'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
-    $payload['testcat']        = (($post['monitor_catalizador'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
-    $payload['testcat2']       = (($post['monitor_integral_catalizador'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
-    $payload['testo2']         = (($post['monitor_sensor_c2'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
-    $payload['resultado']      = (($post['resultado_prueba'] ?? '') === 'PASA') ? 'PASS' : 'FAIL';
-
     $payload['odometer']     = $post['odometro'] ?? '';
     $payload['licensePlate'] = $post['placa'] ?? '';
+    $payload['folio']        = $cert_number;
 
-    $payload['latitud']      = $direccion['latitude'] ?? ($post['latitud'] ?? '');
-    $payload['longitud']     = $direccion['longitude'] ?? ($post['longitud'] ?? '');
-    $payload['telefono']     = $post['telefono'] ?? '';
+    $payload['testFecha'] = $fmtFecha($post['fecha'] ?? '');
+    $payload['testHora']  = date('H:i');
 
-    // 4) Adjuntos: PDF y fotos en base64
-    $payload['certificadoPdf'] = base64_encode(file_get_contents($pdfFullPath));
+    $lat = $direccion['latitude']  ?? ($post['latitud']  ?? '');
+    $lon = $direccion['longitude'] ?? ($post['longitud'] ?? '');
+    $payload['geolocalizacion'] = trim((string)$lat) . ', ' . trim((string)$lon);
 
-    // Fotos por índice (orden fijo que definimos en la vista)
+    $payload['testignicion']       = $toPassFail($post['monitor_fallo_encendido'] ?? '');
+    $payload['testSistGasolina']   = $toPassFail($post['monitor_sistema_combustible'] ?? '');
+    $payload['testCatalizador']    = $toPassFail($post['monitor_catalizador'] ?? '');
+    $payload['testSensorOxigeno']  = $toPassFail($post['monitor_sensor_c2'] ?? '');
+    $payload['testCompIntegrales'] = $toPassFail($post['monitor_integral_catalizador'] ?? '');
+    $payload['testResultadoFinal'] = $toPassFail($post['resultado_prueba'] ?? '');
+
+    $payload['foto_Extension'] = $post['foto_Extension'] ?? 'jpg';
+
     $fotoMap = [
         0 => 'fotoVin',
         1 => 'fotoFrente',
@@ -576,56 +593,110 @@ private function enviarCertificadoSmogsBackups(
         7 => 'fotoTaller',
     ];
 
-    foreach ($tempImgs as $img) {
-        $i = (int)($img['index'] ?? -1);
-        if ($i < 0 || !isset($fotoMap[$i])) continue;
+    // 5) Adjuntos: MOCK en testing, reales en production
+    if ($isTesting) {
+        $payload['certificadoPdf'] = 'TEST_PDF_BASE64';
+        foreach ($fotoMap as $idx => $field) {
+            $payload[$field] = 'TEST_IMG_BASE64_' . $idx;
+        }
+    } else {
+        $payload['certificadoPdf'] = base64_encode(file_get_contents($pdfFullPath));
+        foreach ($tempImgs as $img) {
+            $i = (int)($img['index'] ?? -1);
+            if ($i < 0 || !isset($fotoMap[$i])) continue;
 
-        $field = $fotoMap[$i];
-        if (file_exists($img['path'])) {
-            $payload[$field] = base64_encode(file_get_contents($img['path']));
+            $field = $fotoMap[$i];
+            if (!empty($img['path']) && file_exists($img['path'])) {
+                $payload[$field] = base64_encode(file_get_contents($img['path']));
+            }
         }
     }
 
-    // Extensión requerida por la API
-    $payload['foto_Extension'] = $post['foto_Extension'] ?? 'jpg';
-
-    // 5) Enviar (usa Helpers + ApiClient)
-    // En testing te vas a Postman Echo; en production al real.
-    $api = api_client('smogs_backups');
-
-    // Postman Echo usa /post, la API real usa su endpoint propio.
-    // Aquí lo dejamos configurable: si estás en testing, usamos "/post"
-    $cfg = api_config('smogs_backups');
-    $path = (!empty($cfg['mode']) && $cfg['mode'] === 'testing') ? '/post' : '/Mechanical/Emissions'; // AJUSTAR con el PDF real
-
+    // 6) Enviar
     $resp = $api->postUrlEncoded($path, $payload);
 
-    // 6) Mensaje simple para tu UI
+    // 7) LOG A BD (AL FINAL) — usando el payload EXACTO enviado
+    $pdfSha = '';
+    if (!$isTesting && file_exists($pdfFullPath)) {
+        $pdfSha = hash_file('sha256', $pdfFullPath);
+    }
+
+    $photosHashes = [];
+    if (!$isTesting) {
+        foreach ($tempImgs as $img) {
+            $i = (int)($img['index'] ?? -1);
+            if ($i < 0) continue;
+            $p = $img['path'] ?? '';
+            if ($p && file_exists($p)) {
+                $photosHashes[(string)$i] = hash_file('sha256', $p);
+            }
+        }
+    }
+    $photosJson = json_encode($photosHashes, JSON_UNESCAPED_UNICODE);
+
+    $payloadStr = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
+    $payloadSha = hash('sha256', $payloadStr);
+
+    $baseUrl = api_base_url('smogs_backups');
+    $mode    = $cfg['mode'] ?? 'production';
+    $endpointUsed = rtrim((string)$baseUrl, '/') . $path;
+
+    $attempt = 1;
+    try {
+        $attempt = $this->model->siguienteAttemptApiEmissions($cert_number);
+    } catch (Exception $e) {}
+
+    $apiResult = null;
+    $apiDesc   = null;
+    if (!empty($resp['json']) && is_array($resp['json'])) {
+        $apiResult = $resp['json']['result'] ?? ($resp['json']['Resultado'] ?? null);
+        $apiDesc   = $resp['json']['Description'] ?? ($resp['json']['descripcion'] ?? ($resp['json']['message'] ?? null));
+    }
+
+    try {
+        $this->model->insertarApiEmissionsSyncLog([
+            'cert_number'        => $cert_number,
+            'vin'                => $payload['vin'] ?? ($post['vin'] ?? ''),
+            'mode'               => $mode,
+            'endpoint'           => $endpointUsed,
+            'payload_sha256'     => $payloadSha,
+            'pdf_sha256'         => $pdfSha,
+            'photos_sha256_json' => $photosJson ?: '{}',
+            'http_status'        => (int)($resp['status'] ?? 0),
+            'api_result'         => $apiResult,
+            'api_description'    => $apiDesc,
+            'response_raw'       => (string)($resp['body'] ?? ''),
+            'attempt'            => (int)$attempt,
+        ]);
+    } catch (Exception $e) {}
+
+    // 8) Mensaje UI
     $apiMsg = '';
     if (!empty($resp['json'])) {
-        // Postman Echo regresa fields en json; la API real regresa codigo/descripcion
-        $apiMsg = $resp['json']['descripcion'] ?? ($resp['json']['message'] ?? '');
+        $apiMsg = $resp['json']['Description'] ?? ($resp['json']['descripcion'] ?? ($resp['json']['message'] ?? ''));
     }
 
     return [
-        'ok'       => $resp['ok'] ?? false,
-        'status'   => $resp['status'] ?? 0,
-        'api_msg'  => $apiMsg,
-        'raw'      => $resp['body'] ?? '',
-        'json'     => $resp['json'] ?? null,
+        'ok'      => $resp['ok'] ?? false,
+        'status'  => $resp['status'] ?? 0,
+        'api_msg' => $apiMsg,
+        'raw'     => $resp['body'] ?? '',
+        'json'    => $resp['json'] ?? null,
     ];
 }
 
 
-private function limpiarTemporales($cert_number)
-{
-    $archivos = glob(BASE_PATH . "uploads/temp/{$cert_number}_*");
-    foreach ($archivos as $archivo) {
-        if (is_file($archivo)) {
-            unlink($archivo);
+
+
+    private function limpiarTemporales($cert_number)
+    {
+        $archivos = glob(BASE_PATH . "uploads/temp/{$cert_number}_*");
+        foreach ($archivos as $archivo) {
+            if (is_file($archivo)) {
+                unlink($archivo);
+            }
         }
     }
-}
     public function obtenerLatLon($id)
     {
         $data = $this->model->obtenerDireccionPorId($id);
