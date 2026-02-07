@@ -293,3 +293,63 @@
 
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/crearcertificados.js"></script>
 <?php include_once 'Views/template/footer-admin.php'; ?>
+
+<script>
+function forzarEnteroPositivo(inputId, opts = {}) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const maxLen = Number.isInteger(opts.maxLen) ? opts.maxLen : null;
+  const allowEmpty = opts.allowEmpty !== undefined ? !!opts.allowEmpty : true;
+
+  // Evita caracteres típicos en <input type="number"> como e, -, +, .
+  input.addEventListener("keydown", function (e) {
+    const blocked = ["e", "E", "+", "-", ".", ","];
+    if (blocked.includes(e.key)) e.preventDefault();
+  });
+
+  input.addEventListener("input", function () {
+    const start = this.selectionStart;
+    const end   = this.selectionEnd;
+
+    // 1) Solo dígitos
+    let v = String(this.value).replace(/[^\d]/g, "");
+
+    // 2) Quitar ceros a la izquierda (opcional, pero útil para año/odómetro)
+    //    Si NO quieres esto para ZIP, lo controlas con opts.keepLeadingZeros
+    if (!opts.keepLeadingZeros) {
+      v = v.replace(/^0+(?=\d)/, "");
+    }
+
+    // 3) Max length (si aplica)
+    if (maxLen !== null) {
+      v = v.slice(0, maxLen);
+    }
+
+    // 4) Si no permites vacío, fuerza "0" o ""
+    if (!allowEmpty && v === "") v = "0";
+
+    this.value = v;
+
+    // Reposiciona cursor (lo mejor posible)
+    const newPos = Math.min(start, this.value.length);
+    this.setSelectionRange(newPos, newPos);
+  });
+}
+
+// ===== Uso =====
+// ZIP: normalmente quieres permitir ceros a la izquierda y limitar longitud (5 o 9)
+forzarEnteroPositivo("zip", { maxLen: 9, keepLeadingZeros: true });
+
+// AÑO: 4 dígitos, sin ceros a la izquierda (opcional)
+forzarEnteroPositivo("year", { maxLen: 4 });
+
+// ODÓMETRO: solo dígitos (puedes poner maxLen si quieres)
+forzarEnteroPositivo("odometro", { maxLen: 7 });
+
+// (Si tu input "numero" debe ser solo dígitos también)
+forzarEnteroPositivo("numero", { maxLen: 6, keepLeadingZeros: true });
+
+// Teléfono (si lo quieres solo numérico, igual aplica)
+forzarEnteroPositivo("telefono", { maxLen: 15, keepLeadingZeros: true });
+</script>
