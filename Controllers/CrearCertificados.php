@@ -435,7 +435,7 @@ class CrearCertificados extends Controller
                         ' . ($firma_path ? '<img src="' . $firma_path . '" style="height:40px; max-width:100px;">' : 'Sin firma') . '
                     </td>
                     </tr>
-                    <tr><td>EBITN</td><td>' . $data['ebitn'] . '</td></tr>
+                    <tr><td>EEI ITN</td><td>' . $data['ebitn'] . '</td></tr>
                     <tr><td>Fecha</td><td>' . $data['fecha'] . '</td></tr>
                     <tr><td>Fecha Expiración</td><td>' . $data['fecha_expiracion'] . '</td></tr>
                 </table>
@@ -514,176 +514,178 @@ class CrearCertificados extends Controller
         }
     }
 
-private function enviarCertificadoSmogsBackups(
-    string $cert_number,
-    array $post,
-    int $address_id,
-    string $pdfFullPath,
-    array $tempImgs
-): array {
+    private function enviarCertificadoSmogsBackups(
+        string $cert_number,
+        array $post,
+        int $address_id,
+        string $pdfFullPath,
+        array $tempImgs
+    ): array {
 
-    // 1) Dirección (para lat/lon)
-    $direccion = $this->model->obtenerDireccionPorId($address_id);
+        // 1) Dirección (para lat/lon)
+        $direccion = $this->model->obtenerDireccionPorId($address_id);
 
-    // Helpers
-    $toPassFail = function ($val): string {
-        $v = strtoupper(trim((string)$val));
-        return ($v === 'PASA' || $v === 'PASS') ? 'PASS' : 'FAIL';
-    };
+        // Helpers
+        $toPassFail = function ($val): string {
+            $v = strtoupper(trim((string)$val));
+            return ($v === 'PASA' || $v === 'PASS') ? 'PASS' : 'FAIL';
+        };
 
-    $fmtFecha = function ($yyyyMmDd): string {
-        $s = trim((string)$yyyyMmDd);
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
-            [$y, $m, $d] = explode('-', $s);
-            return $d . '-' . $m . '-' . $y;
-        }
-        return date('d-m-Y');
-    };
+        $fmtFecha = function ($yyyyMmDd): string {
+            $s = trim((string)$yyyyMmDd);
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
+                [$y, $m, $d] = explode('-', $s);
+                return $d . '-' . $m . '-' . $y;
+            }
+            return date('d-m-Y');
+        };
 
-    // 2) Config / mode
-    $api = api_client('smogs_backups');
-    $cfg = api_config('smogs_backups');
-    $isTesting = (!empty($cfg['mode']) && $cfg['mode'] === 'testing');
+        // 2) Config / mode
+        $api = api_client('smogs_backups');
+        $cfg = api_config('smogs_backups');
+        $isTesting = (!empty($cfg['mode']) && $cfg['mode'] === 'testing');
 
-    $path = $isTesting ? '/post' : '/Mechanical/Emissions';
+        $path = $isTesting ? '/post' : '/Mechanical/Emissions';
 
-    // 3) Validaciones de archivos SOLO si NO es testing
-    if (!$isTesting) {
-        if (!file_exists($pdfFullPath)) {
-            return ['ok' => false, 'status' => 0, 'api_msg' => 'PDF no encontrado para envío API'];
-        }
-        if (count($tempImgs) < 8) {
-            return ['ok' => false, 'status' => 0, 'api_msg' => 'Faltan imágenes para envío API (se requieren 8)'];
-        }
-    }
-
-    // 4) Payload base (sin adjuntos)
-    $payload = [];
-    $payload = array_merge($payload, api_credentials('smogs_backups'));
-
-    $payload['vin']          = $post['vin'] ?? '';
-    $payload['odometer']     = $post['odometro'] ?? '';
-    $payload['licensePlate'] = $post['placa'] ?? '';
-    $payload['folio']        = $cert_number;
-
-    $payload['testFecha'] = $fmtFecha($post['fecha'] ?? '');
-    $payload['testHora']  = date('H:i');
-
-    $lat = $direccion['latitude']  ?? ($post['latitud']  ?? '');
-    $lon = $direccion['longitude'] ?? ($post['longitud'] ?? '');
-    $payload['geolocalizacion'] = trim((string)$lat) . ', ' . trim((string)$lon);
-
-    $payload['testignicion']       = $toPassFail($post['monitor_fallo_encendido'] ?? '');
-    $payload['testSistGasolina']   = $toPassFail($post['monitor_sistema_combustible'] ?? '');
-    $payload['testCatalizador']    = $toPassFail($post['monitor_catalizador'] ?? '');
-    $payload['testSensorOxigeno']  = $toPassFail($post['monitor_sensor_c2'] ?? '');
-    $payload['testCompIntegrales'] = $toPassFail($post['monitor_integral_catalizador'] ?? '');
-    $payload['testResultadoFinal'] = $toPassFail($post['resultado_prueba'] ?? '');
-
-    $payload['foto_Extension'] = $post['foto_Extension'] ?? 'jpg';
-
-    $fotoMap = [
-        0 => 'fotoVin',
-        1 => 'fotoFrente',
-        2 => 'fotoAtras',
-        3 => 'fotoPiloto',
-        4 => 'fotoPasajero',
-        5 => 'fotoPuerta',
-        6 => 'fotoScanner',
-        7 => 'fotoTaller',
-    ];
-
-    // 5) Adjuntos: MOCK en testing, reales en production
-    if ($isTesting) {
-        $payload['certificadoPdf'] = 'TEST_PDF_BASE64';
-        foreach ($fotoMap as $idx => $field) {
-            $payload[$field] = 'TEST_IMG_BASE64_' . $idx;
-        }
-    } else {
-        $payload['certificadoPdf'] = base64_encode(file_get_contents($pdfFullPath));
-        foreach ($tempImgs as $img) {
-            $i = (int)($img['index'] ?? -1);
-            if ($i < 0 || !isset($fotoMap[$i])) continue;
-
-            $field = $fotoMap[$i];
-            if (!empty($img['path']) && file_exists($img['path'])) {
-                $payload[$field] = base64_encode(file_get_contents($img['path']));
+        // 3) Validaciones de archivos SOLO si NO es testing
+        if (!$isTesting) {
+            if (!file_exists($pdfFullPath)) {
+                return ['ok' => false, 'status' => 0, 'api_msg' => 'PDF no encontrado para envío API'];
+            }
+            if (count($tempImgs) < 8) {
+                return ['ok' => false, 'status' => 0, 'api_msg' => 'Faltan imágenes para envío API (se requieren 8)'];
             }
         }
-    }
 
-    // 6) Enviar
-    $resp = $api->postUrlEncoded($path, $payload);
+        // 4) Payload base (sin adjuntos)
+        $payload = [];
+        $payload = array_merge($payload, api_credentials('smogs_backups'));
 
-    // 7) LOG A BD (AL FINAL) — usando el payload EXACTO enviado
-    $pdfSha = '';
-    if (!$isTesting && file_exists($pdfFullPath)) {
-        $pdfSha = hash_file('sha256', $pdfFullPath);
-    }
+        $payload['vin']          = $post['vin'] ?? '';
+        $payload['odometer']     = $post['odometro'] ?? '';
+        $payload['licensePlate'] = $post['placa'] ?? '';
+        $payload['folio']        = $cert_number;
 
-    $photosHashes = [];
-    if (!$isTesting) {
-        foreach ($tempImgs as $img) {
-            $i = (int)($img['index'] ?? -1);
-            if ($i < 0) continue;
-            $p = $img['path'] ?? '';
-            if ($p && file_exists($p)) {
-                $photosHashes[(string)$i] = hash_file('sha256', $p);
+        $payload['testFecha'] = $fmtFecha($post['fecha'] ?? '');
+        $payload['testHora']  = date('H:i');
+
+        $lat = $direccion['latitude']  ?? ($post['latitud']  ?? '');
+        $lon = $direccion['longitude'] ?? ($post['longitud'] ?? '');
+        $payload['geolocalizacion'] = trim((string)$lat) . ', ' . trim((string)$lon);
+
+        $payload['testignicion']       = $toPassFail($post['monitor_fallo_encendido'] ?? '');
+        $payload['testSistGasolina']   = $toPassFail($post['monitor_sistema_combustible'] ?? '');
+        $payload['testCatalizador']    = $toPassFail($post['monitor_catalizador'] ?? '');
+        $payload['testSensorOxigeno']  = $toPassFail($post['monitor_sensor_c2'] ?? '');
+        $payload['testCompIntegrales'] = $toPassFail($post['monitor_integral_catalizador'] ?? '');
+        $payload['testResultadoFinal'] = $toPassFail($post['resultado_prueba'] ?? '');
+
+        $payload['foto_Extension'] = $post['foto_Extension'] ?? 'jpg';
+
+        $fotoMap = [
+            0 => 'fotoVin',
+            1 => 'fotoFrente',
+            2 => 'fotoAtras',
+            3 => 'fotoPiloto',
+            4 => 'fotoPasajero',
+            5 => 'fotoPuerta',
+            6 => 'fotoScanner',
+            7 => 'fotoTaller',
+        ];
+
+        // 5) Adjuntos: MOCK en testing, reales en production
+        if ($isTesting) {
+            $payload['certificadoPdf'] = 'TEST_PDF_BASE64';
+            foreach ($fotoMap as $idx => $field) {
+                $payload[$field] = 'TEST_IMG_BASE64_' . $idx;
+            }
+        } else {
+            $payload['certificadoPdf'] = base64_encode(file_get_contents($pdfFullPath));
+            foreach ($tempImgs as $img) {
+                $i = (int)($img['index'] ?? -1);
+                if ($i < 0 || !isset($fotoMap[$i])) continue;
+
+                $field = $fotoMap[$i];
+                if (!empty($img['path']) && file_exists($img['path'])) {
+                    $payload[$field] = base64_encode(file_get_contents($img['path']));
+                }
             }
         }
+
+        // 6) Enviar
+        $resp = $api->postUrlEncoded($path, $payload);
+
+        // 7) LOG A BD (AL FINAL) — usando el payload EXACTO enviado
+        $pdfSha = '';
+        if (!$isTesting && file_exists($pdfFullPath)) {
+            $pdfSha = hash_file('sha256', $pdfFullPath);
+        }
+
+        $photosHashes = [];
+        if (!$isTesting) {
+            foreach ($tempImgs as $img) {
+                $i = (int)($img['index'] ?? -1);
+                if ($i < 0) continue;
+                $p = $img['path'] ?? '';
+                if ($p && file_exists($p)) {
+                    $photosHashes[(string)$i] = hash_file('sha256', $p);
+                }
+            }
+        }
+        $photosJson = json_encode($photosHashes, JSON_UNESCAPED_UNICODE);
+
+        $payloadStr = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
+        $payloadSha = hash('sha256', $payloadStr);
+
+        $baseUrl = api_base_url('smogs_backups');
+        $mode    = $cfg['mode'] ?? 'production';
+        $endpointUsed = rtrim((string)$baseUrl, '/') . $path;
+
+        $attempt = 1;
+        try {
+            $attempt = $this->model->siguienteAttemptApiEmissions($cert_number);
+        } catch (Exception $e) {
+        }
+
+        $apiResult = null;
+        $apiDesc   = null;
+        if (!empty($resp['json']) && is_array($resp['json'])) {
+            $apiResult = $resp['json']['result'] ?? ($resp['json']['Resultado'] ?? null);
+            $apiDesc   = $resp['json']['Description'] ?? ($resp['json']['descripcion'] ?? ($resp['json']['message'] ?? null));
+        }
+
+        try {
+            $this->model->insertarApiEmissionsSyncLog([
+                'cert_number'        => $cert_number,
+                'vin'                => $payload['vin'] ?? ($post['vin'] ?? ''),
+                'mode'               => $mode,
+                'endpoint'           => $endpointUsed,
+                'payload_sha256'     => $payloadSha,
+                'pdf_sha256'         => $pdfSha,
+                'photos_sha256_json' => $photosJson ?: '{}',
+                'http_status'        => (int)($resp['status'] ?? 0),
+                'api_result'         => $apiResult,
+                'api_description'    => $apiDesc,
+                'response_raw'       => (string)($resp['body'] ?? ''),
+                'attempt'            => (int)$attempt,
+            ]);
+        } catch (Exception $e) {
+        }
+
+        // 8) Mensaje UI
+        $apiMsg = '';
+        if (!empty($resp['json'])) {
+            $apiMsg = $resp['json']['Description'] ?? ($resp['json']['descripcion'] ?? ($resp['json']['message'] ?? ''));
+        }
+
+        return [
+            'ok'      => $resp['ok'] ?? false,
+            'status'  => $resp['status'] ?? 0,
+            'api_msg' => $apiMsg,
+            'raw'     => $resp['body'] ?? '',
+            'json'    => $resp['json'] ?? null,
+        ];
     }
-    $photosJson = json_encode($photosHashes, JSON_UNESCAPED_UNICODE);
-
-    $payloadStr = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
-    $payloadSha = hash('sha256', $payloadStr);
-
-    $baseUrl = api_base_url('smogs_backups');
-    $mode    = $cfg['mode'] ?? 'production';
-    $endpointUsed = rtrim((string)$baseUrl, '/') . $path;
-
-    $attempt = 1;
-    try {
-        $attempt = $this->model->siguienteAttemptApiEmissions($cert_number);
-    } catch (Exception $e) {}
-
-    $apiResult = null;
-    $apiDesc   = null;
-    if (!empty($resp['json']) && is_array($resp['json'])) {
-        $apiResult = $resp['json']['result'] ?? ($resp['json']['Resultado'] ?? null);
-        $apiDesc   = $resp['json']['Description'] ?? ($resp['json']['descripcion'] ?? ($resp['json']['message'] ?? null));
-    }
-
-    try {
-        $this->model->insertarApiEmissionsSyncLog([
-            'cert_number'        => $cert_number,
-            'vin'                => $payload['vin'] ?? ($post['vin'] ?? ''),
-            'mode'               => $mode,
-            'endpoint'           => $endpointUsed,
-            'payload_sha256'     => $payloadSha,
-            'pdf_sha256'         => $pdfSha,
-            'photos_sha256_json' => $photosJson ?: '{}',
-            'http_status'        => (int)($resp['status'] ?? 0),
-            'api_result'         => $apiResult,
-            'api_description'    => $apiDesc,
-            'response_raw'       => (string)($resp['body'] ?? ''),
-            'attempt'            => (int)$attempt,
-        ]);
-    } catch (Exception $e) {}
-
-    // 8) Mensaje UI
-    $apiMsg = '';
-    if (!empty($resp['json'])) {
-        $apiMsg = $resp['json']['Description'] ?? ($resp['json']['descripcion'] ?? ($resp['json']['message'] ?? ''));
-    }
-
-    return [
-        'ok'      => $resp['ok'] ?? false,
-        'status'  => $resp['status'] ?? 0,
-        'api_msg' => $apiMsg,
-        'raw'     => $resp['body'] ?? '',
-        'json'    => $resp['json'] ?? null,
-    ];
-}
 
 
 

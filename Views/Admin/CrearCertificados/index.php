@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Certificado</title>
-    <script src="<?php echo BASE_URL; ?>assets/js/qrcode.min.js"></script> 
+    <script src="<?php echo BASE_URL; ?>assets/js/qrcode.min.js"></script>
 </head>
 
 <body>
@@ -83,7 +83,8 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label for="vin" class="form-label">VIN (Número de Identificación del Vehículo)</label>
-                        <input type="text" class="form-control" id="vin" name="vin" required>
+                        <input type="text" class="form-control" id="vin" name="vin" minlength="17"
+                            maxlength="17" required>
                     </div>
                     <div class="mb-3">
                         <label for="year" class="form-label">Año</label>
@@ -179,7 +180,7 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="ebitn" class="form-label">EBITN</label>
+                        <label for="ebitn" class="form-label">EEI ITN</label>
                         <input type="text" class="form-control" id="ebitn" name="ebitn" required>
                     </div>
                     <div class="mb-3">
@@ -194,94 +195,94 @@
                             <p><strong>Firma del Inspector:</strong></p>
                             <img id="imagenFirma" src="" alt="Firma del inspector" style="height: 50px; max-width: 120px;">
                         </div>
- 
-                    <div class="mb-3">
-                        <label for="fecha" class="form-label">Fecha</label>
-                        <input type="date" class="form-control" id="fecha" name="fecha" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="fecha_expiracion" class="form-label">Fecha de Expiración</label>
-                        <input type="date" class="form-control" id="fecha_expiracion" name="fecha_expiracion" required readonly>
+
+                        <div class="mb-3">
+                            <label for="fecha" class="form-label">Fecha</label>
+                            <input type="date" class="form-control" id="fecha" name="fecha" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fecha_expiracion" class="form-label">Fecha de Expiración</label>
+                            <input type="date" class="form-control" id="fecha_expiracion" name="fecha_expiracion" required readonly>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Imágenes y Códigos QR -->
-<!-- Imágenes -->
-<div class="card mb-4">
-  <div class="card-header">
-    <h5>Imágenes </h5>
-  </div>
+                <!-- Imágenes y Códigos QR -->
+                <!-- Imágenes -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Imágenes </h5>
+                    </div>
 
-  <div class="card-body">
- 
+                    <div class="card-body">
 
-    <!--
+
+                        <!--
       Mantengo id="imagenes" y name="imagenes[]" para NO romper tu JS/controlador.
       Uso múltiples inputs con el MISMO name="imagenes[]" para que PHP siga armando $_FILES['imagenes'] como arreglo.
       El ORDEN de los inputs define el índice [0..7] que usarás luego para mapear a fotoVin..fotoTaller.
     -->
 
-    <div class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label">1) Foto VIN (fotoVin)</label>
-        <input type="file" class="form-control"  name="imagenes[]" accept="image/jpeg" required>
-        <div class="form-text">Debe verse claramente el VIN.</div>
-      </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">1) Foto VIN (fotoVin)</label>
+                                <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+                                <div class="form-text">Debe verse claramente el VIN.</div>
+                            </div>
 
-      <div class="col-md-6">
-        <label class="form-label">2) Foto Frente (fotoFrente)</label>
-        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
-      </div>
+                            <div class="col-md-6">
+                                <label class="form-label">2) Foto Frente (fotoFrente)</label>
+                                <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+                            </div>
 
-      <div class="col-md-6">
-        <label class="form-label">3) Foto Atrás (fotoAtras)</label>
-        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
-      </div>
+                            <div class="col-md-6">
+                                <label class="form-label">3) Foto Atrás (fotoAtras)</label>
+                                <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+                            </div>
 
-      <div class="col-md-6">
-        <label class="form-label">4) Foto Piloto (fotoPiloto)</label>
-        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
-      </div>
+                            <div class="col-md-6">
+                                <label class="form-label">4) Foto Piloto (fotoPiloto)</label>
+                                <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+                            </div>
 
-      <div class="col-md-6">
-        <label class="form-label">5) Foto Pasajero (fotoPasajero)</label>
-        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
-      </div>
+                            <div class="col-md-6">
+                                <label class="form-label">5) Foto Pasajero (fotoPasajero)</label>
+                                <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+                            </div>
 
-      <div class="col-md-6">
-        <label class="form-label">6) Foto Puerta (fotoPuerta)</label>
-        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
-      </div>
+                            <div class="col-md-6">
+                                <label class="form-label">6) Foto Puerta (fotoPuerta)</label>
+                                <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+                            </div>
 
-      <div class="col-md-6">
-        <label class="form-label">7) Foto Scanner (fotoScanner)</label>
-        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
-      </div>
+                            <div class="col-md-6">
+                                <label class="form-label">7) Foto Scanner (fotoScanner)</label>
+                                <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+                            </div>
 
-      <div class="col-md-6">
-        <label class="form-label">8) Foto Taller (fotoTaller)</label>
-        <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
-      </div>
-    </div>
+                            <div class="col-md-6">
+                                <label class="form-label">8) Foto Taller (fotoTaller)</label>
+                                <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
+                            </div>
+                        </div>
 
-    <input type="hidden" name="foto_Extension" id="foto_Extension" value="jpg">
-  </div>
-</div>
-
-
-            <div class="card mb-4" hidden>
-                <div class="card-header">
-                    <h5>Códigos QR</h5>
+                        <input type="hidden" name="foto_Extension" id="foto_Extension" value="jpg">
+                    </div>
                 </div>
-                <div class="card-body">
-                    <button type="button" class="btn btn-success" id="generarQR" disabled>Generar Código QR</button>
 
-                    <div id="codigoQR" class="mt-3"></div>
+
+                <div class="card mb-4" hidden>
+                    <div class="card-header">
+                        <h5>Códigos QR</h5>
+                    </div>
+                    <div class="card-body">
+                        <button type="button" class="btn btn-success" id="generarQR" disabled>Generar Código QR</button>
+
+                        <div id="codigoQR" class="mt-3"></div>
+                    </div>
                 </div>
-            </div>
 
-            <button type="submit" class="btn btn-primary w-100">Crear Certificado</button>
+                <button type="submit" class="btn btn-primary w-100">Crear Certificado</button>
         </form>
     </div>
 
@@ -295,61 +296,74 @@
 <?php include_once 'Views/template/footer-admin.php'; ?>
 
 <script>
-function forzarEnteroPositivo(inputId, opts = {}) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
+    function forzarEnteroPositivo(inputId, opts = {}) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
 
-  const maxLen = Number.isInteger(opts.maxLen) ? opts.maxLen : null;
-  const allowEmpty = opts.allowEmpty !== undefined ? !!opts.allowEmpty : true;
+        const maxLen = Number.isInteger(opts.maxLen) ? opts.maxLen : null;
+        const allowEmpty = opts.allowEmpty !== undefined ? !!opts.allowEmpty : true;
 
-  // Evita caracteres típicos en <input type="number"> como e, -, +, .
-  input.addEventListener("keydown", function (e) {
-    const blocked = ["e", "E", "+", "-", ".", ","];
-    if (blocked.includes(e.key)) e.preventDefault();
-  });
+        // Evita caracteres típicos en <input type="number"> como e, -, +, .
+        input.addEventListener("keydown", function(e) {
+            const blocked = ["e", "E", "+", "-", ".", ","];
+            if (blocked.includes(e.key)) e.preventDefault();
+        });
 
-  input.addEventListener("input", function () {
-    const start = this.selectionStart;
-    const end   = this.selectionEnd;
+        input.addEventListener("input", function() {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
 
-    // 1) Solo dígitos
-    let v = String(this.value).replace(/[^\d]/g, "");
+            // 1) Solo dígitos
+            let v = String(this.value).replace(/[^\d]/g, "");
 
-    // 2) Quitar ceros a la izquierda (opcional, pero útil para año/odómetro)
-    //    Si NO quieres esto para ZIP, lo controlas con opts.keepLeadingZeros
-    if (!opts.keepLeadingZeros) {
-      v = v.replace(/^0+(?=\d)/, "");
+            // 2) Quitar ceros a la izquierda (opcional, pero útil para año/odómetro)
+            //    Si NO quieres esto para ZIP, lo controlas con opts.keepLeadingZeros
+            if (!opts.keepLeadingZeros) {
+                v = v.replace(/^0+(?=\d)/, "");
+            }
+
+            // 3) Max length (si aplica)
+            if (maxLen !== null) {
+                v = v.slice(0, maxLen);
+            }
+
+            // 4) Si no permites vacío, fuerza "0" o ""
+            if (!allowEmpty && v === "") v = "0";
+
+            this.value = v;
+
+            // Reposiciona cursor (lo mejor posible)
+            const newPos = Math.min(start, this.value.length);
+            this.setSelectionRange(newPos, newPos);
+        });
     }
 
-    // 3) Max length (si aplica)
-    if (maxLen !== null) {
-      v = v.slice(0, maxLen);
-    }
+    // ===== Uso =====
+    // ZIP: normalmente quieres permitir ceros a la izquierda y limitar longitud (5 o 9)
+    forzarEnteroPositivo("zip", {
+        maxLen: 9,
+        keepLeadingZeros: true
+    });
 
-    // 4) Si no permites vacío, fuerza "0" o ""
-    if (!allowEmpty && v === "") v = "0";
+    // AÑO: 4 dígitos, sin ceros a la izquierda (opcional)
+    forzarEnteroPositivo("year", {
+        maxLen: 4
+    });
 
-    this.value = v;
+    // ODÓMETRO: solo dígitos (puedes poner maxLen si quieres)
+    forzarEnteroPositivo("odometro", {
+        maxLen: 7
+    });
 
-    // Reposiciona cursor (lo mejor posible)
-    const newPos = Math.min(start, this.value.length);
-    this.setSelectionRange(newPos, newPos);
-  });
-}
+    // (Si tu input "numero" debe ser solo dígitos también)
+    forzarEnteroPositivo("numero", {
+        maxLen: 6,
+        keepLeadingZeros: true
+    });
 
-// ===== Uso =====
-// ZIP: normalmente quieres permitir ceros a la izquierda y limitar longitud (5 o 9)
-forzarEnteroPositivo("zip", { maxLen: 9, keepLeadingZeros: true });
-
-// AÑO: 4 dígitos, sin ceros a la izquierda (opcional)
-forzarEnteroPositivo("year", { maxLen: 4 });
-
-// ODÓMETRO: solo dígitos (puedes poner maxLen si quieres)
-forzarEnteroPositivo("odometro", { maxLen: 7 });
-
-// (Si tu input "numero" debe ser solo dígitos también)
-forzarEnteroPositivo("numero", { maxLen: 6, keepLeadingZeros: true });
-
-// Teléfono (si lo quieres solo numérico, igual aplica)
-forzarEnteroPositivo("telefono", { maxLen: 15, keepLeadingZeros: true });
+    // Teléfono (si lo quieres solo numérico, igual aplica)
+    forzarEnteroPositivo("telefono", {
+        maxLen: 15,
+        keepLeadingZeros: true
+    });
 </script>

@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const nuevoInspectorInput = document.getElementById("nuevo_inspector");
   const yearInput = document.getElementById("year");
   const numeroCertInput = document.getElementById("numero_certificado");
+  const vinInput = document.getElementById("vin");
+  const ebitnInput = document.getElementById("ebitn");
 
   // ===== NUEVO: fotos requeridas por API (8) =====
   const EXPECTED_PHOTOS = [
@@ -44,12 +46,15 @@ document.addEventListener("DOMContentLoaded", function () {
   let enviando = false;
 
   // Botón submit
-  const btnSubmit = frm ? frm.querySelector('button[type="submit"], input[type="submit"]') : null;
-  const originalBtnText = btnSubmit && btnSubmit.tagName === "BUTTON" ? btnSubmit.textContent : null;
+  const btnSubmit = frm
+    ? frm.querySelector('button[type="submit"], input[type="submit"]')
+    : null;
+  const originalBtnText =
+    btnSubmit && btnSubmit.tagName === "BUTTON" ? btnSubmit.textContent : null;
 
   // Inputs required (NO usamos esto para validar fotos; fotos las validamos aparte)
   const requiredInputs = document.querySelectorAll(
-    "#formularioCertificado input[required], #formularioCertificado select[required]"
+    "#formularioCertificado input[required], #formularioCertificado select[required]",
   );
 
   // ===== Helpers: mayúsculas =====
@@ -67,6 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "propietario",
     "ebitn",
   ];
+
   camposMayusculasIds.forEach((id) => {
     const input = document.getElementById(id);
     if (input) {
@@ -86,8 +92,75 @@ document.addEventListener("DOMContentLoaded", function () {
     yearInput.addEventListener("change", function () {
       const valor = parseInt(yearInput.value, 10);
       if (isNaN(valor) || valor < minYear || valor > maxYear) {
-        alertas(`El año del vehículo debe estar entre ${minYear} y ${maxYear}.`, "warning");
+        alertas(
+          `El año del vehículo debe estar entre ${minYear} y ${maxYear}.`,
+          "warning",
+        );
         yearInput.value = "";
+      }
+    });
+  }
+
+  // ===== Validación VIN =====
+  function validarVIN(valor) {
+    const vin = String(valor || "")
+      .trim()
+      .toUpperCase();
+
+    return /^[A-Z0-9]{17}$/.test(vin);
+  }
+
+  // ===== Validación EEI ITN / EBITN =====
+  function validarEBITN(valor) {
+    const ebitn = String(valor || "")
+      .trim()
+      .toUpperCase();
+
+    return /^X\d{14}$/.test(ebitn);
+  }
+
+  if (vinInput) {
+    vinInput.addEventListener("input", function () {
+      this.value = this.value
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 17);
+    });
+
+    vinInput.addEventListener("blur", function () {
+      const vin = this.value.trim();
+
+      if (!vin) return;
+
+      if (!validarVIN(vin)) {
+        alertas(
+          "El VIN debe contener exactamente 17 caracteres alfanuméricos.",
+          "warning",
+        );
+        this.focus();
+      }
+    });
+  }
+
+  if (ebitnInput) {
+    ebitnInput.addEventListener("input", function () {
+      this.value = this.value
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 15);
+    });
+
+    ebitnInput.addEventListener("blur", function () {
+      const ebitn = this.value.trim();
+
+      if (!ebitn) return;
+
+      if (!validarEBITN(ebitn)) {
+        alertas(
+          "El EEI ITN debe iniciar con X y contener exactamente 14 dígitos después. Ejemplo: X20260317123456.",
+          "warning",
+        );
+        this.focus();
       }
     });
   }
@@ -143,7 +216,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ===== Dirección existente vs nueva =====
   function actualizarVisibilidadDireccion() {
-    const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
+    const usandoDireccionExistente =
+      selectDireccion && selectDireccion.value !== "";
+
     if (usandoDireccionExistente) {
       if (camposNuevaDireccion) camposNuevaDireccion.style.display = "none";
       if (telefonoInput) telefonoInput.required = false;
@@ -151,6 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (camposNuevaDireccion) camposNuevaDireccion.style.display = "block";
       if (telefonoInput) telefonoInput.required = true;
     }
+
     verificarCamposCompletos();
   }
 
@@ -159,6 +235,7 @@ document.addEventListener("DOMContentLoaded", function () {
       actualizarVisibilidadDireccion();
       cargarLatLonDireccion(selectDireccion.value);
     });
+
     actualizarVisibilidadDireccion();
     cargarLatLonDireccion(selectDireccion.value);
   }
@@ -176,20 +253,27 @@ document.addEventListener("DOMContentLoaded", function () {
     const numero = parseInt(parteNumerica, 10);
     if (isNaN(numero)) return;
 
-    const siguiente = (numero + 1).toString().padStart(parteNumerica.length, "0");
+    const siguiente = (numero + 1)
+      .toString()
+      .padStart(parteNumerica.length, "0");
+
     numeroCertInput.value = prefijo + siguiente;
   }
 
   // ===== QR enable/disable (no considera files) =====
   function verificarCamposCompletos() {
-    const usandoDireccionExistente = selectDireccion && selectDireccion.value !== "";
+    const usandoDireccionExistente =
+      selectDireccion && selectDireccion.value !== "";
+
     const incompletos = Array.from(requiredInputs).some((input) => {
-      // si usa dirección existente, ignoramos los required dentro del bloque de nueva dirección
-      if (usandoDireccionExistente && camposNuevaDireccion && camposNuevaDireccion.contains(input)) {
+      if (
+        usandoDireccionExistente &&
+        camposNuevaDireccion &&
+        camposNuevaDireccion.contains(input)
+      ) {
         return false;
       }
 
-      // IGNORAMOS validación de files aquí (las fotos se validan aparte en submit)
       if (input.type === "file") return false;
 
       return !String(input.value || "").trim();
@@ -202,14 +286,19 @@ document.addEventListener("DOMContentLoaded", function () {
     input.addEventListener("input", verificarCamposCompletos);
     input.addEventListener("change", verificarCamposCompletos);
   });
+
   verificarCamposCompletos();
 
   // ===== QR Generación =====
   if (generarQRBtn) {
     generarQRBtn.addEventListener("click", function () {
       const vin = (document.querySelector("#vin")?.value || "").trim();
-      const propietario = (document.querySelector("#propietario")?.value || "").trim();
-      const fabricadoEn = (document.querySelector("#fabricado_en")?.value || "").trim();
+      const propietario = (
+        document.querySelector("#propietario")?.value || ""
+      ).trim();
+      const fabricadoEn = (
+        document.querySelector("#fabricado_en")?.value || ""
+      ).trim();
       const year = (document.querySelector("#year")?.value || "").trim();
       const modelo = (document.querySelector("#modelo")?.value || "").trim();
       const marca = (document.querySelector("#marca")?.value || "").trim();
@@ -220,27 +309,33 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const contenidoQR = `${vin}|${propietario}|${fabricadoEn}|${year}|${modelo}|${marca}`;
+
       if (qrCodeContainer) qrCodeContainer.innerHTML = "";
 
-      new QRCode(qrCodeContainer, { text: contenidoQR, width: 256, height: 256 });
+      new QRCode(qrCodeContainer, {
+        text: contenidoQR,
+        width: 256,
+        height: 256,
+      });
     });
   }
 
   // ===== NUEVO: Validación estricta de fotos para API =====
   function getPhotoInputs() {
-    // En tu vista nueva tendrás 8 inputs con name="imagenes[]"
-    return Array.from(frm.querySelectorAll('input[type="file"][name="imagenes[]"]'));
+    return Array.from(
+      frm.querySelectorAll('input[type="file"][name="imagenes[]"]'),
+    );
   }
 
   function isJpgFile(file) {
     if (!file) return false;
+
     const name = (file.name || "").toLowerCase();
     const type = (file.type || "").toLowerCase();
 
     const byExt = name.endsWith(".jpg") || name.endsWith(".jpeg");
     const byMime = type === "image/jpeg";
 
-    // Permitimos por extensión o por mime (hay navegadores que no ponen mime consistente)
     return byExt || byMime;
   }
 
@@ -250,7 +345,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (photoInputs.length !== EXPECTED_PHOTOS.length) {
       alertas(
         `La vista no coincide con la configuración esperada. Se requieren ${EXPECTED_PHOTOS.length} campos de foto.`,
-        "error"
+        "error",
       );
       return false;
     }
@@ -266,14 +361,17 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const file = files[0];
+
       if (!isJpgFile(file)) {
-        alertas(`La ${EXPECTED_PHOTOS[i]} debe ser JPG/JPEG. Archivo: ${file.name}`, "warning");
+        alertas(
+          `La ${EXPECTED_PHOTOS[i]} debe ser JPG/JPEG. Archivo: ${file.name}`,
+          "warning",
+        );
         input.focus();
         return false;
       }
     }
 
-    // Asegurar hidden foto_Extension = jpg (si existe)
     const ext = document.getElementById("foto_Extension");
     if (ext) ext.value = "jpg";
 
@@ -294,32 +392,60 @@ document.addEventListener("DOMContentLoaded", function () {
         alertas("La fecha del certificado es obligatoria.", "warning");
         return;
       }
+
       if (valorFecha < fechaMinima) {
-        alertas("La fecha del certificado no puede ser anterior a hoy.", "warning");
-        return;
-      }
-      if (valorExp && valorExp <= valorFecha) {
-        alertas("La fecha de expiración debe ser posterior a la del certificado.", "warning");
+        alertas(
+          "La fecha del certificado no puede ser anterior a hoy.",
+          "warning",
+        );
         return;
       }
 
-      // Inspector alternativo (si existe en tu UI)
+      if (valorExp && valorExp <= valorFecha) {
+        alertas(
+          "La fecha de expiración debe ser posterior a la del certificado.",
+          "warning",
+        );
+        return;
+      }
+
       if (nuevoInspectorCheck && nuevoInspectorInput && inspectorSelect) {
         if (nuevoInspectorCheck.checked) {
           inspectorSelect.value = nuevoInspectorInput.value;
         }
       }
 
-      // ===== NUEVO: validar fotos API antes de enviar =====
+      const vinValor = vinInput ? vinInput.value.trim() : "";
+      if (!validarVIN(vinValor)) {
+        alertas(
+          "El VIN debe contener exactamente 17 caracteres alfanuméricos.",
+          "warning",
+        );
+        if (vinInput) vinInput.focus();
+        return;
+      }
+
+      const ebitnValor = ebitnInput ? ebitnInput.value.trim() : "";
+      if (!validarEBITN(ebitnValor)) {
+        alertas(
+          "El EEI ITN debe iniciar con X y contener exactamente 14 dígitos después. Ejemplo: X20260317123456.",
+          "warning",
+        );
+        if (ebitnInput) ebitnInput.focus();
+        return;
+      }
+
       if (!validarFotosApi()) {
         return;
       }
 
-      // Bloqueamos el envío
       enviando = true;
+
       if (btnSubmit) {
         btnSubmit.disabled = true;
-        if (btnSubmit.tagName === "BUTTON") btnSubmit.textContent = "Generando...";
+        if (btnSubmit.tagName === "BUTTON") {
+          btnSubmit.textContent = "Generando...";
+        }
       }
 
       const data = new FormData(frm);
@@ -337,8 +463,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (this.status !== 200) {
           if (btnSubmit) {
             btnSubmit.disabled = false;
-            if (btnSubmit.tagName === "BUTTON" && originalBtnText) btnSubmit.textContent = originalBtnText;
+            if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
+              btnSubmit.textContent = originalBtnText;
+            }
           }
+
           alertas("Ocurrió un error al generar el certificado.", "error");
           return;
         }
@@ -349,22 +478,26 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (err) {
           if (btnSubmit) {
             btnSubmit.disabled = false;
-            if (btnSubmit.tagName === "BUTTON" && originalBtnText) btnSubmit.textContent = originalBtnText;
+            if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
+              btnSubmit.textContent = originalBtnText;
+            }
           }
+
           alertas("Respuesta inválida del servidor.", "error");
           return;
         }
 
-        // Mensaje principal
         alertas(res.msg || "Proceso finalizado", res.icono || "info");
 
-        // Si quieres avisar estado API externo (sin romper nada):
-        // (Solo mostrará si tu backend ya lo retorna)
         if (typeof res.api_ok !== "undefined") {
           if (res.api_ok) {
             console.log("API externa OK", res.api_status, res.api_msg || "");
           } else {
-            console.warn("API externa FALLÓ", res.api_status, res.api_msg || "");
+            console.warn(
+              "API externa FALLÓ",
+              res.api_status,
+              res.api_msg || "",
+            );
           }
         }
 
@@ -372,11 +505,11 @@ document.addEventListener("DOMContentLoaded", function () {
           const certActual = numeroCertInput ? numeroCertInput.value : "";
 
           frm.reset();
+
           if (qrCodeContainer) qrCodeContainer.innerHTML = "";
           if (imagenFirma) imagenFirma.src = "";
           if (firmaPreview) firmaPreview.style.display = "none";
 
-          // Restaurar y calcular el siguiente número (solo UI)
           if (numeroCertInput && certActual) {
             numeroCertInput.value = certActual;
             actualizarNumeroCertificadoLocal();
@@ -384,7 +517,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
           verificarCamposCompletos();
 
-          // Mantengo tu flujo
           if (res.pdf_url) window.open(res.pdf_url, "_blank");
           if (res.zip_url) window.location.href = res.zip_url;
           return;
@@ -392,7 +524,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (btnSubmit) {
           btnSubmit.disabled = false;
-          if (btnSubmit.tagName === "BUTTON" && originalBtnText) btnSubmit.textContent = originalBtnText;
+          if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
+            btnSubmit.textContent = originalBtnText;
+          }
         }
       };
     });
@@ -413,7 +547,6 @@ function cargarLatLonDireccion(id) {
         latInput.value = data.latitude || "";
         lonInput.value = data.longitude || "";
 
-        // oculta bloque lat/lon cuando se trae de dirección existente
         if (latInput.parentElement && latInput.parentElement.parentElement) {
           latInput.parentElement.parentElement.style.display = "none";
         }
