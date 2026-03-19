@@ -17,7 +17,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const vinInput = document.getElementById("vin");
   const ebitnInput = document.getElementById("ebitn");
 
-  // ===== NUEVO: fotos requeridas por API (8) =====
+  // ===== Botones del nuevo flujo =====
+  const btnPrevalidarDatos = document.getElementById("btnPrevalidarDatos");
+  const btnPrevalidarFotos = document.getElementById("btnPrevalidarFotos");
+  const btnCrearCertificado = document.getElementById("btnCrearCertificado");
+
   const EXPECTED_PHOTOS = [
     "Foto VIN (fotoVin)",
     "Foto Frente (fotoFrente)",
@@ -29,11 +33,11 @@ document.addEventListener("DOMContentLoaded", function () {
     "Foto Taller (fotoTaller)",
   ];
 
-  // ===== Base URL (si no existe en tu global, deja esto como está) =====
-  // Tu código ya usa base_url; asumo que existe globalmente.
-  // const base_url = window.base_url || "";
+  // ===== Estado del flujo =====
+  // Controla en qué paso estamos para evitar doble envío
+  let enviando = false;
 
-  // Establecer fecha mínima hoy
+  // ===== Fecha mínima hoy =====
   const today = new Date();
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth() + 1).padStart(2, "0");
@@ -42,22 +46,16 @@ document.addEventListener("DOMContentLoaded", function () {
   if (fechaInput) fechaInput.setAttribute("min", fechaMinima);
   if (expiracionInput) expiracionInput.readOnly = true;
 
-  // Flag para evitar envíos múltiples
-  let enviando = false;
-
-  // Botón submit
-  const btnSubmit = frm
-    ? frm.querySelector('button[type="submit"], input[type="submit"]')
-    : null;
-  const originalBtnText =
-    btnSubmit && btnSubmit.tagName === "BUTTON" ? btnSubmit.textContent : null;
-
-  // Inputs required (NO usamos esto para validar fotos; fotos las validamos aparte)
+  // ===== Inputs required =====
   const requiredInputs = document.querySelectorAll(
     "#formularioCertificado input[required], #formularioCertificado select[required]",
   );
 
-  // ===== Helpers: mayúsculas =====
+  // =========================================================
+  // HELPERS
+  // =========================================================
+
+  // Convierte todos los campos de texto a mayúsculas
   const camposMayusculasIds = [
     "numero",
     "calle",
@@ -72,7 +70,6 @@ document.addEventListener("DOMContentLoaded", function () {
     "propietario",
     "ebitn",
   ];
-
   camposMayusculasIds.forEach((id) => {
     const input = document.getElementById(id);
     if (input) {
@@ -82,41 +79,103 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // ===== Validación year =====
+  function validarVIN(valor) {
+    return /^[A-Z0-9]{17}$/.test(
+      String(valor || "")
+        .trim()
+        .toUpperCase(),
+    );
+  }
+
+  function validarEBITN(valor) {
+    return /^X\d{14}$/.test(
+      String(valor || "")
+        .trim()
+        .toUpperCase(),
+    );
+  }
+
+  function getPhotoInputs() {
+    return Array.from(
+      frm.querySelectorAll('input[type="file"][name="imagenes[]"]'),
+    );
+  }
+
+  function isJpgFile(file) {
+    if (!file) return false;
+    const name = (file.name || "").toLowerCase();
+    const type = (file.type || "").toLowerCase();
+    return (
+      name.endsWith(".jpg") || name.endsWith(".jpeg") || type === "image/jpeg"
+    );
+  }
+
+  // =========================================================
+  // ESTADO DE BOTONES
+  // =========================================================
+
+  /**
+   * Inicializa los tres botones al estado inicial:
+   * - Prevalidar Datos: habilitado
+   * - Prevalidar Fotos: deshabilitado
+   * - Crear Certificado: deshabilitado
+   */
+  function resetearEstadoBotones() {
+    if (btnPrevalidarDatos) btnPrevalidarDatos.disabled = false;
+    if (btnPrevalidarFotos) btnPrevalidarFotos.disabled = true;
+    if (btnCrearCertificado) btnCrearCertificado.disabled = true;
+  }
+
+  function bloquearCamposDatos() {
+    const inputs = frm.querySelectorAll(
+      "input:not([type='file']):not([type='hidden']), select, textarea",
+    );
+    inputs.forEach((el) => {
+      if (el.tagName === "SELECT") {
+        // Los select no soportan readonly, usamos pointer-events
+        el.style.pointerEvents = "none";
+        el.style.opacity = "0.6";
+      } else {
+        el.readOnly = true;
+        el.style.opacity = "0.6";
+      }
+    });
+  }
+
+  function desbloquearCamposDatos() {
+    const inputs = frm.querySelectorAll(
+      "input:not([type='file']):not([type='hidden']), select, textarea",
+    );
+    inputs.forEach((el) => {
+      if (el.tagName === "SELECT") {
+        el.style.pointerEvents = "";
+        el.style.opacity = "";
+      } else {
+        el.readOnly = false;
+        el.style.opacity = "";
+      }
+    });
+  }
+
+  // Estado inicial al cargar la página
+  resetearEstadoBotones();
+
+  // =========================================================
+  // VALIDACIONES
+  // =========================================================
+
   if (yearInput) {
     const minYear = 1950;
     const maxYear = yyyy + 1;
     yearInput.setAttribute("min", minYear);
     yearInput.setAttribute("max", maxYear);
-
     yearInput.addEventListener("change", function () {
       const valor = parseInt(yearInput.value, 10);
       if (isNaN(valor) || valor < minYear || valor > maxYear) {
-        alertas(
-          `El año del vehículo debe estar entre ${minYear} y ${maxYear}.`,
-          "warning",
-        );
+        alertas(`El año debe estar entre ${minYear} y ${maxYear}.`, "warning");
         yearInput.value = "";
       }
     });
-  }
-
-  // ===== Validación VIN =====
-  function validarVIN(valor) {
-    const vin = String(valor || "")
-      .trim()
-      .toUpperCase();
-
-    return /^[A-Z0-9]{17}$/.test(vin);
-  }
-
-  // ===== Validación EEI ITN / EBITN =====
-  function validarEBITN(valor) {
-    const ebitn = String(valor || "")
-      .trim()
-      .toUpperCase();
-
-    return /^X\d{14}$/.test(ebitn);
   }
 
   if (vinInput) {
@@ -126,12 +185,9 @@ document.addEventListener("DOMContentLoaded", function () {
         .replace(/[^A-Z0-9]/g, "")
         .slice(0, 17);
     });
-
     vinInput.addEventListener("blur", function () {
       const vin = this.value.trim();
-
       if (!vin) return;
-
       if (!validarVIN(vin)) {
         alertas(
           "El VIN debe contener exactamente 17 caracteres alfanuméricos.",
@@ -149,15 +205,12 @@ document.addEventListener("DOMContentLoaded", function () {
         .replace(/[^A-Z0-9]/g, "")
         .slice(0, 15);
     });
-
     ebitnInput.addEventListener("blur", function () {
       const ebitn = this.value.trim();
-
       if (!ebitn) return;
-
       if (!validarEBITN(ebitn)) {
         alertas(
-          "El EEI ITN debe iniciar con X y contener exactamente 14 dígitos después. Ejemplo: X20260317123456.",
+          "El EEI ITN debe iniciar con X y contener exactamente 14 dígitos. Ejemplo: X20260317123456.",
           "warning",
         );
         this.focus();
@@ -165,7 +218,99 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ===== Firma inspector =====
+  function validarCamposDatos() {
+    const usandoDireccionExistente =
+      selectDireccion && selectDireccion.value !== "";
+
+    const incompletos = Array.from(requiredInputs).some((input) => {
+      if (input.type === "file") return false;
+      if (
+        usandoDireccionExistente &&
+        camposNuevaDireccion &&
+        camposNuevaDireccion.contains(input)
+      ) {
+        return false;
+      }
+      return !String(input.value || "").trim();
+    });
+
+    if (incompletos) {
+      alertas(
+        "Completa todos los campos requeridos antes de prevalidar.",
+        "warning",
+      );
+      return false;
+    }
+
+    const vinValor = vinInput ? vinInput.value.trim() : "";
+    if (!validarVIN(vinValor)) {
+      alertas(
+        "El VIN debe contener exactamente 17 caracteres alfanuméricos.",
+        "warning",
+      );
+      if (vinInput) vinInput.focus();
+      return false;
+    }
+
+    const ebitnValor = ebitnInput ? ebitnInput.value.trim() : "";
+    if (!validarEBITN(ebitnValor)) {
+      alertas(
+        "El EEI ITN debe iniciar con X y contener exactamente 14 dígitos.",
+        "warning",
+      );
+      if (ebitnInput) ebitnInput.focus();
+      return false;
+    }
+
+    const valorFecha = fechaInput ? fechaInput.value : "";
+    if (!valorFecha || valorFecha < fechaMinima) {
+      alertas(
+        "La fecha del certificado no puede ser anterior a hoy.",
+        "warning",
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  function validarFotosApi() {
+    const photoInputs = getPhotoInputs();
+
+    if (photoInputs.length !== EXPECTED_PHOTOS.length) {
+      alertas(
+        `Se requieren ${EXPECTED_PHOTOS.length} campos de foto.`,
+        "error",
+      );
+      return false;
+    }
+
+    for (let i = 0; i < photoInputs.length; i++) {
+      const files = photoInputs[i].files;
+      if (!files || files.length !== 1) {
+        alertas(`Falta: ${EXPECTED_PHOTOS[i]}`, "warning");
+        photoInputs[i].focus();
+        return false;
+      }
+      if (!isJpgFile(files[0])) {
+        alertas(
+          `La ${EXPECTED_PHOTOS[i]} debe ser JPG/JPEG. Archivo: ${files[0].name}`,
+          "warning",
+        );
+        photoInputs[i].focus();
+        return false;
+      }
+    }
+
+    const ext = document.getElementById("foto_Extension");
+    if (ext) ext.value = "jpg";
+
+    return true;
+  }
+
+  // =========================================================
+  // FIRMA INSPECTOR
+  // =========================================================
   if (inspectorSelect) {
     inspectorSelect.addEventListener("change", function () {
       const id = this.value;
@@ -174,7 +319,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (imagenFirma) imagenFirma.src = "";
         return;
       }
-
       fetch(base_url + "CrearCertificados/obtenerFirmaInspector/" + id)
         .then((res) => res.json())
         .then((data) => {
@@ -193,7 +337,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ===== Fecha expiración +3 meses =====
+  // =========================================================
+  // FECHA EXPIRACIÓN
+  // =========================================================
   if (fechaInput && expiracionInput) {
     fechaInput.addEventListener("change", function () {
       const valor = fechaInput.value;
@@ -203,10 +349,8 @@ document.addEventListener("DOMContentLoaded", function () {
         expiracionInput.value = "";
         return;
       }
-
       const fecha = new Date(valor);
       fecha.setMonth(fecha.getMonth() + 3);
-
       const y = fecha.getFullYear();
       const m = String(fecha.getMonth() + 1).padStart(2, "0");
       const d = String(fecha.getDate()).padStart(2, "0");
@@ -214,11 +358,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ===== Dirección existente vs nueva =====
+  // =========================================================
+  // DIRECCIÓN
+  // =========================================================
   function actualizarVisibilidadDireccion() {
     const usandoDireccionExistente =
       selectDireccion && selectDireccion.value !== "";
-
     if (usandoDireccionExistente) {
       if (camposNuevaDireccion) camposNuevaDireccion.style.display = "none";
       if (telefonoInput) telefonoInput.required = false;
@@ -226,7 +371,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (camposNuevaDireccion) camposNuevaDireccion.style.display = "block";
       if (telefonoInput) telefonoInput.required = true;
     }
-
     verificarCamposCompletos();
   }
 
@@ -235,50 +379,26 @@ document.addEventListener("DOMContentLoaded", function () {
       actualizarVisibilidadDireccion();
       cargarLatLonDireccion(selectDireccion.value);
     });
-
     actualizarVisibilidadDireccion();
     cargarLatLonDireccion(selectDireccion.value);
   }
 
-  // ===== Número certificado local +1 (solo UI) =====
-  function actualizarNumeroCertificadoLocal() {
-    if (!numeroCertInput || !numeroCertInput.value) return;
-
-    const actual = numeroCertInput.value.trim();
-    const partes = actual.split("-");
-    if (partes.length !== 2) return;
-
-    const prefijo = partes[0] + "-";
-    const parteNumerica = partes[1];
-    const numero = parseInt(parteNumerica, 10);
-    if (isNaN(numero)) return;
-
-    const siguiente = (numero + 1)
-      .toString()
-      .padStart(parteNumerica.length, "0");
-
-    numeroCertInput.value = prefijo + siguiente;
-  }
-
-  // ===== QR enable/disable (no considera files) =====
+  // =========================================================
+  // QR
+  // =========================================================
   function verificarCamposCompletos() {
     const usandoDireccionExistente =
       selectDireccion && selectDireccion.value !== "";
-
     const incompletos = Array.from(requiredInputs).some((input) => {
+      if (input.type === "file") return false;
       if (
         usandoDireccionExistente &&
         camposNuevaDireccion &&
         camposNuevaDireccion.contains(input)
-      ) {
+      )
         return false;
-      }
-
-      if (input.type === "file") return false;
-
       return !String(input.value || "").trim();
     });
-
     if (generarQRBtn) generarQRBtn.disabled = incompletos;
   }
 
@@ -286,10 +406,8 @@ document.addEventListener("DOMContentLoaded", function () {
     input.addEventListener("input", verificarCamposCompletos);
     input.addEventListener("change", verificarCamposCompletos);
   });
-
   verificarCamposCompletos();
 
-  // ===== QR Generación =====
   if (generarQRBtn) {
     generarQRBtn.addEventListener("click", function () {
       const vin = (document.querySelector("#vin")?.value || "").trim();
@@ -309,9 +427,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const contenidoQR = `${vin}|${propietario}|${fabricadoEn}|${year}|${modelo}|${marca}`;
-
       if (qrCodeContainer) qrCodeContainer.innerHTML = "";
-
       new QRCode(qrCodeContainer, {
         text: contenidoQR,
         width: 256,
@@ -320,260 +436,286 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ===== NUEVO: Validación estricta de fotos para API =====
-  function getPhotoInputs() {
-    return Array.from(
-      frm.querySelectorAll('input[type="file"][name="imagenes[]"]'),
-    );
-  }
-
-  function isJpgFile(file) {
-    if (!file) return false;
-
-    const name = (file.name || "").toLowerCase();
-    const type = (file.type || "").toLowerCase();
-
-    const byExt = name.endsWith(".jpg") || name.endsWith(".jpeg");
-    const byMime = type === "image/jpeg";
-
-    return byExt || byMime;
-  }
-
-  function validarFotosApi() {
-    const photoInputs = getPhotoInputs();
-
-    if (photoInputs.length !== EXPECTED_PHOTOS.length) {
-      alertas(
-        `La vista no coincide con la configuración esperada. Se requieren ${EXPECTED_PHOTOS.length} campos de foto.`,
-        "error",
-      );
-      return false;
-    }
-
-    for (let i = 0; i < photoInputs.length; i++) {
-      const input = photoInputs[i];
-      const files = input.files;
-
-      if (!files || files.length !== 1) {
-        alertas(`Falta: ${EXPECTED_PHOTOS[i]}`, "warning");
-        input.focus();
-        return false;
+  // =========================================================
+  // HELPER AJAX
+  // =========================================================
+  function ajaxPost(url, formData, callback) {
+    const http = new XMLHttpRequest();
+    http.open("POST", url, true);
+    http.onreadystatechange = function () {
+      if (this.readyState !== 4) return;
+      if (this.status !== 200) {
+        callback(null, "Error de red: " + this.status);
+        return;
       }
 
-      const file = files[0];
-
-      if (!isJpgFile(file)) {
-        alertas(
-          `La ${EXPECTED_PHOTOS[i]} debe ser JPG/JPEG. Archivo: ${file.name}`,
-          "warning",
-        );
-        input.focus();
-        return false;
+      try {
+        const res = JSON.parse(this.responseText);
+        console.log(this.responseText);
+        callback(res, null);
+      } catch (e) {
+        console.error(" RAW response del servidor:", this.responseText);
+        callback(null, "Respuesta inválida del servidor.");
       }
-    }
-
-    const ext = document.getElementById("foto_Extension");
-    if (ext) ext.value = "jpg";
-
-    return true;
+    };
+    http.send(formData);
   }
 
-  // ===== Submit =====
-  if (frm) {
-    frm.addEventListener("submit", function (e) {
-      e.preventDefault();
+  function setBotonCargando(btn, cargando, textoOriginal, textoCargando) {
+    if (!btn) return;
+    btn.disabled = cargando;
+    btn.textContent = cargando ? textoCargando : textoOriginal;
+  }
 
+  // =========================================================
+  // PASO 1 — PREVALIDAR DATOS
+  // =========================================================
+  if (btnPrevalidarDatos) {
+    btnPrevalidarDatos.addEventListener("click", function () {
       if (enviando) return;
 
-      const valorFecha = fechaInput ? fechaInput.value : "";
-      const valorExp = expiracionInput ? expiracionInput.value : "";
+      if (!validarCamposDatos()) return;
 
-      if (!valorFecha) {
-        alertas("La fecha del certificado es obligatoria.", "warning");
-        return;
-      }
-
-      if (valorFecha < fechaMinima) {
-        alertas(
-          "La fecha del certificado no puede ser anterior a hoy.",
-          "warning",
-        );
-        return;
-      }
-
-      if (valorExp && valorExp <= valorFecha) {
-        alertas(
-          "La fecha de expiración debe ser posterior a la del certificado.",
-          "warning",
-        );
-        return;
-      }
-
+      // Sync inspector si aplica
       if (nuevoInspectorCheck && nuevoInspectorInput && inspectorSelect) {
         if (nuevoInspectorCheck.checked) {
           inspectorSelect.value = nuevoInspectorInput.value;
         }
       }
 
-      const vinValor = vinInput ? vinInput.value.trim() : "";
-      if (!validarVIN(vinValor)) {
-        alertas(
-          "El VIN debe contener exactamente 17 caracteres alfanuméricos.",
-          "warning",
-        );
-        if (vinInput) vinInput.focus();
-        return;
-      }
-
-      const ebitnValor = ebitnInput ? ebitnInput.value.trim() : "";
-      if (!validarEBITN(ebitnValor)) {
-        alertas(
-          "El EEI ITN debe iniciar con X y contener exactamente 14 dígitos después. Ejemplo: X20260317123456.",
-          "warning",
-        );
-        if (ebitnInput) ebitnInput.focus();
-        return;
-      }
-
-      if (!validarFotosApi()) {
-        return;
-      }
-
       enviando = true;
-
-      if (btnSubmit) {
-        btnSubmit.disabled = true;
-        if (btnSubmit.tagName === "BUTTON") {
-          btnSubmit.textContent = "Generando...";
-        }
-      }
+      setBotonCargando(
+        btnPrevalidarDatos,
+        true,
+        "Prevalidar Datos",
+        "Validando...",
+      );
 
       const data = new FormData(frm);
-      const url = base_url + "CrearCertificados/crear";
 
-      const http = new XMLHttpRequest();
-      http.open("POST", url, true);
-      http.send(data);
+      ajaxPost(
+        base_url + "CrearCertificados/prevalidarDatos",
+        data,
+        function (res, err) {
+          enviando = false;
+          setBotonCargando(
+            btnPrevalidarDatos,
+            false,
+            "Prevalidar Datos",
+            "Validando...",
+          );
 
-      http.onreadystatechange = function () {
-        if (this.readyState !== 4) return;
-
-        enviando = false;
-
-        if (this.status !== 200) {
-          if (btnSubmit) {
-            btnSubmit.disabled = false;
-            if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
-              btnSubmit.textContent = originalBtnText;
-            }
+          if (err) {
+            alertas(err, "error");
+            return;
           }
 
-          alertas("Ocurrió un error al generar el certificado.", "error");
-          return;
-        }
-
-        let res;
-        try {
-          res = JSON.parse(this.responseText);
-        } catch (err) {
-          if (btnSubmit) {
-            btnSubmit.disabled = false;
-            if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
-              btnSubmit.textContent = originalBtnText;
-            }
-          }
-
-          alertas("Respuesta inválida del servidor.", "error");
-          return;
-        }
-
-        alertas(res.msg || "Proceso finalizado", res.icono || "info");
-
-        if (typeof res.api_ok !== "undefined") {
-          if (res.api_ok) {
-            console.log("API externa OK", res.api_status, res.api_msg || "");
+          if (res.icono === "success") {
+            alertas(res.msg, "success");
+            // Bloquear campos de datos
+            bloquearCamposDatos();
+            // Deshabilitar botón paso 1, habilitar paso 2
+            btnPrevalidarDatos.disabled = true;
+            btnPrevalidarFotos.disabled = false;
           } else {
-            console.warn(
-              "API externa FALLÓ",
-              res.api_status,
-              res.api_msg || "",
+            alertas(
+              res.msg || "Error en la prevalidación de datos.",
+              res.icono || "error",
             );
           }
+        },
+      );
+    });
+  }
+
+  // =========================================================
+  // PASO 2 — PREVALIDAR FOTOS
+  // =========================================================
+  if (btnPrevalidarFotos) {
+    btnPrevalidarFotos.addEventListener("click", function () {
+      if (enviando) return;
+
+      if (!validarFotosApi()) return;
+
+      enviando = true;
+      setBotonCargando(
+        btnPrevalidarFotos,
+        true,
+        "Prevalidar Fotos",
+        "Enviando fotos...",
+      );
+
+      // Solo enviamos las fotos en este paso
+      const data = new FormData();
+      const photoInputs = getPhotoInputs();
+      photoInputs.forEach((input) => {
+        if (input.files[0]) {
+          data.append("imagenes[]", input.files[0]);
         }
+      });
+      // VIN también lo necesita el servidor para llamar a Secomext
+      data.append("vin", vinInput ? vinInput.value.trim() : "");
+
+      ajaxPost(
+        base_url + "CrearCertificados/prevalidarFotos",
+        data,
+        function (res, err) {
+          enviando = false;
+          setBotonCargando(
+            btnPrevalidarFotos,
+            false,
+            "Prevalidar Fotos",
+            "Enviando fotos...",
+          );
+
+          if (err) {
+            alertas(err, "error");
+            return;
+          }
+
+          if (res.icono === "success") {
+            alertas(res.msg, "success");
+            // Bloquear inputs de fotos también
+            getPhotoInputs().forEach((input) => {
+              input.style.pointerEvents = "none";
+              input.style.opacity = "0.6";
+            });
+            // Deshabilitar paso 2, habilitar paso 3
+
+            btnPrevalidarFotos.disabled = true;
+            btnCrearCertificado.disabled = false;
+          } else {
+            alertas(
+              res.msg || "Error en la prevalidación de fotos.",
+              res.icono || "error",
+            );
+          }
+        },
+      );
+    });
+  }
+
+  // =========================================================
+  // PASO 3 — CREAR CERTIFICADO
+  // =========================================================
+  if (btnCrearCertificado) {
+    btnCrearCertificado.addEventListener("click", function () {
+      if (enviando) return;
+
+      enviando = true;
+      setBotonCargando(
+        btnCrearCertificado,
+        true,
+        "Crear Certificado",
+        "Generando...",
+      );
+
+      // Enviamos todos los datos del form (sin fotos, ya están en el servidor)
+      const data = new FormData(frm);
+      console.log("📤 Datos enviados al servidor:");
+      for (let [key, value] of data.entries()) {
+        console.log(`  ${key}:`, value);
+      }
+
+      ajaxPost(base_url + "CrearCertificados/crear", data, function (res, err) {
+        enviando = false;
+        setBotonCargando(
+          btnCrearCertificado,
+          false,
+          "Crear Certificado",
+          "Generando...",
+        );
+
+        if (err) {
+          alertas(err, "error");
+          return;
+        }
+        console.log("📦 Respuesta crear:", res);
 
         if (res.icono === "success") {
-          const certActual = numeroCertInput ? numeroCertInput.value : "";
+          // Log API externa
+          if (typeof res.api_ok !== "undefined") {
+            if (res.api_ok) {
+              console.log(
+                "API SmogsBackups OK",
+                res.api_status,
+                res.api_msg || "",
+              );
+            } else {
+              console.warn(
+                "API SmogsBackups FALLÓ",
+                res.api_status,
+                res.api_msg || "",
+              );
+            }
+          }
 
+          alertas(res.msg, "success");
+
+          // Resetear formulario completamente
           frm.reset();
+          desbloquearCamposDatos();
+          getPhotoInputs().forEach((input) => {
+            input.style.pointerEvents = "";
+            input.style.opacity = "";
+          });
+          resetearEstadoBotones();
 
           if (qrCodeContainer) qrCodeContainer.innerHTML = "";
           if (imagenFirma) imagenFirma.src = "";
           if (firmaPreview) firmaPreview.style.display = "none";
 
-          if (numeroCertInput && certActual) {
-            numeroCertInput.value = certActual;
-            actualizarNumeroCertificadoLocal();
-          }
-
           verificarCamposCompletos();
 
+          // Abrir PDF y descargar ZIP
           if (res.pdf_url) window.open(res.pdf_url, "_blank");
           if (res.zip_url) window.location.href = res.zip_url;
-          return;
+        } else {
+          alertas(
+            res.msg || "Error al crear el certificado.",
+            res.icono || "error",
+          );
         }
-
-        if (btnSubmit) {
-          btnSubmit.disabled = false;
-          if (btnSubmit.tagName === "BUTTON" && originalBtnText) {
-            btnSubmit.textContent = originalBtnText;
-          }
-        }
-      };
+      });
     });
   }
 });
 
+// =========================================================
+// FUNCIONES GLOBALES (fuera del DOMContentLoaded)
+// =========================================================
 function cargarLatLonDireccion(id) {
-  const url = base_url + "CrearCertificados/obtenerLatLon/" + id;
   const latInput = document.getElementById("latitud");
   const lonInput = document.getElementById("longitud");
-
   if (!latInput || !lonInput) return;
 
   if (id) {
-    fetch(url)
+    fetch(base_url + "CrearCertificados/obtenerLatLon/" + id)
       .then((response) => response.json())
       .then((data) => {
         latInput.value = data.latitude || "";
         lonInput.value = data.longitude || "";
-
-        if (latInput.parentElement && latInput.parentElement.parentElement) {
+        if (latInput.parentElement?.parentElement) {
           latInput.parentElement.parentElement.style.display = "none";
         }
-
         latInput.required = false;
         lonInput.required = false;
       })
-      .catch((error) => {
-        console.error("Error al obtener lat/lon:", error);
+      .catch(() => {
         latInput.value = "";
         lonInput.value = "";
-
-        if (latInput.parentElement && latInput.parentElement.parentElement) {
+        if (latInput.parentElement?.parentElement) {
           latInput.parentElement.parentElement.style.display = "block";
         }
-
         latInput.required = true;
         lonInput.required = true;
       });
   } else {
     latInput.value = "";
     lonInput.value = "";
-
-    if (latInput.parentElement && latInput.parentElement.parentElement) {
+    if (latInput.parentElement?.parentElement) {
       latInput.parentElement.parentElement.style.display = "block";
     }
-
     latInput.required = true;
     lonInput.required = true;
   }

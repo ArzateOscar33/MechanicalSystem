@@ -27,32 +27,6 @@ class CrearCertificadosModel extends Query
     }
 
     public function insertarCertificado(
-    $cert_number,
-    $vin,
-    $address_id,
-    $phone,
-    $year,
-    $mfg_in,
-    $make,
-    $owner_name,
-    $model,
-    $license_plate,
-    $odometer,
-    $inspector_id,
-    $created_by,    
-    $test_date,
-    $expires,
-    $source_file
-) {
-    $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
-
-    $sql = "INSERT INTO certificates (
-        cert_number, vin, address_id, phone, year, mfg_in, make,
-        owner_name, model, license_plate, odometer, inspector_id,
-        created_by, test_date, expires, source_file, zip_file_path
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    return $this->insertar($sql, [
         $cert_number,
         $vin,
         $address_id,
@@ -65,13 +39,39 @@ class CrearCertificadosModel extends Query
         $license_plate,
         $odometer,
         $inspector_id,
-        $created_by,   
+        $created_by,
         $test_date,
         $expires,
-        $source_file,
-        $zip_path
-    ]);
-}
+        $source_file
+    ) {
+        $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
+
+        $sql = "INSERT INTO certificates (
+        cert_number, vin, address_id, phone, year, mfg_in, make,
+        owner_name, model, license_plate, odometer, inspector_id,
+        created_by, test_date, expires, source_file, zip_file_path
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        return $this->insertar($sql, [
+            $cert_number,
+            $vin,
+            $address_id,
+            $phone,
+            $year,
+            $mfg_in,
+            $make,
+            $owner_name,
+            $model,
+            $license_plate,
+            $odometer,
+            $inspector_id,
+            $created_by,
+            $test_date,
+            $expires,
+            $source_file,
+            $zip_path
+        ]);
+    }
 
 
     public function insertarMonitoreo($cert_number, $tipo, $resultado)
@@ -124,7 +124,7 @@ class CrearCertificadosModel extends Query
         return $this->selectAll($sql);
     }
 
-   /* public function contarCertificadosPorUsuario($id_usuario)
+    /* public function contarCertificadosPorUsuario($id_usuario)
     {
         $sql = "SELECT MAX(CAST(SUBSTRING_INDEX(cert_number, '-', -1) AS UNSIGNED)) AS ultimo 
             FROM certificates 
@@ -189,95 +189,94 @@ class CrearCertificadosModel extends Query
     }
 
     public function vinConCertificadoActivo($vin, $fechaReferencia)
-{
-    // Busca si existe algún certificado cuyo VIN coincida
-    // y cuya fecha de expiración sea igual o posterior a la nueva prueba.
-    $sql = "SELECT cert_number 
+    {
+        // Busca si existe algún certificado cuyo VIN coincida
+        // y cuya fecha de expiración sea igual o posterior a la nueva prueba.
+        $sql = "SELECT cert_number 
             FROM certificates 
             WHERE vin = ? 
               AND expires >= ?
             LIMIT 1";
 
-    return $this->select($sql, [$vin, $fechaReferencia]);
-}
- 
- public function obtenerCertNumberPreliminar()
-{
-    $sql = "SELECT numero 
+        return $this->select($sql, [$vin, $fechaReferencia]);
+    }
+
+    public function obtenerCertNumberPreliminar()
+    {
+        $sql = "SELECT numero 
             FROM secuencias_certificado 
             WHERE certificado = 'CERTIFICADO'
             LIMIT 1";
-    $res = $this->select($sql, []);
+        $res = $this->select($sql, []);
 
-    $actual = $res && isset($res['numero']) ? intval($res['numero']) : 0;
-    $siguiente = $actual + 1;
+        $actual = $res && isset($res['numero']) ? intval($res['numero']) : 0;
+        $siguiente = $actual + 1;
 
-    $consecutivo = str_pad($siguiente, 8, "0", STR_PAD_LEFT);
-    return 'MEX-' . $consecutivo;//AUQI SE PUEDE CAMBIAR EL NOMBRE DEL CERTIFICADO
-}
+        $consecutivo = str_pad($siguiente, 8, "0", STR_PAD_LEFT);
+        return 'MEX-' . $consecutivo; //AUQI SE PUEDE CAMBIAR EL NOMBRE DEL CERTIFICADO
+    }
 
-/**
- * 2) Número definitivo (actualiza + lee).
- *    Este se usa SOLO al guardar el certificado.
- */
-public function generarCertNumberGlobal()
-{
-    // Incrementar el número en BD
-    $sqlUpdate = "UPDATE secuencias_certificado 
+    /**
+     * 2) Número definitivo (actualiza + lee).
+     *    Este se usa SOLO al guardar el certificado.
+     */
+    public function generarCertNumberGlobal()
+    {
+        // Incrementar el número en BD
+        $sqlUpdate = "UPDATE secuencias_certificado 
                   SET numero = numero + 1 
                   WHERE certificado = 'CERTIFICADO'";
-    $this->save($sqlUpdate, []); // UPDATE
+        $this->save($sqlUpdate, []); // UPDATE
 
-    // Obtener el nuevo valor
-    $sqlSelect = "SELECT numero 
+        // Obtener el nuevo valor
+        $sqlSelect = "SELECT numero 
                   FROM secuencias_certificado 
                   WHERE certificado = 'CERTIFICADO'
                   LIMIT 1";
-    $res = $this->select($sqlSelect, []);
+        $res = $this->select($sqlSelect, []);
 
-    $numero = $res && isset($res['numero']) ? intval($res['numero']) : 1;
+        $numero = $res && isset($res['numero']) ? intval($res['numero']) : 1;
 
-    $consecutivo = str_pad($numero, 8, "0", STR_PAD_LEFT);
-    return 'MEX-' . $consecutivo;
-}
+        $consecutivo = str_pad($numero, 8, "0", STR_PAD_LEFT);
+        return 'MEX-' . $consecutivo;
+    }
 
 
-//INSERCIONES PARA REGISTRO DE LA API 
-public function siguienteAttemptApiEmissions(string $cert_number): int
-{
-    $sql = "SELECT COALESCE(MAX(attempt), 0) + 1 AS n
+    //INSERCIONES PARA REGISTRO DE LA API 
+    public function siguienteAttemptApiEmissions(string $cert_number): int
+    {
+        $sql = "SELECT COALESCE(MAX(attempt), 0) + 1 AS n
             FROM api_emissions_sync_log
             WHERE cert_number = ?";
-    $row = $this->select($sql, [$cert_number]);
-    return (int)($row['n'] ?? 1);
-}
+        $row = $this->select($sql, [$cert_number]);
+        return (int)($row['n'] ?? 1);
+    }
 
-public function insertarApiEmissionsSyncLog(array $d): int
-{
-    $sql = "INSERT INTO api_emissions_sync_log
+    public function insertarApiEmissionsSyncLog(array $d): int
+    {
+        $sql = "INSERT INTO api_emissions_sync_log
             (cert_number, vin, mode, endpoint,
              payload_sha256, pdf_sha256, photos_sha256_json,
              http_status, api_result, api_description, response_raw,
              attempt, sent_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-    return (int)$this->insertar($sql, [
-        $d['cert_number'] ?? '',
-        $d['vin'] ?? '',
-        $d['mode'] ?? 'production',
-        $d['endpoint'] ?? '',
+        return (int)$this->insertar($sql, [
+            $d['cert_number'] ?? '',
+            $d['vin'] ?? '',
+            $d['mode'] ?? 'production',
+            $d['endpoint'] ?? '',
 
-        $d['payload_sha256'] ?? '',
-        $d['pdf_sha256'] ?? '',
-        $d['photos_sha256_json'] ?? '{}',
+            $d['payload_sha256'] ?? '',
+            $d['pdf_sha256'] ?? '',
+            $d['photos_sha256_json'] ?? '{}',
 
-        (int)($d['http_status'] ?? 0),
-        $d['api_result'] ?? null,
-        $d['api_description'] ?? null,
-        $d['response_raw'] ?? null,
+            (int)($d['http_status'] ?? 0),
+            $d['api_result'] ?? null,
+            $d['api_description'] ?? null,
+            $d['response_raw'] ?? null,
 
-        (int)($d['attempt'] ?? 1),
-    ]);
-}
-
+            (int)($d['attempt'] ?? 1),
+        ]);
+    }
 }

@@ -13,6 +13,7 @@
 <body>
     <div class="container mt-5">
         <h3 class="text-center">Crear Certificado</h3>
+        <?php var_dump(extension_loaded('soap')); ?>
         <form id="formularioCertificado" enctype="multipart/form-data">
             <!-- Dirección del Certificado -->
             <div class="card mb-4">
@@ -111,7 +112,7 @@
                         <input type="text" class="form-control" id="propietario" name="propietario" required>
                     </div>
                     <div class="mb-3">
-                        <label for="odometro" class="form-label">Odómetro (millas/kilómetros)</label>
+                        <label for="odometro" class="form-label">Odómetro (millas)</label>
                         <input type="number" class="form-control" id="odometro" name="odometro" required>
                     </div>
                 </div>
@@ -157,7 +158,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="monitor_sensor_c2" class="form-label">Monitor del Sensor C2</label>
+                        <label for="monitor_sensor_c2" class="form-label">Monitor del Sensor O2</label>
                         <select class="form-select" id="monitor_sensor_c2" name="monitor_sensor_c2" required>
                             <option value="PASA">PASA</option>
                             <option value="FALLA">FALLA</option>
@@ -181,7 +182,7 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label for="ebitn" class="form-label">EEI ITN</label>
-                        <input type="text" class="form-control" id="ebitn" name="ebitn" required>
+                        <input type="text" class="form-control" id="ebitn" name="ebitn">
                     </div>
                     <div class="mb-3">
                         <label for="inspector" class="form-label">Nombre del Inspector</label>
@@ -204,6 +205,9 @@
                             <label for="fecha_expiracion" class="form-label">Fecha de Expiración</label>
                             <input type="date" class="form-control" id="fecha_expiracion" name="fecha_expiracion" required readonly>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary" id="btnPrevalidarDatos">Prevalidar Datos</button>
                     </div>
                 </div>
 
@@ -264,6 +268,10 @@
                                 <label class="form-label">8) Foto Taller (fotoTaller)</label>
                                 <input type="file" class="form-control" name="imagenes[]" accept="image/jpeg" required>
                             </div>
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary " id="btnPrevalidarFotos">Prevalidar Fotografias</button>
+                            </div>
+
                         </div>
 
                         <input type="hidden" name="foto_Extension" id="foto_Extension" value="jpg">
@@ -276,13 +284,13 @@
                         <h5>Códigos QR</h5>
                     </div>
                     <div class="card-body">
-                        <button type="button" class="btn btn-success" id="generarQR" disabled>Generar Código QR</button>
+                        <button type="button" class="btn btn-priamary" id="generarQR" disabled>Generar Código QR</button>
 
                         <div id="codigoQR" class="mt-3"></div>
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">Crear Certificado</button>
+                <button type="button" class="btn btn-success w-100 " id="btnCrearCertificado">Crear Certificado</button>
         </form>
     </div>
 
@@ -293,6 +301,9 @@
 
 
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/crearcertificados.js"></script>
+<!--
+<script src="<? //php echo BASE_URL; 
+                ?>assets/js/modulos/prevalidarDatos.js"></script> -->
 <?php include_once 'Views/template/footer-admin.php'; ?>
 
 <script>

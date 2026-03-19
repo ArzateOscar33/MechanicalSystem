@@ -19,8 +19,7 @@ const BASE_PATH = __DIR__ . '/../';
 
 //prueba envio de correos por gmail 
 //ENVIO DE CORREOS
-const USER_SMTP="arzateoscar33@gmail.com";
-const PASS_SMTP="mrpf vzvo ckyh txhp";
-const PUERTO_SMTP="465";
-const HOST_SMTP="smtp.gmail.com"; 
-?>
+const USER_SMTP = "arzateoscar33@gmail.com";
+const PASS_SMTP = "mrpf vzvo ckyh txhp";
+const PUERTO_SMTP = "465";
+const HOST_SMTP = "smtp.gmail.com";
