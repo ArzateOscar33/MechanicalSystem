@@ -507,6 +507,100 @@ class CrearCertificados extends Controller
             : '';
         $ebitn = htmlspecialchars($data['ebitn'] ?? '');
 
+        // ── Mapa real OpenStreetMap (tiles descargados, sin API key) ──
+        $lat        = (float)$data['latitud'];
+        $lon        = (float)$data['longitud'];
+        $mapImgPath = BASE_PATH . "uploads/temp/{$cert_number}_map.png";
+        $zoom       = 15;
+
+        // Convertir lat/lon a número de tile
+        $tileX = (int)floor(($lon + 180) / 360 * pow(2, $zoom));
+        $tileY = (int)floor((1 - log(tan(deg2rad($lat)) + 1 / cos(deg2rad($lat))) / M_PI) / 2 * pow(2, $zoom));
+
+        // Descargar 3x3 tiles para tener contexto alrededor del pin
+        $tileSize  = 256;
+        $gridSize  = 3; // 3x3 tiles
+        $imgWidth  = $tileSize * $gridSize; // 768px
+        $imgHeight = $tileSize * $gridSize; // 768px
+
+        $mapa = imagecreatetruecolor($imgWidth, $imgHeight);
+
+        for ($dx = -1; $dx <= 1; $dx++) {
+            for ($dy = -1; $dy <= 1; $dy++) {
+                $tx = $tileX + $dx;
+                $ty = $tileY + $dy;
+
+                // Rotar entre servidores a,b,c para no saturar uno solo
+                $servers = ['a', 'b', 'c'];
+                $srv     = $servers[abs($tx + $ty) % 3];
+                $tileUrl = "https://{$srv}.tile.openstreetmap.org/{$zoom}/{$tx}/{$ty}.png";
+
+                $ch = curl_init($tileUrl);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                // OSM requiere User-Agent identificado
+                curl_setopt($ch, CURLOPT_USERAGENT, 'MechanicalEmissionsServices/1.0 (certificados@mecemissions.com)');
+                $tileData = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($tileData && $httpCode === 200) {
+                    $tileImg = @imagecreatefromstring($tileData);
+                    if ($tileImg) {
+                        $destX = ($dx + 1) * $tileSize;
+                        $destY = ($dy + 1) * $tileSize;
+                        imagecopy($mapa, $tileImg, $destX, $destY, 0, 0, $tileSize, $tileSize);
+                        imagedestroy($tileImg);
+                    }
+                }
+            }
+        }
+
+        // Calcular posición exacta del pin dentro del mapa 3x3
+        $centerTilePixelX = ($lon / 360 + 0.5) * pow(2, $zoom) * $tileSize;
+        $centerTilePixelY = (1 - log(tan(deg2rad($lat)) + 1 / cos(deg2rad($lat))) / M_PI) / 2 * pow(2, $zoom) * $tileSize;
+
+        $originPixelX = $tileX * $tileSize;
+        $originPixelY = $tileY * $tileSize;
+
+        $pinX = (int)(($centerTilePixelX - $originPixelX) + $tileSize); // +tileSize por el offset del tile -1
+        $pinY = (int)(($centerTilePixelY - $originPixelY) + $tileSize);
+
+        // Dibujar pin rojo
+        $red    = imagecolorallocate($mapa, 204, 0, 0);
+        $white  = imagecolorallocate($mapa, 255, 255, 255);
+        $dark   = imagecolorallocate($mapa, 100, 0, 0);
+
+        // Sombra
+        imagefilledellipse($mapa, $pinX + 2, $pinY + 2, 22, 22, imagecolorallocatealpha($mapa, 0, 0, 0, 80));
+        // Círculo exterior
+        imagefilledellipse($mapa, $pinX, $pinY, 24, 24, $red);
+        imageellipse($mapa, $pinX, $pinY, 24, 24, $dark);
+        // Punto blanco interior
+        imagefilledellipse($mapa, $pinX, $pinY, 10, 10, $white);
+
+        // Barra de coordenadas abajo
+        $navy = imagecolorallocatealpha($mapa, 26, 58, 92, 40);
+        imagefilledrectangle($mapa, 0, $imgHeight - 28, $imgWidth, $imgHeight, $navy);
+        $coordText = number_format($lat, 5) . ', ' . number_format($lon, 5);
+        imagestring($mapa, 3, ($imgWidth / 2) - (strlen($coordText) * 4), $imgHeight - 20, $coordText, $white);
+
+        // Recortar al centro para output más pequeño (400x300 centrado en el pin)
+        $outputW  = 400;
+        $outputH  = 300;
+        $cropX    = max(0, $pinX - $outputW / 2);
+        $cropY    = max(0, $pinY - $outputH / 2);
+        $cropped  = imagecreatetruecolor($outputW, $outputH);
+        imagecopy($cropped, $mapa, 0, 0, $cropX, $cropY, $outputW, $outputH);
+
+        imagepng($cropped, $mapImgPath);
+        imagedestroy($mapa);
+        imagedestroy($cropped);
+
+        $mapHtml = '<img src="' . $mapImgPath . '" style="width:55mm;height:41mm;display:block;border:0.3mm solid #aaa;">';
+
         // =========================================================
         // HTML
         // =========================================================
@@ -565,11 +659,25 @@ class CrearCertificados extends Controller
                     <img src="' . $vinBarcodeWeb . '" style="width:71mm;height:14mm;display:block;margin:0 auto;">
                     <div style="font-size:7pt;font-weight:bold;text-align:left;margin-top:0.5mm;color:#555;">NIV</div>
                 </td>
+                
                 <td style="border:none;text-align:center;vertical-align:middle;padding:0 5mm;">
-                    <div class="emp-name">
-                        Mechanical Emissions Services LLC<br>
-                        ' . htmlspecialchars($direccion_texto) . '
+                    <div class="emp-name" style="text-align:center;">
+                        Mechanical Emissions Services LLC
                     </div>
+                    <table style="width:100%;border:none;margin-top:1mm;">
+                        <tr>
+                            <td style="border:none;vertical-align:top;text-align:left;padding:0 2mm 0 0;width:50%;font-size:7.5pt;color:#1a3a5c;line-height:1.6;">
+                                <span style="font-weight:bold;font-size:7pt;color:#cc0000;">MX</span><br>
+                               Cayetano Pérez 240, Buena Vista, Burocrata Ruiz Cortinez, 22406 Tijuana, B.C.<br>22406 Tijuana, B.C.
+                            </td>
+                            <td style="border:none;border-left:0.3mm solid #b0bec5;vertical-align:top;text-align:left;padding:0 0 0 2mm;width:50%;font-size:7.5pt;color:#1a3a5c;line-height:1.6;">
+                                <span style="font-weight:bold;font-size:7pt;color:#cc0000;">USA</span><br>
+                                910 Highland Avenue,<br>National City, CA 91950
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="emp-aval" style="margin-top:1mm;">Avalado por -- Mechanical Emissions Services</div>
+                </td>
                     <div class="emp-aval">Avalado por -- Mechanical Emissions Services</div>
                 </td>
                 <td style="width:72mm;border:none;text-align:center;vertical-align:bottom;padding:0 0 1mm 0;">
@@ -607,7 +715,7 @@ class CrearCertificados extends Controller
                 <td class="L">Placa</td>
                 <td class="V">' . htmlspecialchars($data['placa']) . '</td>
                 <td class="L">Odómetro (mi)</td>
-                <td class="V">' . htmlspecialchars($data['odometro']) . $km . '</td>
+                <td class="V">' . htmlspecialchars($data['odometro']) . ' mi  - ' . $km . '</td>
             </tr>
         </table>
 
@@ -690,21 +798,27 @@ class CrearCertificados extends Controller
         <table style="margin-top:2mm;border-collapse:collapse;">
             <tr>' . $fotosCeldas . '</tr>
         </table>
-
         <!-- ══════════════════════════════════════════════════
-             PIE: QR | Texto Semarnat | Logo
+            PIE: QR | Mapa | Texto Semarnat | Logo
         ═════════════════════════════════════════════════════ -->
         <table style="margin-top:3mm;border:none;">
             <tr>
                 <td style="width:30mm;text-align:center;vertical-align:bottom;border:none;">
                     <img src="' . $qrWebPath . '" style="width:28mm;height:28mm;">
                 </td>
-              <!--  <td style="vertical-align:bottom;padding:0 5mm;font-size:7pt;line-height:1.8;color:#444;border:none;">
-                    <span style="color:#1a3a5c;font-weight:bold;font-size:7.5pt;">Carta de Autorización de Semarnat</span><br>
+                <td style="width:58mm;text-align:center;vertical-align:bottom;border:none;padding:0 2mm;">
+                    ' . $mapHtml . '
+                    <div style="font-size:6.5pt;color:#555;margin-top:0.5mm;">
+                        Lat: ' . htmlspecialchars($lat) . ' | Lon: ' . htmlspecialchars($lon) . '
+                    </div>
+                </td>
+                <!--<td style="vertical-align:bottom;padding:0 4mm;font-size:7pt;line-height:1.8;color:#444;border:none;">
+                    <span style="color:#1a3a5c;font-weight:bold;font-size:7.5pt;">Semarnat Autorization Letter</span><br>
                     No. SRA.600/DPRA/DPMR/377/2022<br>
                     CA BAR 97 GEN3 and/or Drew Technologies IMClean<br>
-                    ESP 10400-89 Versión del Software: 16028007727838<br>
-                    Verificar en: <span style="color:#0055aa;">www.mecemissionsmx.com</span>
+                    ESP 10400-89 Software Version: 16028007727838<br>
+                    To verify this Certificate please go to:<br>
+                    <span style="color:#0055aa;">www.mecemissions.com</span>
                 </td> -->
                 <td style="width:45mm;text-align:right;vertical-align:bottom;border:none;">
                     <img src="' . $logoPath . '" style="height:24mm;">
@@ -724,6 +838,7 @@ class CrearCertificados extends Controller
             'default_font_size' => 8,
             'default_font'      => 'Arial',
             'tempDir'           => BASE_PATH . 'uploads/temp/',
+            'basepath'          => BASE_PATH,
         ]);
 
         $mpdf->SetTitle('Certificado ' . $cert_number);

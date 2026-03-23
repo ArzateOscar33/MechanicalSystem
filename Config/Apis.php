@@ -10,7 +10,7 @@ defined('SECOMEXT_INSPECTOR_ID') || define('SECOMEXT_INSPECTOR_ID', '1');
 defined('SECOMEXT_LOCATION_ID')  || define('SECOMEXT_LOCATION_ID', 1);
 
 // ===== Entorno =====
-defined('APP_ENV')  || define('APP_ENV',            'testing');
+defined('APP_ENV')  || define('APP_ENV',            'testing'); //testing o production
 defined('TEST_DATOS_RESULT')  || define('TEST_DATOS_RESULT',  'success');
 defined('TEST_FOTOS_RESULT')  || define('TEST_FOTOS_RESULT',  'success');
 
@@ -21,7 +21,7 @@ return [
         'timeout'  => 25,
         'usuario'  => 'Mechanical1',
         'password' => 'G7#xk9!Lmp2$VrN3',
-        'mode'     => 'testing',
+        'mode'     => 'testing', //testing o production
         'endpoints' => [
             'testing'    => 'https://postman-echo.com',
             'production' => 'https://smogsbackups.com/restService',
