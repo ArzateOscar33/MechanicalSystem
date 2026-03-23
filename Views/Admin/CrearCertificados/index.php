@@ -13,7 +13,7 @@
 <body>
     <div class="container mt-5">
         <h3 class="text-center">Crear Certificado</h3>
-        <?php var_dump(extension_loaded('soap')); ?>
+
         <form id="formularioCertificado" enctype="multipart/form-data">
             <!-- Dirección del Certificado -->
             <div class="card mb-4">
@@ -139,7 +139,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="numero_certificado" class="form-label">Número de Certificado</label>
+                        <label for="numero_certificado" class="form-label disabled">Número de Certificado</label>
                         <input type="text" class="form-control" id="numero_certificado" name="numero_certificado" value="<?= $data['cert_number']; ?>" readonly>
                     </div>
 
