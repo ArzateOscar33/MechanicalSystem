@@ -460,6 +460,25 @@ document.addEventListener("DOMContentLoaded", function () {
     };
     http.send(formData);
   }
+  function ajaxGet(url, callback) {
+    const http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.onreadystatechange = function () {
+      if (this.readyState !== 4) return;
+      if (this.status !== 200) {
+        callback(null, "Error de red: " + this.status);
+        return;
+      }
+      try {
+        const res = JSON.parse(this.responseText);
+        callback(res, null);
+      } catch (e) {
+        console.error("RAW:", this.responseText);
+        callback(null, "Respuesta inválida del servidor.");
+      }
+    };
+    http.send();
+  }
 
   function setBotonCargando(btn, cargando, textoOriginal, textoCargando) {
     if (!btn) return;
@@ -666,6 +685,15 @@ document.addEventListener("DOMContentLoaded", function () {
           if (firmaPreview) firmaPreview.style.display = "none";
 
           verificarCamposCompletos();
+          // ✅ Actualizar número de certificado
+          ajaxGet(
+            base_url + "CrearCertificados/obtenerSiguienteCertNumber",
+            function (data, err) {
+              if (!err && data && data.cert_number) {
+                if (numeroCertInput) numeroCertInput.value = data.cert_number;
+              }
+            },
+          );
 
           // Abrir PDF y descargar ZIP
           if (res.pdf_url) window.open(res.pdf_url, "_blank");

@@ -924,4 +924,12 @@ class CrearCertificados extends Controller
         echo json_encode(['msg' => $mensaje, 'icono' => $icono], JSON_UNESCAPED_UNICODE);
         exit;
     }
+    public function obtenerSiguienteCertNumber()
+    {
+        $cert_number = $this->model->obtenerCertNumberPreliminar();
+        // Actualizar sesión con el nuevo número
+        $_SESSION['preval_cert_number'] = $cert_number;
+        echo json_encode(['cert_number' => $cert_number], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 }
