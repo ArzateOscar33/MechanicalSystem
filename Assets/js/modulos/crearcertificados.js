@@ -253,7 +253,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const ebitnValor = ebitnInput ? ebitnInput.value.trim() : "";
-    if (!validarEBITN(ebitnValor)) {
+
+    // ✅ SOLO validar si tiene valor
+    if (ebitnValor && !validarEBITN(ebitnValor)) {
       alertas(
         "El EEI ITN debe iniciar con X y contener exactamente 14 dígitos.",
         "warning",

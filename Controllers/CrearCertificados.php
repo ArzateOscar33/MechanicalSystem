@@ -668,7 +668,7 @@ class CrearCertificados extends Controller
                         <tr>
                             <td style="border:none;vertical-align:top;text-align:left;padding:0 2mm 0 0;width:50%;font-size:7.5pt;color:#1a3a5c;line-height:1.6;">
                                 <span style="font-weight:bold;font-size:7pt;color:#cc0000;">MX</span><br>
-                               Cayetano Pérez 240, Buena Vista, Burocrata Ruiz Cortinez, 22406 Tijuana, B.C.<br>22406 Tijuana, B.C.
+                               Cayetano Pérez 240, Buena Vista, Burocrata Ruiz Cortinez,<br>22406 Tijuana, B.C.
                             </td>
                             <td style="border:none;border-left:0.3mm solid #b0bec5;vertical-align:top;text-align:left;padding:0 0 0 2mm;width:50%;font-size:7.5pt;color:#1a3a5c;line-height:1.6;">
                                 <span style="font-weight:bold;font-size:7pt;color:#cc0000;">USA</span><br>
