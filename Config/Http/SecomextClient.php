@@ -87,6 +87,19 @@ class SecomextClient
 
             $resultado = $client->call('ReceiveData', $params);
 
+            error_log('[Secomext datos] params=' . print_r($params, true));
+            error_log('[Secomext datos] raw_result=' . print_r($resultado, true));
+
+            if ($client->fault) {
+                error_log('[Secomext datos] fault=' . print_r($resultado, true));
+            }
+
+            $error = $client->getError();
+            if ($error) {
+                error_log('[Secomext datos] soap_error=' . $error);
+            }
+
+
             if ($client->fault) {
                 return [
                     'success'   => false,
@@ -173,6 +186,17 @@ class SecomextClient
 
             $resultado = $client->call('SendString', $params);
 
+            error_log('[Secomext fotos] cert=' . $certNumber . ' vin=' . $vin);
+            error_log('[Secomext fotos] raw_result=' . print_r($resultado, true));
+
+            if ($client->fault) {
+                error_log('[Secomext fotos] fault=' . print_r($resultado, true));
+            }
+
+            $error = $client->getError();
+            if ($error) {
+                error_log('[Secomext fotos] soap_error=' . $error);
+            }
             if ($client->fault) {
                 return [
                     'success'   => false,

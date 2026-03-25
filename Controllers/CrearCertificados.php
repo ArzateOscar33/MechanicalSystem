@@ -385,7 +385,14 @@ class CrearCertificados extends Controller
         }
 
         try {
-            $apiResp = $this->enviarCertificadoSmogsBackups($cert_number, $_POST, $address_id, $pdfFullPath, $tempImgs);
+            $apiResp = $this->enviarCertificadoSmogsBackups(
+                $cert_number,
+                $_POST,
+                $address_id,
+                $pdfFullPath,
+                $tempImgs,
+                $fotosRutas
+            );
         } catch (\Throwable $e) {
             $apiResp = ['ok' => false, 'status' => 0, 'api_msg' => $e->getMessage()];
         }
@@ -668,7 +675,7 @@ class CrearCertificados extends Controller
                         <tr>
                             <td style="border:none;vertical-align:top;text-align:left;padding:0 2mm 0 0;width:50%;font-size:7.5pt;color:#1a3a5c;line-height:1.6;">
                                 <span style="font-weight:bold;font-size:7pt;color:#cc0000;">MX</span><br>
-                               Cayetano Pérez 240, Buena Vista, Burocrata Ruiz Cortinez, 22406 Tijuana, B.C.<br>22406 Tijuana, B.C.
+                               Cayetano Pérez 240, Buena Vista, Burocrata Ruiz Cortinez,<br>22406 Tijuana, B.C.
                             </td>
                             <td style="border:none;border-left:0.3mm solid #b0bec5;vertical-align:top;text-align:left;padding:0 0 0 2mm;width:50%;font-size:7.5pt;color:#1a3a5c;line-height:1.6;">
                                 <span style="font-weight:bold;font-size:7pt;color:#cc0000;">USA</span><br>
@@ -874,13 +881,14 @@ class CrearCertificados extends Controller
         array $post,
         int $address_id,
         string $pdfFullPath,
-        array $tempImgs
+        array $tempImgs,
+        array $fotosRutas = []
     ): array {
         $direccion = $this->model->obtenerDireccionPorId($address_id);
 
         $toPassFail = function ($val): string {
             $v = strtoupper(trim((string)$val));
-            return ($v === 'PASA' || $v === 'PASS') ? 'PASS' : 'FAIL';
+            return ($v === 'PASA' || $v === 'PASS' || $v === 'P') ? 'PASS' : 'FAIL';
         };
 
         $fmtFecha = function ($s): string {
@@ -922,31 +930,40 @@ class CrearCertificados extends Controller
         $payload['testResultadoFinal'] = $toPassFail($post['resultado_prueba']             ?? '');
         $payload['foto_Extension']     = $post['foto_Extension'] ?? 'jpg';
 
-        $fotoMap = [
-            0 => 'fotoVin',
-            1 => 'fotoFrente',
-            2 => 'fotoAtras',
-            3 => 'fotoPiloto',
-            4 => 'fotoPasajero',
-            5 => 'fotoPuerta',
-            6 => 'fotoScanner',
-            7 => 'fotoTaller'
+        $fotoMapSmogs = [
+            'vindash' => 'fotoVin',
+            'front'   => 'fotoFrente',
+            'back'    => 'fotoAtras',
+            'left'    => 'fotoPiloto',
+            'right'   => 'fotoPasajero',
+            'label'   => 'fotoPuerta',
+            'device'  => 'fotoScanner',
+            'device2' => 'fotoTaller',
         ];
 
         if ($isTesting) {
             $payload['certificadoPdf'] = 'TEST_PDF_BASE64';
-            foreach ($fotoMap as $idx => $field) $payload[$field] = 'TEST_IMG_BASE64_' . $idx;
+            $i = 0;
+            foreach ($fotoMapSmogs as $origen => $destino) {
+                $payload[$destino] = 'TEST_IMG_BASE64_' . $i;
+                $i++;
+            }
         } else {
             $payload['certificadoPdf'] = base64_encode(file_get_contents($pdfFullPath));
-            foreach ($tempImgs as $img) {
-                $ix = (int)($img['index'] ?? -1);
-                if ($ix < 0 || !isset($fotoMap[$ix])) continue;
-                if (!empty($img['path']) && file_exists($img['path']))
-                    $payload[$fotoMap[$ix]] = base64_encode(file_get_contents($img['path']));
+
+            foreach ($fotoMapSmogs as $origen => $destino) {
+                $ruta = $fotosRutas[$origen] ?? '';
+
+                if (!empty($ruta) && file_exists($ruta)) {
+                    $payload[$destino] = base64_encode(file_get_contents($ruta));
+                } else {
+                    $payload[$destino] = '';
+                }
             }
         }
 
         $resp = $api->postUrlEncoded($path, $payload);
+
 
         $pdfSha = (!$isTesting && file_exists($pdfFullPath)) ? hash_file('sha256', $pdfFullPath) : '';
         $photosHashes = [];
@@ -962,6 +979,9 @@ class CrearCertificados extends Controller
         $endpointUsed = rtrim((string)api_base_url('smogs_backups'), '/') . $path;
         $mode         = $cfg['mode'] ?? 'production';
         $attempt      = 1;
+        error_log('[SmogsBackups] endpoint=' . $endpointUsed);
+        error_log('[SmogsBackups] status=' . ($resp['status'] ?? 0) . ' body=' . ($resp['body'] ?? ''));
+        error_log('[SmogsBackups] error=' . (($resp['error'] ?? null) ?: 'none'));
         try {
             $attempt = $this->model->siguienteAttemptApiEmissions($cert_number);
         } catch (Exception $e) {
