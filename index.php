@@ -2,7 +2,7 @@
 require_once 'Config/Config.php';
 require_once 'Config/Apis.php';
 require_once __DIR__ . '/vendor/autoload.php';
-$ruta = !empty($_GET['url']) ? $_GET['url'] : "home/index";
+$ruta = !empty($_GET['url']) ? $_GET['url'] : "principal/index";
 $array = explode("/", $ruta);
 $controller = ucfirst($array[0]);
 $metodo = "index";

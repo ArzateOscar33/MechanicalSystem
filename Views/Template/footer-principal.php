@@ -4,7 +4,7 @@
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center gap-3">
             <div class="d-flex align-items-center gap-3">
                 <div class="ms-footer-logo">
-                    <img src="Assets/images/portal_clientes/logo-placeholder.jpg" alt="Logo Mechanical Emissions Services">
+                    <img src="<?php echo BASE_URL; ?>assets/images/logo.png" class="logo-icon" alt="logo icon">
                 </div>
                 <div>
                     <strong>Mechanical Emissions Services</strong><br>
@@ -37,7 +37,8 @@
 <script src="<?php echo BASE_URL; ?>assets/js/all.min.js"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/sweetalert2.all.min.js"></script>
 <script>
-    const base_url = '<?php echo BASE_URL; ?>';
+    const BASE_URL = '<?php echo BASE_URL; ?>';
+    const base_url = BASE_URL;
 </script>
 <script type="text/javascript" src="<?php echo BASE_URL . 'assets/DataTables/datatables.min.js'; ?>"></script>
 

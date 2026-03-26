@@ -9,7 +9,7 @@ class Admin extends Controller
     public function index()
     {
         if (!empty($_SESSION['nombre_usuario'])) {
-            header('Location: ' . BASE_URL . 'principal/home');
+            header('Location: ' . BASE_URL . 'admin/home');
             exit;
         }
         $data['title'] = 'Acceso al sistema';
