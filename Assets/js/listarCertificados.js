@@ -193,6 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    // Loader
     Swal.fire({
       title: "Validando archivo...",
       text: "Espere un momento",
@@ -210,10 +211,23 @@ document.addEventListener("DOMContentLoaded", function () {
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) return;
 
-      Swal.close();
-
       if (xhr.status === 200) {
-        window.location.href = url;
+        // ✅ Mostrar confirmación 1.5s antes de descargar
+        Swal.fire({
+          icon: "success",
+          title: "Archivo listo",
+          text: "Iniciando descarga...",
+          timer: 1500,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.hideLoading();
+          },
+        });
+
+        // Descargar después de 1.5 segundos
+        setTimeout(() => {
+          window.location.href = url;
+        }, 1500);
       } else if (xhr.status === 404) {
         Swal.fire({
           icon: "error",
@@ -223,14 +237,13 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         Swal.fire({
           icon: "error",
-          title: "No fue posible descargar",
-          text: "Ocurrió un problema al validar el archivo.",
+          title: "Error",
+          text: "No fue posible validar el archivo.",
         });
       }
     };
 
     xhr.onerror = function () {
-      Swal.close();
       Swal.fire({
         icon: "error",
         title: "Error de conexión",
