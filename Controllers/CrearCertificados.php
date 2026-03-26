@@ -702,26 +702,26 @@ class CrearCertificados extends Controller
                 <td class="SEC" colspan="6">Información Del Vehículo</td>
             </tr>
             <tr>
-                <td class="L" style="width:50mm;">Número de Identificación Vehicular</td>
+                <td class="L" style="width:50mm;">VIN/NIV</td>
                 <td class="V" style="width:48mm;">' . htmlspecialchars($data['vin']) . '</td>
-                <td class="L" style="width:11mm;">Año</td>
+                <td class="L" style="width:11mm;">Year/Año</td>
                 <td class="V" style="width:20mm;">' . htmlspecialchars($data['year']) . '</td>
                 <td class="V" colspan="2" style="border:0.3mm solid #b0bec5;background:#fff;"></td>
             </tr>
             <tr>
-                <td class="L">Fabricado en</td>
+                <td class="L">MFG In/ Fabricado en</td>
                 <td class="V">' . htmlspecialchars($data['fabricado_en']) . '</td>
-                <td class="L">Marca</td>
+                <td class="L">Make/Marca</td>
                 <td class="V">' . htmlspecialchars($data['marca']) . '</td>
-                <td class="L" style="width:14mm;">Dueño</td>
+                <td class="L" style="width:14mm;">Owner/Propietario</td>
                 <td class="V">' . htmlspecialchars($data['propietario']) . '</td>
             </tr>
             <tr>
-                <td class="L">Modelo</td>
+                <td class="L">Model/Modelo</td>
                 <td class="V">' . htmlspecialchars($data['modelo']) . '</td>
-                <td class="L">Placa</td>
+                <td class="L">License Plate/Placas</td>
                 <td class="V">' . htmlspecialchars($data['placa']) . '</td>
-                <td class="L">Odómetro (mi)</td>
+                <td class="L">Odometer/Odómetro (mi)</td>
                 <td class="V">' . htmlspecialchars($data['odometro']) . ' mi  - ' . $km . '</td>
             </tr>
         </table>
@@ -740,28 +740,28 @@ class CrearCertificados extends Controller
 
             <!-- Fila 1: Monitores + Cert Number + Firma -->
             <tr>
-                <td class="L" style="width:41mm;">Monitor Encendido</td>
+                <td class="L" style="width:41mm;">Misfire Monitoring/Monitor Encendido</td>
                 <td class="V" style="width:19mm;' . $rs($data['monitor_fallo_encendido']) . '">'
             . htmlspecialchars($data['monitor_fallo_encendido']) . '</td>
-                <td class="L" style="width:35mm;">Monitor Combustible</td>
+                <td class="L" style="width:35mm;">Fuel System Monitoring/Monitor Combustible</td>
                 <td class="V" style="width:19mm;' . $rs($data['monitor_sistema_combustible']) . '">'
             . htmlspecialchars($data['monitor_sistema_combustible']) . '</td>
-                <td class="L" style="width:38mm;">Numero De Certificado</td>
+                <td class="L" style="width:38mm;">Cert # /Numero De Certificado</td>
                 <td class="V" style="width:32mm;">' . htmlspecialchars($cert_number) . '</td>
-                <td class="L" style="width:24mm;">Firma Inspector</td>
+                <td class="L" style="width:24mm;">Inspector Signatura/Firma Inspector</td>
                 <td class="V" style="text-align:center;vertical-align:middle;background:#fffcf0;border:0.3mm solid #b0bec5;">'
             . $firmaHtml . '</td>
             </tr>
 
             <!-- Fila 2: Monitores + Nombre Inspector + EEI ITN -->
             <tr>
-                <td class="L">Monitor Exhaustivo Catalizador</td>
+                <td class="L">Comprehensive Monitor Catalyst/Monitor Exhaustivo Catalizador</td>
                 <td class="V" style="' . $rs($data['monitor_integral_catalizador']) . '">'
             . htmlspecialchars($data['monitor_integral_catalizador']) . '</td>
-                <td class="L">Monitor Sensor 02</td>
+                <td class="L">O2 Sensor Monitor/Monitor Sensor O2</td>
                 <td class="V" style="' . $rs($data['monitor_sensor_c2']) . '">'
             . htmlspecialchars($data['monitor_sensor_c2']) . '</td>
-                <td class="L">Nombre Inspector</td>
+                <td class="L">Inspector Name/Nombre Inspector</td>
                 <td class="V">' . htmlspecialchars($inspector_name) . '</td>
                 <td class="L">EEI ITN</td>
                 <td class="V">' . $ebitn . '</td>
@@ -769,18 +769,18 @@ class CrearCertificados extends Controller
 
             <!-- Fila 3: Monitor Catalizador + Geo + Fecha -->
             <tr>
-                <td class="L">Monitor Catalizador</td>
+                <td class="L">Catalyst Monitor/Monitor Catalizador</td>
                 <td class="V" style="' . $rs($data['monitor_catalizador']) . '">'
             . htmlspecialchars($data['monitor_catalizador']) . '</td>
-                <td class="L">Resultado General</td>
+                <td class="L">Overall Test Result/Resultado General</td>
                 <td class="V" style="' . $rs($data['resultado_prueba']) . '">'
             . htmlspecialchars($data['resultado_prueba']) . '</td>
-                <td class="L">Geo Localización</td>
+                <td class="L">Geo Location/Geo Localización</td>
                 <td class="V" style="font-size:7.5pt;">
                     Lat: ' . htmlspecialchars($data['latitud']) . '<br>
                     Lon: ' . htmlspecialchars($data['longitud']) . '
                 </td>
-                <td class="L">Fecha</td>
+                <td class="L">Date/Fecha</td>
                 <td class="V">' . htmlspecialchars($data['fecha']) . '</td>
             </tr>
 
@@ -788,7 +788,7 @@ class CrearCertificados extends Controller
             <tr>
                 <td class="L" colspan="6"
                     style="text-align:right;color:#1a3a5c;border:0.3mm solid #b0bec5;background:#e8edf2;">
-                    Fecha de Vencimiento
+                    Expires/Fecha de Vencimiento
                 </td>
                 <td class="V" colspan="2"
                     style="text-align:center;font-weight:bold;font-size:10pt;
