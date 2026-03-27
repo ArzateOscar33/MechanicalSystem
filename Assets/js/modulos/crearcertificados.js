@@ -376,6 +376,75 @@ document.addEventListener("DOMContentLoaded", function () {
     verificarCamposCompletos();
   }
 
+  // =========================================================
+  // CARGAR LAT/LON DE DIRECCIÓN (dentro del scope correcto)
+  // =========================================================
+  function cargarLatLonDireccion(id) {
+    const latInput = document.getElementById("latitud");
+    const lonInput = document.getElementById("longitud");
+
+    if (!latInput || !lonInput) return;
+
+    if (id) {
+      // Deshabilitar botón mientras carga para evitar envío sin coordenadas
+      if (btnPrevalidarDatos) btnPrevalidarDatos.disabled = true;
+
+      const http = new XMLHttpRequest();
+      http.open(
+        "GET",
+        base_url + "CrearCertificados/obtenerLatLon/" + id,
+        true,
+      );
+      http.onreadystatechange = function () {
+        if (this.readyState !== 4) return;
+
+        if (this.status === 200) {
+          try {
+            const data = JSON.parse(this.responseText);
+            latInput.value = data.latitude || "";
+            lonInput.value = data.longitude || "";
+            if (latInput.parentElement?.parentElement) {
+              latInput.parentElement.parentElement.style.display = "none";
+            }
+            latInput.required = false;
+            lonInput.required = false;
+            console.log("Lat cargada:", latInput.value);
+            console.log("Lon cargada:", lonInput.value);
+          } catch (e) {
+            console.error("Error al parsear lat/lon:", e);
+            latInput.value = "";
+            lonInput.value = "";
+            if (latInput.parentElement?.parentElement) {
+              latInput.parentElement.parentElement.style.display = "block";
+            }
+            latInput.required = true;
+            lonInput.required = true;
+          }
+        } else {
+          latInput.value = "";
+          lonInput.value = "";
+          if (latInput.parentElement?.parentElement) {
+            latInput.parentElement.parentElement.style.display = "block";
+          }
+          latInput.required = true;
+          lonInput.required = true;
+        }
+
+        // Rehabilitar botón al terminar (éxito o error)
+        if (btnPrevalidarDatos) btnPrevalidarDatos.disabled = false;
+      };
+      http.send();
+    } else {
+      latInput.value = "";
+      lonInput.value = "";
+      if (latInput.parentElement?.parentElement) {
+        latInput.parentElement.parentElement.style.display = "block";
+      }
+      latInput.required = true;
+      lonInput.required = true;
+    }
+  }
+
   if (selectDireccion) {
     selectDireccion.addEventListener("change", function () {
       actualizarVisibilidadDireccion();
@@ -710,46 +779,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
-
-// =========================================================
-// FUNCIONES GLOBALES (fuera del DOMContentLoaded)
-// =========================================================
-function cargarLatLonDireccion(id) {
-  const latInput = document.getElementById("latitud");
-  const lonInput = document.getElementById("longitud");
-  if (!latInput || !lonInput) return;
-
-  if (id) {
-    fetch(base_url + "CrearCertificados/obtenerLatLon/" + id)
-      .then((response) => response.json())
-      .then((data) => {
-        latInput.value = data.latitude || "";
-        lonInput.value = data.longitude || "";
-        if (latInput.parentElement?.parentElement) {
-          latInput.parentElement.parentElement.style.display = "none";
-        }
-        latInput.required = false;
-        lonInput.required = false;
-      })
-      .catch(() => {
-        latInput.value = "";
-        lonInput.value = "";
-        if (latInput.parentElement?.parentElement) {
-          latInput.parentElement.parentElement.style.display = "block";
-        }
-        latInput.required = true;
-        lonInput.required = true;
-      });
-  } else {
-    latInput.value = "";
-    lonInput.value = "";
-    if (latInput.parentElement?.parentElement) {
-      latInput.parentElement.parentElement.style.display = "block";
-    }
-    latInput.required = true;
-    lonInput.required = true;
-  }
-}
 
 function alertas(msg, icono) {
   Swal.fire("Aviso", String(msg || "").toUpperCase(), icono || "info");
