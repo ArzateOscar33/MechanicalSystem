@@ -1038,12 +1038,24 @@ class CrearCertificados extends Controller
         exit;
     }
 
-    public function obtenerLatLon($id)
+    public function obtenerLatLon($id = null)
     {
-        $data = $this->model->obtenerDireccionPorId($id);
+        header('Content-Type: application/json; charset=utf-8');
+
+        $id = (int)$id;
+        if ($id <= 0) {
+            echo json_encode([
+                'latitude'  => '',
+                'longitude' => ''
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        $dir = $this->model->obtenerDireccionPorId($id);
+
         echo json_encode([
-            'latitude'  => $data['latitude']  ?? '',
-            'longitude' => $data['longitude'] ?? '',
+            'latitude'  => $dir['latitude']  ?? '',
+            'longitude' => $dir['longitude'] ?? ''
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
