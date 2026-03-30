@@ -796,7 +796,7 @@ class CrearCertificados extends Controller
                 </td>
                 <td class="V" colspan="2"
                     style="text-align:center;font-weight:bold;font-size:10pt;
-                           color:#cc0000;background:#fff5f5;border:0.5mm solid #cc0000;
+                           color:#0c8dd8 ;background:#fff5f5;border:0.5mm solid #0c8dd8;
                            letter-spacing:0.5pt;">
                     ' . htmlspecialchars($data['fecha_expiracion']) . '
                 </td>
