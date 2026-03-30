@@ -268,6 +268,9 @@ class CrearCertificados extends Controller
         $expires       = date('Y-m-d', strtotime('+3 months', strtotime($test_date)));
         $source_file   = 'manual';
         $phone         = $_POST['telefono'] ?? null;
+        $ebitn         = isset($_POST['ebitn']) && trim($_POST['ebitn']) !== ''
+            ? trim($_POST['ebitn'])
+            : null;
 
         $monitoreos = [
             'Fallo Encendido'      => $_POST['monitor_fallo_encendido'],
@@ -343,6 +346,7 @@ class CrearCertificados extends Controller
             $license_plate,
             $odometer,
             intval($_POST['inspector']),
+            $ebitn,
             $id_usuario,
             $test_date,
             $expires,

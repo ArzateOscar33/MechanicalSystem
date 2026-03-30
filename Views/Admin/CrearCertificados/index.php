@@ -139,8 +139,8 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="numero_certificado" class="form-label disabled">Número de Certificado</label>
-                        <input type="text" class="form-control" id="numero_certificado" name="numero_certificado" value="<?= $data['cert_number']; ?>" readonly>
+                        <label for="numero_certificado" class="form-label ">Número de Certificado</label>
+                        <input type="text" class="form-control disabled" id="numero_certificado" name="numero_certificado" value="<?= $data['cert_number']; ?>" readonly>
                     </div>
 
                     <div class="mb-3">

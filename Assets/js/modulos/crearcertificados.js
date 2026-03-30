@@ -146,7 +146,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const inputs = frm.querySelectorAll(
       "input:not([type='file']):not([type='hidden']), select, textarea",
     );
+
     inputs.forEach((el) => {
+      if (el.id === "numero_certificado") return; // 🔥 EXCLUSIÓN CLAVE
+
       if (el.tagName === "SELECT") {
         el.style.pointerEvents = "";
         el.style.opacity = "";

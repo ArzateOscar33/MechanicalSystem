@@ -39,6 +39,7 @@ class CrearCertificadosModel extends Query
         $license_plate,
         $odometer,
         $inspector_id,
+        $eei_itn,
         $created_by,
         $test_date,
         $expires,
@@ -48,9 +49,9 @@ class CrearCertificadosModel extends Query
 
         $sql = "INSERT INTO certificates (
         cert_number, vin, address_id, phone, year, mfg_in, make,
-        owner_name, model, license_plate, odometer, inspector_id,
+        owner_name, model, license_plate, odometer, inspector_id, eei_itn,
         created_by, test_date, expires, source_file, zip_file_path
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->insertar($sql, [
             $cert_number,
@@ -65,6 +66,7 @@ class CrearCertificadosModel extends Query
             $license_plate,
             $odometer,
             $inspector_id,
+            $eei_itn,
             $created_by,
             $test_date,
             $expires,
