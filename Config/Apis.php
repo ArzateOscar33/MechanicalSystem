@@ -11,7 +11,7 @@ defined('SECOMEXT_LOCATION_ID')  || define('SECOMEXT_LOCATION_ID', 1);
 
 // ===== Entorno =====
 defined('APP_ENV')  || define('APP_ENV',            'testing'); //testing o production
-defined('TEST_DATOS_RESULT')  || define('TEST_DATOS_RESULT',  'success');
+defined('TEST_DATOS_RESULT')  || define('TEST_DATOS_RESULT',  'success'); //success o failed
 defined('TEST_FOTOS_RESULT')  || define('TEST_FOTOS_RESULT',  'success');
 
 // ===== SmogsBackups (debe ir al final porque usa return) =====

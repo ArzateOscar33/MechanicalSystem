@@ -605,9 +605,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
           if (res.icono === "success") {
             alertas(res.msg, "success");
-            // Bloquear campos de datos
+
+            // ==========================================
+            // NUEVO: mostrar folio reservado real
+            // ==========================================
+            if (res.cert_number && numeroCertInput) {
+              numeroCertInput.value = res.cert_number;
+            }
+
             bloquearCamposDatos();
-            // Deshabilitar botón paso 1, habilitar paso 2
+
             btnPrevalidarDatos.disabled = true;
             btnPrevalidarFotos.disabled = false;
           } else {
@@ -760,14 +767,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
           verificarCamposCompletos();
           // ✅ Actualizar número de certificado
-          ajaxGet(
+          /*ajaxGet(
             base_url + "CrearCertificados/obtenerSiguienteCertNumber",
             function (data, err) {
               if (!err && data && data.cert_number) {
                 if (numeroCertInput) numeroCertInput.value = data.cert_number;
               }
             },
-          );
+          );*/
 
           // Abrir PDF y descargar ZIP
           if (res.pdf_url) window.open(res.pdf_url, "_blank");
@@ -784,5 +791,10 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function alertas(msg, icono) {
+  if (typeof msg === "object") {
+    //console.error("Mensaje es objeto:", msg);
+    msg = msg.msg || JSON.stringify(msg);
+  }
+
   Swal.fire("Aviso", String(msg || "").toUpperCase(), icono || "info");
 }

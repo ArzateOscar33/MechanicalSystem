@@ -1,9 +1,16 @@
 <?php
 class CrearCertificadosModel extends Query
 {
+    private $db;
+
     public function __construct()
     {
         parent::__construct();
+
+        // Conexión local del modelo para manejar transacciones
+        // sin modificar la clase Query.
+        $conexion = new Conexion();
+        $this->db = $conexion->conect();
     }
 
     public function consultarCertificado($cert_number)
@@ -45,36 +52,49 @@ class CrearCertificadosModel extends Query
         $expires,
         $source_file
     ) {
-        $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
+        try {
+            $zip_path = 'uploads/certificates/' . $cert_number . '.zip';
 
-        $sql = "INSERT INTO certificates (
-        cert_number, vin, address_id, phone, year, mfg_in, make,
-        owner_name, model, license_plate, odometer, inspector_id, eei_itn,
-        created_by, test_date, expires, source_file, zip_file_path
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO certificates (
+            cert_number, vin, address_id, phone, year, mfg_in, make,
+            owner_name, model, license_plate, odometer, inspector_id, eei_itn,
+            created_by, test_date, expires, source_file, zip_file_path
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        return $this->insertar($sql, [
-            $cert_number,
-            $vin,
-            $address_id,
-            $phone,
-            $year,
-            $mfg_in,
-            $make,
-            $owner_name,
-            $model,
-            $license_plate,
-            $odometer,
-            $inspector_id,
-            $eei_itn,
-            $created_by,
-            $test_date,
-            $expires,
-            $source_file,
-            $zip_path
-        ]);
+            $stmt = $this->db->prepare($sql);
+            $ok = $stmt->execute([
+                $cert_number,
+                $vin,
+                $address_id,
+                $phone,
+                $year,
+                $mfg_in,
+                $make,
+                $owner_name,
+                $model,
+                $license_plate,
+                $odometer,
+                $inspector_id,
+                $eei_itn,
+                $created_by,
+                $test_date,
+                $expires,
+                $source_file,
+                $zip_path
+            ]);
+
+            if (!$ok) {
+                $error = $stmt->errorInfo();
+                error_log("Error en insertarCertificado: " . json_encode($error, JSON_UNESCAPED_UNICODE));
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            error_log("Excepción en insertarCertificado: " . $e->getMessage());
+            return false;
+        }
     }
-
 
     public function insertarMonitoreo($cert_number, $tipo, $resultado)
     {
@@ -125,19 +145,6 @@ class CrearCertificadosModel extends Query
                 ORDER BY id DESC";
         return $this->selectAll($sql);
     }
-
-    /* public function contarCertificadosPorUsuario($id_usuario)
-    {
-        $sql = "SELECT MAX(CAST(SUBSTRING_INDEX(cert_number, '-', -1) AS UNSIGNED)) AS ultimo 
-            FROM certificates 
-            WHERE cert_number LIKE ?";
-
-        $like = 'MEX' . $id_usuario . '-%';
-        $res = $this->select($sql, [$like]);
-
-        return $res && $res['ultimo'] !== null ? intval($res['ultimo']) + 1 : 1;
-    }
-*/
 
     public function obtenerDireccionPorId($id)
     {
@@ -192,64 +199,90 @@ class CrearCertificadosModel extends Query
 
     public function vinConCertificadoActivo($vin, $fechaReferencia)
     {
-        // Busca si existe algún certificado cuyo VIN coincida
-        // y cuya fecha de expiración sea igual o posterior a la nueva prueba.
         $sql = "SELECT cert_number 
-            FROM certificates 
-            WHERE vin = ? 
-              AND expires >= ?
-            LIMIT 1";
+                FROM certificates 
+                WHERE vin = ? 
+                  AND expires >= ?
+                LIMIT 1";
 
         return $this->select($sql, [$vin, $fechaReferencia]);
     }
 
+    /**
+     * SOLO visual.
+     * No reserva nada, no bloquea nada, no debe usarse para insertar.
+     */
     public function obtenerCertNumberPreliminar()
     {
         $sql = "SELECT numero 
-            FROM secuencias_certificado 
-            WHERE certificado = 'CERTIFICADO'
-            LIMIT 1";
-        $res = $this->select($sql, []);
+                FROM secuencias_certificado 
+                WHERE certificado = ?
+                LIMIT 1";
+        $res = $this->select($sql, ['CERTIFICADO']);
 
         $actual = $res && isset($res['numero']) ? intval($res['numero']) : 0;
         $siguiente = $actual + 1;
 
         $consecutivo = str_pad($siguiente, 8, "0", STR_PAD_LEFT);
-        return 'MEX-' . $consecutivo; //AUQI SE PUEDE CAMBIAR EL NOMBRE DEL CERTIFICADO
-    }
-
-    /**
-     * 2) Número definitivo (actualiza + lee).
-     *    Este se usa SOLO al guardar el certificado.
-     */
-    public function generarCertNumberGlobal()
-    {
-        // Incrementar el número en BD
-        $sqlUpdate = "UPDATE secuencias_certificado 
-                  SET numero = numero + 1 
-                  WHERE certificado = 'CERTIFICADO'";
-        $this->save($sqlUpdate, []); // UPDATE
-
-        // Obtener el nuevo valor
-        $sqlSelect = "SELECT numero 
-                  FROM secuencias_certificado 
-                  WHERE certificado = 'CERTIFICADO'
-                  LIMIT 1";
-        $res = $this->select($sqlSelect, []);
-
-        $numero = $res && isset($res['numero']) ? intval($res['numero']) : 1;
-
-        $consecutivo = str_pad($numero, 8, "0", STR_PAD_LEFT);
         return 'MEX-' . $consecutivo;
     }
 
+    /**
+     * Número definitivo.
+     * ESTE sí se debe usar al guardar el certificado.
+     * Hace reserva atómica del consecutivo para evitar colisiones.
+     */
+    public function generarCertNumberGlobal()
+    {
+        try {
+            $this->db->beginTransaction();
 
-    //INSERCIONES PARA REGISTRO DE LA API 
+            $sqlSelect = "SELECT numero
+                          FROM secuencias_certificado
+                          WHERE certificado = ?
+                          FOR UPDATE";
+            $stmtSelect = $this->db->prepare($sqlSelect);
+            $stmtSelect->execute(['CERTIFICADO']);
+            $res = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+
+            if (!$res || !isset($res['numero'])) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $numeroActual = intval($res['numero']);
+            $nuevoNumero  = $numeroActual + 1;
+
+            $sqlUpdate = "UPDATE secuencias_certificado
+                          SET numero = ?
+                          WHERE certificado = ?";
+            $stmtUpdate = $this->db->prepare($sqlUpdate);
+            $ok = $stmtUpdate->execute([$nuevoNumero, 'CERTIFICADO']);
+
+            if (!$ok) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $this->db->commit();
+
+            $consecutivo = str_pad($nuevoNumero, 8, "0", STR_PAD_LEFT);
+            return 'MEX-' . $consecutivo;
+        } catch (PDOException $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log("Error en generarCertNumberGlobal: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // INSERCIONES PARA REGISTRO DE LA API 
     public function siguienteAttemptApiEmissions(string $cert_number): int
     {
         $sql = "SELECT COALESCE(MAX(attempt), 0) + 1 AS n
-            FROM api_emissions_sync_log
-            WHERE cert_number = ?";
+                FROM api_emissions_sync_log
+                WHERE cert_number = ?";
         $row = $this->select($sql, [$cert_number]);
         return (int)($row['n'] ?? 1);
     }
@@ -280,5 +313,212 @@ class CrearCertificadosModel extends Query
 
             (int)($d['attempt'] ?? 1),
         ]);
+    }
+    //Concurrencia de datos
+
+    public function obtenerReservaActivaPorPrevalId(int $preval_id)
+    {
+        $sql = "SELECT *
+            FROM certificados_reservados
+            WHERE preval_id = ?
+              AND status IN ('reservado', 'aprobado')
+            ORDER BY id DESC
+            LIMIT 1";
+
+        return $this->select($sql, [$preval_id]);
+    }
+    public function obtenerFolioLiberadoDisponible()
+    {
+        $sql = "SELECT *
+            FROM certificados_reservados
+            WHERE status = 'liberado'
+            ORDER BY liberado_at ASC, id ASC
+            LIMIT 1";
+        return $this->select($sql);
+    }
+
+    public function reservarCertNumberParaPrevalidacion(int $preval_id, ?string $vin, int $id_usuario)
+    {
+        try {
+            $this->db->beginTransaction();
+
+            // 1) Si el intento ya tiene folio activo, reutilizarlo
+            $sqlExistente = "SELECT *
+                         FROM certificados_reservados
+                         WHERE preval_id = ?
+                           AND status IN ('reservado', 'aprobado')
+                         ORDER BY id DESC
+                         LIMIT 1
+                         FOR UPDATE";
+            $stmtExistente = $this->db->prepare($sqlExistente);
+            $stmtExistente->execute([$preval_id]);
+            $existente = $stmtExistente->fetch(PDO::FETCH_ASSOC);
+
+            if ($existente && !empty($existente['cert_number'])) {
+                $this->db->commit();
+                return $existente['cert_number'];
+            }
+
+            // 2) Buscar un folio liberado para reutilizar
+            $sqlLiberado = "SELECT *
+                        FROM certificados_reservados
+                        WHERE status = 'liberado'
+                        ORDER BY liberado_at ASC, id ASC
+                        LIMIT 1
+                        FOR UPDATE";
+            $stmtLiberado = $this->db->prepare($sqlLiberado);
+            $stmtLiberado->execute();
+            $liberado = $stmtLiberado->fetch(PDO::FETCH_ASSOC);
+
+            if ($liberado && !empty($liberado['cert_number'])) {
+
+                // ==========================================
+                // NUEVO: validar que no exista en certificates
+                // ==========================================
+                $sqlCheck = "SELECT cert_number FROM certificates WHERE cert_number = ? LIMIT 1";
+                $stmtCheck = $this->db->prepare($sqlCheck);
+                $stmtCheck->execute([$liberado['cert_number']]);
+                $yaExiste = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+                if ($yaExiste) {
+                    // ❌ ya no se puede reutilizar
+                    // lo marcamos como usado para sacarlo del pool
+                    $sqlMarcarUsado = "UPDATE certificados_reservados
+                           SET status = 'usado',
+                               usado_at = NOW()
+                           WHERE id = ?";
+                    $stmtUsado = $this->db->prepare($sqlMarcarUsado);
+                    $stmtUsado->execute([$liberado['id']]);
+
+                    // ⚠️ continuar flujo normal → generar nuevo
+                } else {
+                    // ✅ reutilizar folio válido
+                    $sqlReusar = "UPDATE certificados_reservados
+                      SET preval_id = ?,
+                          vin = ?,
+                          status = 'reservado',
+                          reservado_por = ?,
+                          reservado_at = NOW(),
+                          liberado_at = NULL,
+                          aprobado_at = NULL,
+                          usado_at = NULL,
+                          motivo_liberacion = NULL
+                      WHERE id = ?";
+                    $stmtReusar = $this->db->prepare($sqlReusar);
+                    $ok = $stmtReusar->execute([
+                        $preval_id,
+                        $vin,
+                        $id_usuario,
+                        $liberado['id']
+                    ]);
+
+                    if (!$ok) {
+                        $this->db->rollBack();
+                        return false;
+                    }
+
+                    $this->db->commit();
+                    return $liberado['cert_number'];
+                }
+            }
+
+            // 3) Si no hay liberados, generar uno nuevo desde secuencia
+            $sqlSec = "SELECT numero
+                   FROM secuencias_certificado
+                   WHERE certificado = ?
+                   LIMIT 1
+                   FOR UPDATE";
+            $stmtSec = $this->db->prepare($sqlSec);
+            $stmtSec->execute(['CERTIFICADO']);
+            $sec = $stmtSec->fetch(PDO::FETCH_ASSOC);
+
+            if (!$sec || !isset($sec['numero'])) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $numeroActual = (int)$sec['numero'];
+            $nuevoNumero  = $numeroActual + 1;
+            $cert_number  = 'MEX-' . str_pad($nuevoNumero, 8, '0', STR_PAD_LEFT);
+
+            $sqlUpdateSec = "UPDATE secuencias_certificado
+                         SET numero = ?
+                         WHERE certificado = ?";
+            $stmtUpdateSec = $this->db->prepare($sqlUpdateSec);
+            $okSec = $stmtUpdateSec->execute([$nuevoNumero, 'CERTIFICADO']);
+
+            if (!$okSec) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $sqlInsertReserva = "INSERT INTO certificados_reservados
+            (cert_number, preval_id, vin, status, reservado_por, reservado_at)
+            VALUES (?, ?, ?, 'reservado', ?, NOW())";
+            $stmtInsertReserva = $this->db->prepare($sqlInsertReserva);
+            $okReserva = $stmtInsertReserva->execute([
+                $cert_number,
+                $preval_id,
+                $vin,
+                $id_usuario
+            ]);
+
+            if (!$okReserva) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $this->db->commit();
+            return $cert_number;
+        } catch (PDOException $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log("Error en reservarCertNumberParaPrevalidacion: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function aprobarReservaCertificado(string $cert_number, int $preval_id): bool
+    {
+        $sql = "UPDATE certificados_reservados
+            SET status = 'aprobado',
+                aprobado_at = NOW()
+            WHERE cert_number = ?
+              AND preval_id = ?
+              AND status IN ('reservado', 'aprobado')";
+        return (bool)$this->save($sql, [$cert_number, $preval_id]);
+    }
+    public function liberarReservaCertificado(string $cert_number, int $preval_id, string $motivo = null): bool
+    {
+        $sql = "UPDATE certificados_reservados
+            SET status = 'liberado',
+                liberado_at = NOW(),
+                motivo_liberacion = ?,
+                preval_id = NULL
+            WHERE cert_number = ?
+              AND preval_id = ?
+              AND status IN ('reservado', 'aprobado')";
+        return (bool)$this->save($sql, [$motivo, $cert_number, $preval_id]);
+    }
+    public function marcarReservaComoUsada(string $cert_number, int $preval_id): bool
+    {
+        $sql = "UPDATE certificados_reservados
+            SET status = 'usado',
+                usado_at = NOW()
+            WHERE cert_number = ?
+              AND preval_id = ?
+              AND status IN ('reservado', 'aprobado')";
+        return (bool)$this->save($sql, [$cert_number, $preval_id]);
+    }
+    public function obtenerCertNumberPorPrevalId(int $preval_id)
+    {
+        $sql = "SELECT cert_number, status
+            FROM certificados_reservados
+            WHERE preval_id = ?
+              AND status IN ('reservado', 'aprobado', 'usado')
+            ORDER BY id DESC
+            LIMIT 1";
+        return $this->select($sql, [$preval_id]);
     }
 }

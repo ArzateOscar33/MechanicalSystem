@@ -40,6 +40,7 @@ class CrearCertificados extends Controller
     {
         unset($_SESSION['preval_id'], $_SESSION['preval_cert_number']);
 
+        // SOLO visual / preliminar
         $cert_number = $this->model->obtenerCertNumberPreliminar();
         $_SESSION['preval_cert_number'] = $cert_number;
 
@@ -61,11 +62,6 @@ class CrearCertificados extends Controller
         }
 
         $id_usuario  = $_SESSION['id_usuario'] ?? 0;
-        $cert_number = $_SESSION['preval_cert_number'] ?? null;
-        if (!$cert_number) {
-            $this->responderJSON('Sesión expirada. Recarga el formulario.', 'error');
-            return;
-        }
 
         $vin           = trim($_POST['vin'] ?? '');
         $license_plate = trim($_POST['placa'] ?? '');
@@ -90,6 +86,7 @@ class CrearCertificados extends Controller
             $this->responderJSON('VIN inválido.', 'warning');
             return;
         }
+
         if (!$test_date) {
             $this->responderJSON('La fecha de prueba es obligatoria.', 'warning');
             return;
@@ -109,21 +106,33 @@ class CrearCertificados extends Controller
 
         $_SESSION['preval_id'] = $preval_id;
 
+        // ==========================================
+        // NUEVO: reservar folio real en BD
+        // ==========================================
+        $cert_number = $this->model->reservarCertNumberParaPrevalidacion((int)$preval_id, $vin, (int)$id_usuario);
+        if (!$cert_number) {
+            unset($_SESSION['preval_id']);
+            $this->responderJSON('No fue posible reservar el número de certificado.', 'error');
+            return;
+        }
+
+        $_SESSION['preval_cert_number'] = $cert_number;
+
         $datos = [
-            'vin'                               => $vin,
-            'cert_number'                       => $cert_number,
-            'dmv_number'                        => $cert_number,
-            'misfire_monitoring'                => $misfire,
-            'fuel_system_monitoring'            => $fuelSystem,
-            'comprehensive_catalyst_monitoring' => $compCatalyst,
-            'catalyst_monitoring'               => $catalyst,
-            'oxygen_sensor_monitoring'          => $oxygenSensor,
-            'overall_test_result'               => $overallResult,
-            'test_date'                         => $test_date,
-            'odometer'                          => $odometer,
-            'license_plate'                     => $license_plate,
-            'latitude'                          => $latitude,
-            'longitude'                         => $longitude,
+            'vin'                                => $vin,
+            'cert_number'                        => $cert_number,
+            'dmv_number'                         => $cert_number,
+            'misfire_monitoring'                 => $misfire,
+            'fuel_system_monitoring'             => $fuelSystem,
+            'comprehensive_catalyst_monitoring'  => $compCatalyst,
+            'catalyst_monitoring'                => $catalyst,
+            'oxygen_sensor_monitoring'           => $oxygenSensor,
+            'overall_test_result'                => $overallResult,
+            'test_date'                          => $test_date,
+            'odometer'                           => $odometer,
+            'license_plate'                      => $license_plate,
+            'latitude'                           => $latitude,
+            'longitude'                          => $longitude,
         ];
 
         $respuesta = $this->secomext->enviarDatos($datos);
@@ -136,12 +145,27 @@ class CrearCertificados extends Controller
         );
 
         if (!$respuesta['success']) {
-            unset($_SESSION['preval_id']);
+            $this->model->liberarReservaCertificado(
+                $cert_number,
+                (int)$preval_id,
+                'Fallo en prevalidación de datos'
+            );
+
+            unset($_SESSION['preval_id'], $_SESSION['preval_cert_number'], $_SESSION['preval_fotos']);
+
             $this->responderJSON('Secomext rechazó los datos: ' . $respuesta['respuesta'], 'error');
             return;
         }
 
-        $this->responderJSON('Datos prevalidados correctamente.', 'success');
+        // ==========================================
+        // NUEVO: marcar reserva como aprobada
+        // ==========================================
+        $this->model->aprobarReservaCertificado($cert_number, (int)$preval_id);
+
+        $this->responderJSON([
+            'msg' => 'Datos prevalidados correctamente.',
+            'cert_number' => $cert_number
+        ], 'success');
     }
 
     // =========================================================
@@ -165,11 +189,18 @@ class CrearCertificados extends Controller
             return;
         }
 
-        $cert_number = $_SESSION['preval_cert_number'] ?? null;
+        // ==========================================
+        // NUEVO: recuperar el mismo folio reservado
+        // ==========================================
+        $reserva = $this->model->obtenerCertNumberPorPrevalId((int)$preval_id);
+        $cert_number = $reserva['cert_number'] ?? null;
+
         if (!$cert_number) {
-            $this->responderJSON('Sesión expirada. Recarga el formulario.', 'error');
+            $this->responderJSON('Sesión expirada o folio no disponible. Recarga el formulario.', 'error');
             return;
         }
+
+        $_SESSION['preval_cert_number'] = $cert_number;
 
         $vin      = trim($_POST['vin'] ?? '');
         $archivos = $_FILES['imagenes'] ?? null;
@@ -192,7 +223,9 @@ class CrearCertificados extends Controller
 
         $fotosRutas = [];
         $dirTemp    = BASE_PATH . 'uploads/temp/';
-        if (!is_dir($dirTemp)) mkdir($dirTemp, 0775, true);
+        if (!is_dir($dirTemp)) {
+            mkdir($dirTemp, 0775, true);
+        }
 
         for ($i = 0; $i < 8; $i++) {
             $tmpName  = $archivos['tmp_name'][$i] ?? '';
@@ -203,8 +236,14 @@ class CrearCertificados extends Controller
                 return;
             }
 
+            // Ahora se guardan ya con el folio reservado real
             $destFull = BASE_PATH . 'uploads/temp/' . $cert_number . '_foto_' . $i . '_' . $origName;
-            move_uploaded_file($tmpName, $destFull);
+
+            if (!move_uploaded_file($tmpName, $destFull)) {
+                $this->responderJSON("No fue posible guardar la foto #" . ($i + 1) . ".", 'error');
+                return;
+            }
+
             $fotosRutas[$fotoMap[$i]] = $destFull;
         }
 
@@ -219,8 +258,15 @@ class CrearCertificados extends Controller
         );
 
         if (!$respuesta['success']) {
+            $this->model->liberarReservaCertificado(
+                $cert_number,
+                (int)$preval_id,
+                'Fallo en prevalidación de fotos'
+            );
+
             $this->limpiarTemporales($cert_number);
-            unset($_SESSION['preval_fotos']);
+            unset($_SESSION['preval_fotos'], $_SESSION['preval_id'], $_SESSION['preval_cert_number']);
+
             $this->responderJSON('Secomext rechazó las fotos: ' . $respuesta['respuesta'], 'error');
             return;
         }
@@ -233,188 +279,344 @@ class CrearCertificados extends Controller
     // =========================================================
     public function crear()
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->responderJSON('Solicitud inválida', 'error');
-            return;
-        }
+        header('Content-Type: application/json; charset=utf-8');
 
-        $preval_id = $_SESSION['preval_id'] ?? null;
-        if (!$preval_id) {
-            $this->responderJSON('Debes completar la prevalidación primero.', 'error');
-            return;
-        }
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode([
+                    'msg'   => 'Solicitud inválida',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
 
-        if (!$this->prevalModel->fueronAprobadosAmbos($preval_id)) {
-            $this->responderJSON('La prevalidación no está completa.', 'error');
-            return;
-        }
+            $preval_id = $_SESSION['preval_id'] ?? null;
+            if (!$preval_id) {
+                echo json_encode([
+                    'msg'   => 'Debes completar la prevalidación primero.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
 
-        $fotosRutas = $_SESSION['preval_fotos'] ?? [];
-        if (count($fotosRutas) !== 8) {
-            $this->responderJSON('Las fotos prevalidadas no están disponibles. Recarga el formulario.', 'error');
-            return;
-        }
+            if (!$this->prevalModel->fueronAprobadosAmbos($preval_id)) {
+                echo json_encode([
+                    'msg'   => 'La prevalidación no está completa.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
 
-        $id_usuario    = $_SESSION['id_usuario'] ?? 0;
-        $vin           = $_POST['vin'];
-        $year          = $_POST['year'];
-        $make          = $_POST['marca'];
-        $model         = $_POST['modelo'];
-        $mfg_in        = $_POST['fabricado_en'];
-        $license_plate = $_POST['placa'];
-        $owner_name    = $_POST['propietario'];
-        $odometer      = $_POST['odometro'];
-        $test_date     = $_POST['fecha'];
-        $expires       = date('Y-m-d', strtotime('+3 months', strtotime($test_date)));
-        $source_file   = 'manual';
-        $phone         = $_POST['telefono'] ?? null;
-        $ebitn         = isset($_POST['ebitn']) && trim($_POST['ebitn']) !== ''
-            ? trim($_POST['ebitn'])
-            : null;
+            $fotosRutas = $_SESSION['preval_fotos'] ?? [];
+            if (count($fotosRutas) !== 8) {
+                echo json_encode([
+                    'msg'   => 'Las fotos prevalidadas no están disponibles. Recarga el formulario.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
 
-        $monitoreos = [
-            'Fallo Encendido'      => $_POST['monitor_fallo_encendido'],
-            'Sistema Combustible'  => $_POST['monitor_sistema_combustible'],
-            'Catalizador Integral' => $_POST['monitor_integral_catalizador'],
-            'Catalizador'          => $_POST['monitor_catalizador'],
-            'Sensor C2'            => $_POST['monitor_sensor_c2'],
-            'Resultado General'    => $_POST['resultado_prueba'],
-        ];
+            $id_usuario    = (int)($_SESSION['id_usuario'] ?? 0);
+            $vin           = trim($_POST['vin'] ?? '');
+            $year          = trim($_POST['year'] ?? '');
+            $make          = trim($_POST['marca'] ?? '');
+            $model         = trim($_POST['modelo'] ?? '');
+            $mfg_in        = trim($_POST['fabricado_en'] ?? '');
+            $license_plate = trim($_POST['placa'] ?? '');
+            $owner_name    = trim($_POST['propietario'] ?? '');
+            $odometer      = trim($_POST['odometro'] ?? '');
+            $test_date     = trim($_POST['fecha'] ?? '');
+            $expires       = date('Y-m-d', strtotime('+3 months', strtotime($test_date)));
+            $source_file   = 'manual';
+            $phone         = trim($_POST['telefono'] ?? '');
+            $phone         = $phone !== '' ? $phone : null;
 
-        $latitud  = $_POST['latitud']  ?? null;
-        $longitud = $_POST['longitud'] ?? null;
+            $ebitn = isset($_POST['ebitn']) && trim($_POST['ebitn']) !== ''
+                ? trim($_POST['ebitn'])
+                : null;
 
-        if (!empty($_POST['direccion_existente'])) {
-            $address_id = $_POST['direccion_existente'];
-        } else {
-            $direccion  = $this->model->consultarDireccionConCoordenadas(
-                $_POST['numero'],
-                $_POST['calle'],
-                $_POST['ciudad'],
-                $_POST['estado'],
-                $_POST['zip'],
-                $latitud,
-                $longitud
-            );
-            $address_id = $direccion
-                ? $direccion['id']
-                : $this->model->insertarDireccionConCoordenadas(
-                    $_POST['numero'],
-                    $_POST['calle'],
-                    $_POST['ciudad'],
-                    $_POST['estado'],
-                    $_POST['zip'],
+            $monitoreos = [
+                'Fallo Encendido'      => $_POST['monitor_fallo_encendido'] ?? '',
+                'Sistema Combustible'  => $_POST['monitor_sistema_combustible'] ?? '',
+                'Catalizador Integral' => $_POST['monitor_integral_catalizador'] ?? '',
+                'Catalizador'          => $_POST['monitor_catalizador'] ?? '',
+                'Sensor C2'            => $_POST['monitor_sensor_c2'] ?? '',
+                'Resultado General'    => $_POST['resultado_prueba'] ?? '',
+            ];
+
+            $latitud  = $_POST['latitud']  ?? null;
+            $longitud = $_POST['longitud'] ?? null;
+
+            if (!is_numeric($_POST['inspector'] ?? null)) {
+                echo json_encode([
+                    'msg'   => 'Inspector no válido.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            // Recuperar el mismo folio reservado
+            $reserva = $this->model->obtenerCertNumberPorPrevalId((int)$preval_id);
+            $cert_number = $reserva['cert_number'] ?? null;
+
+            if (!$cert_number) {
+                echo json_encode([
+                    'msg'   => 'No fue posible recuperar el número de certificado reservado.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            // Validar que todavía no exista en certificates
+            $existe = $this->model->consultarCertificado($cert_number);
+            if ($existe) {
+                echo json_encode([
+                    'msg'   => 'El número de certificado ya existe. Intenta nuevamente.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            // Dirección
+            if (!empty($_POST['direccion_existente'])) {
+                $address_id = (int)$_POST['direccion_existente'];
+            } else {
+                $direccion = $this->model->consultarDireccionConCoordenadas(
+                    $_POST['numero'] ?? null,
+                    $_POST['calle'] ?? null,
+                    $_POST['ciudad'] ?? null,
+                    $_POST['estado'] ?? null,
+                    $_POST['zip'] ?? null,
                     $latitud,
                     $longitud
                 );
-        }
 
-        if (!is_numeric($_POST['inspector'])) {
-            $this->responderJSON('Inspector no válido.', 'error');
-            return;
-        }
+                $address_id = $direccion
+                    ? (int)$direccion['id']
+                    : (int)$this->model->insertarDireccionConCoordenadas(
+                        $_POST['numero'] ?? null,
+                        $_POST['calle'] ?? null,
+                        $_POST['ciudad'] ?? null,
+                        $_POST['estado'] ?? null,
+                        $_POST['zip'] ?? null,
+                        $latitud,
+                        $longitud
+                    );
+            }
 
-        $cert_number = $_SESSION['preval_cert_number'];
-        if (!$cert_number) {
-            $this->responderJSON('Número de certificado no encontrado en sesión.', 'error');
-            return;
-        }
+            if (!$address_id) {
+                echo json_encode([
+                    'msg'   => 'No fue posible resolver la dirección del certificado.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
 
-        $this->model->generarCertNumberGlobal();
+            // Normalizar / renombrar fotos temporales con el folio final
+            $fotosRutasRenombradas = [];
+            foreach ($fotosRutas as $campo => $rutaAntigua) {
+                if (!file_exists($rutaAntigua)) {
+                    echo json_encode([
+                        'msg'   => 'No se encontraron todas las fotos prevalidadas.',
+                        'icono' => 'error'
+                    ], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
 
-        $fotosRutasRenombradas = [];
-        foreach ($fotosRutas as $campo => $rutaAntigua) {
-            if (file_exists($rutaAntigua)) {
-                $nombreNuevo = preg_replace('/MEX-\d+/', $cert_number, basename($rutaAntigua));
-                $rutaNueva   = BASE_PATH . 'uploads/temp/' . $nombreNuevo;
-                rename($rutaAntigua, $rutaNueva);
+                $baseName = basename($rutaAntigua);
+                $nombreNuevo = preg_replace('/MEX-\d{8}/', $cert_number, $baseName);
+
+                if ($nombreNuevo === $baseName) {
+                    $nombreNuevo = $cert_number . '_' . preg_replace('/^MEX-\d+_?/', '', $baseName);
+                }
+
+                $rutaNueva = BASE_PATH . 'uploads/temp/' . $nombreNuevo;
+
+                if ($rutaAntigua !== $rutaNueva) {
+                    if (!@rename($rutaAntigua, $rutaNueva)) {
+                        echo json_encode([
+                            'msg'   => 'No fue posible preparar las fotos del certificado.',
+                            'icono' => 'error'
+                        ], JSON_UNESCAPED_UNICODE);
+                        exit;
+                    }
+                } else {
+                    $rutaNueva = $rutaAntigua;
+                }
+
                 $fotosRutasRenombradas[$campo] = $rutaNueva;
             }
-        }
-        $fotosRutas = $fotosRutasRenombradas;
+            $fotosRutas = $fotosRutasRenombradas;
 
-        $insert = $this->model->insertarCertificado(
-            $cert_number,
-            $vin,
-            $address_id,
-            $phone,
-            $year,
-            $mfg_in,
-            $make,
-            $owner_name,
-            $model,
-            $license_plate,
-            $odometer,
-            intval($_POST['inspector']),
-            $ebitn,
-            $id_usuario,
-            $test_date,
-            $expires,
-            $source_file
-        );
+            // Rutas FINALES, no temporales
+            $dirCerts = BASE_PATH . 'uploads/certificates/';
+            if (!is_dir($dirCerts) && !mkdir($dirCerts, 0775, true)) {
+                echo json_encode([
+                    'msg'   => 'No fue posible crear la carpeta de certificados.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
 
-        if ($insert === false || $insert === null) {
-            unset($_SESSION['preval_cert_number'], $_SESSION['preval_id'], $_SESSION['preval_fotos']);
-            $this->responderJSON('Error al crear el certificado.', 'error');
-            return;
-        }
+            $pdfRelPath  = 'uploads/certificates/' . $cert_number . '.pdf';
+            $zipRelPath  = 'uploads/certificates/' . $cert_number . '.zip';
+            $pdfFullPath = BASE_PATH . $pdfRelPath;
+            $zipFullPath = BASE_PATH . $zipRelPath;
 
-        foreach ($monitoreos as $tipo => $resultado) {
-            $this->model->insertarMonitoreo($cert_number, $tipo, $resultado);
-        }
+            // 1) Generar PDF primero
+            $postDataForPdf = $_POST;
+            $postDataForPdf['fecha_expiracion'] = $expires;
 
-        try {
-            $this->model->registrarImportacion('cert_manual_' . date('YmdHis'), 'success', '', $id_usuario);
-        } catch (Exception $e) {
-            $this->model->registrarImportacionAlternativa('cert_manual_' . date('YmdHis'), 'success', '');
-        }
+            try {
+                $tempImgs = $this->generarCertificadoPDF(
+                    $cert_number,
+                    $pdfFullPath,
+                    $postDataForPdf,
+                    $address_id,
+                    $fotosRutas
+                );
 
-        $pdfRelPath  = 'uploads/temp/' . $cert_number . '.pdf';
-        $zipRelPath  = 'uploads/certificates/' . $cert_number . '.zip';
-        $pdfFullPath = BASE_PATH . $pdfRelPath;
+                if (!file_exists($pdfFullPath) || filesize($pdfFullPath) <= 0) {
+                    throw new Exception('El PDF no fue creado correctamente.');
+                }
+            } catch (\Throwable $e) {
+                error_log("❌ generarCertificadoPDF: " . $e->getMessage() . ' L' . $e->getLine());
 
-        try {
-            $tempImgs = $this->generarCertificadoPDF($cert_number, $pdfFullPath, $_POST, $address_id, $fotosRutas);
-        } catch (\Throwable $e) {
-            error_log("❌ generarCertificadoPDF: " . $e->getMessage() . " L" . $e->getLine());
-            $this->responderJSON('Error generando PDF: ' . $e->getMessage(), 'error');
-            return;
-        }
+                echo json_encode([
+                    'msg'   => 'Error generando PDF: ' . $e->getMessage(),
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
 
-        try {
-            $this->generarArchivoZIP($cert_number, $pdfFullPath, $fotosRutas);
-        } catch (\Throwable $e) {
-            $this->responderJSON('Error generando ZIP: ' . $e->getMessage(), 'error');
-            return;
-        }
+            // 2) Generar ZIP después
+            try {
+                $this->generarArchivoZIP($cert_number, $pdfFullPath, $fotosRutas);
 
-        try {
-            $apiResp = $this->enviarCertificadoSmogsBackups(
+                if (!file_exists($zipFullPath) || filesize($zipFullPath) <= 0) {
+                    throw new Exception('El ZIP no fue creado correctamente.');
+                }
+            } catch (\Throwable $e) {
+                error_log("❌ generarArchivoZIP: " . $e->getMessage());
+
+                // Si falla ZIP, también eliminar PDF final para no dejar basura incompleta
+                if (file_exists($pdfFullPath)) {
+                    @unlink($pdfFullPath);
+                }
+
+                echo json_encode([
+                    'msg'   => 'Error generando ZIP: ' . $e->getMessage(),
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            // 3) Solo si PDF y ZIP ya existen, insertar en BD
+            $insert = $this->model->insertarCertificado(
                 $cert_number,
-                $_POST,
+                $vin,
                 $address_id,
-                $pdfFullPath,
-                $tempImgs,
-                $fotosRutas
+                $phone,
+                $year,
+                $mfg_in,
+                $make,
+                $owner_name,
+                $model,
+                $license_plate,
+                $odometer,
+                (int)$_POST['inspector'],
+                $ebitn,
+                $id_usuario,
+                $test_date,
+                $expires,
+                $source_file
             );
+
+            if (!$insert) {
+                // Si falla el insert, limpiar archivos finales para no dejar inconsistencias
+                if (file_exists($pdfFullPath)) {
+                    @unlink($pdfFullPath);
+                }
+                if (file_exists($zipFullPath)) {
+                    @unlink($zipFullPath);
+                }
+
+                echo json_encode([
+                    'msg'   => 'Error al crear el certificado en base de datos.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            foreach ($monitoreos as $tipo => $resultado) {
+                $this->model->insertarMonitoreo($cert_number, $tipo, $resultado);
+            }
+
+            try {
+                $this->model->registrarImportacion(
+                    'cert_manual_' . date('YmdHis'),
+                    'success',
+                    '',
+                    $id_usuario
+                );
+            } catch (\Throwable $e) {
+                $this->model->registrarImportacionAlternativa(
+                    'cert_manual_' . date('YmdHis'),
+                    'success',
+                    ''
+                );
+            }
+
+            // API externa: no tumbar la creación si falla
+            try {
+                $apiResp = $this->enviarCertificadoSmogsBackups(
+                    $cert_number,
+                    $_POST,
+                    $address_id,
+                    $pdfFullPath,
+                    $tempImgs ?? [],
+                    $fotosRutas
+                );
+            } catch (\Throwable $e) {
+                $apiResp = [
+                    'ok'      => false,
+                    'status'  => 0,
+                    'api_msg' => $e->getMessage()
+                ];
+            }
+
+            $this->prevalModel->vincularCertificado($preval_id, $cert_number);
+            $this->model->marcarReservaComoUsada($cert_number, (int)$preval_id);
+
+            $_SESSION['preval_cert_number'] = $cert_number;
+
+            unset($_SESSION['preval_id'], $_SESSION['preval_fotos']);
+
+            // OJO:
+            // limpiarTemporales($cert_number) solo debe borrar QR/SVG/barcodes/fotos temp,
+            // pero NO el PDF final porque ahora ya está en uploads/certificates/
+            $this->limpiarTemporales($cert_number);
+
+            echo json_encode([
+                'msg'         => 'Certificado creado exitosamente',
+                'icono'       => 'success',
+                'pdf_url'     => BASE_URL . $pdfRelPath,
+                'zip_url'     => BASE_URL . $zipRelPath,
+                'api_ok'      => $apiResp['ok']      ?? false,
+                'api_status'  => $apiResp['status']  ?? 0,
+                'api_msg'     => $apiResp['api_msg'] ?? '',
+                'cert_number' => $cert_number,
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
         } catch (\Throwable $e) {
-            $apiResp = ['ok' => false, 'status' => 0, 'api_msg' => $e->getMessage()];
+            error_log("❌ Error fatal en crear(): " . $e->getMessage() . ' L' . $e->getLine());
+
+            echo json_encode([
+                'msg'   => 'Ocurrió un error inesperado al crear el certificado: ' . $e->getMessage(),
+                'icono' => 'error'
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
         }
-
-        $this->prevalModel->vincularCertificado($preval_id, $cert_number);
-        unset($_SESSION['preval_id'], $_SESSION['preval_cert_number'], $_SESSION['preval_fotos']);
-        $this->limpiarTemporales($cert_number);
-
-        echo json_encode([
-            'msg'        => 'Certificado creado exitosamente',
-            'icono'      => 'success',
-            'pdf_url'    => BASE_URL . $pdfRelPath,
-            'zip_url'    => BASE_URL . $zipRelPath,
-            'api_ok'     => $apiResp['ok']     ?? false,
-            'api_status' => $apiResp['status'] ?? 0,
-            'api_msg'    => $apiResp['api_msg'] ?? '',
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
     }
 
 
@@ -861,19 +1063,47 @@ class CrearCertificados extends Controller
     // =========================================================
     // GENERAR ZIP (sin cambios)
     // =========================================================
-    private function generarArchivoZIP($cert_number, $pdf_path, array $fotosRutas)
+    private function generarArchivoZIP(string $cert_number, string $pdfFullPath, array $fotosRutas = []): void
     {
-        $zip_path = BASE_PATH . "uploads/certificates/{$cert_number}.zip";
-        $dirZip   = dirname($zip_path);
-        if (!is_dir($dirZip)) mkdir($dirZip, 0775, true);
+        $zipPath = BASE_PATH . 'uploads/certificates/' . $cert_number . '.zip';
 
         $zip = new ZipArchive();
-        if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            if (file_exists($pdf_path)) $zip->addFile($pdf_path, basename($pdf_path));
-            foreach ($fotosRutas as $campo => $ruta) {
-                if (file_exists($ruta)) $zip->addFile($ruta, 'imagenes/' . basename($ruta));
-            }
+        $res = $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+        if ($res !== true) {
+            throw new Exception('No se pudo abrir/crear el ZIP. Código: ' . $res);
+        }
+
+        if (!file_exists($pdfFullPath)) {
             $zip->close();
+            throw new Exception('No existe el PDF para agregar al ZIP.');
+        }
+
+        if (!$zip->addFile($pdfFullPath, $cert_number . '.pdf')) {
+            $zip->close();
+            throw new Exception('No se pudo agregar el PDF al ZIP.');
+        }
+
+        foreach ($fotosRutas as $campo => $rutaFoto) {
+            if (!file_exists($rutaFoto)) {
+                continue;
+            }
+
+            $ext = pathinfo($rutaFoto, PATHINFO_EXTENSION);
+            $nombreDentroZip = $campo . ($ext ? '.' . $ext : '');
+
+            if (!$zip->addFile($rutaFoto, $nombreDentroZip)) {
+                $zip->close();
+                throw new Exception('No se pudo agregar la foto "' . $campo . '" al ZIP.');
+            }
+        }
+
+        if (!$zip->close()) {
+            throw new Exception('No se pudo cerrar correctamente el ZIP.');
+        }
+
+        if (!file_exists($zipPath) || filesize($zipPath) <= 0) {
+            throw new Exception('El ZIP se generó vacío o inválido.');
         }
     }
 
@@ -1077,9 +1307,13 @@ class CrearCertificados extends Controller
     }
     public function obtenerSiguienteCertNumber()
     {
+        // SOLO visual / preliminar
         $cert_number = $this->model->obtenerCertNumberPreliminar();
-        // Actualizar sesión con el nuevo número
+
+        // Se guarda en sesión solo para el flujo de prevalidación visual,
+        // pero NO será el número definitivo al crear.
         $_SESSION['preval_cert_number'] = $cert_number;
+
         echo json_encode(['cert_number' => $cert_number], JSON_UNESCAPED_UNICODE);
         exit;
     }
