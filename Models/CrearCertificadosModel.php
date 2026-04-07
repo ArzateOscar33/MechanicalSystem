@@ -526,7 +526,7 @@ class CrearCertificadosModel extends Query
 
     public function obtenerClientes()
     {
-        $sql = "SELECT id_client, nombre_cliente FROM clients ORDER BY nombre_cliente ASC";
+        $sql = "    SELECT id_customer, nombre_cliente FROM customers  WHERE estatus = 1 ORDER BY nombre_cliente ASC";
         return $this->selectAll($sql);
     }
 }

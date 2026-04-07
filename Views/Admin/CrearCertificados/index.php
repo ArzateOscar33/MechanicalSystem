@@ -185,7 +185,7 @@
                         <select class="form-select" id="cliente_id" name="cliente_id" required>
                             <option value="">-- Seleccionar Cliente --</option>
                             <?php foreach ($data['clientes'] as $cliente): ?>
-                                <option value="<?= $cliente['id_client']; ?>">
+                                <option value="<?= $cliente['id_customer']; ?>">
                                     <?= htmlspecialchars($cliente['nombre_cliente']); ?>
                                 </option>
                             <?php endforeach; ?>

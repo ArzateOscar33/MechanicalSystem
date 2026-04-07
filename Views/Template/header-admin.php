@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    
+
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -100,6 +100,7 @@
                             <li><a href="<?php echo BASE_URL . 'ControlInspectores'; ?>"><i class='fas fa-wrench  m-2'></i>Inspectores</a></li>
                             <li><a href="<?php echo BASE_URL . 'Direcciones'; ?>"><i class='fas fa-map-marked-alt  m-2'></i>Direcciones</a></li>
                             <li><a href="<?php echo BASE_URL . 'Importaciones'; ?>"><i class='fas fa-file-import  m-2'></i>Importaciones</a></li>
+                            <li><a href="<?php echo BASE_URL . 'Clientes'; ?>"><i class='fas fa-user-circle  m-2'></i>Clientes</a></li>
                         </ul>
                     </li>
                 <?php endif; ?>
@@ -119,7 +120,7 @@
                     </li>
                 <?php endif; ?>
 
-                                <?php if ($_SESSION['rol_usuario'] == 1): ?>
+                <?php if ($_SESSION['rol_usuario'] == 1): ?>
                     <li>
                         <a href="javascript:;" class="has-arrow">
                             <div class="parent-icon"><i class=' m-2 fa-solid  fas fa-chart-line'></i></div>
@@ -127,7 +128,7 @@
                         </a>
                         <ul>
                             <li><a href="<?php echo BASE_URL . 'Estadisticas'; ?>"><i class='fas fa-chart-bar  m-2'></i>Graficos Estadisticos</a></li>
-                            
+
                         </ul>
                     </li>
                 <?php endif; ?>
