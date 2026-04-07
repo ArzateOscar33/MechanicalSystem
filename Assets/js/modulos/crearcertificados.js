@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const firmaPreview = document.getElementById("firmaPreview");
   const imagenFirma = document.getElementById("imagenFirma");
   const inspectorSelect = document.getElementById("inspector");
+  const clienteSelect = document.getElementById("cliente_id");
   const nuevoInspectorCheck = document.getElementById("nuevo_inspector_check");
   const nuevoInspectorInput = document.getElementById("nuevo_inspector");
   const yearInput = document.getElementById("year");

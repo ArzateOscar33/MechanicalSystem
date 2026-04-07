@@ -181,6 +181,17 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
+                        <label for="cliente_id" class="form-label">Cliente</label>
+                        <select class="form-select" id="cliente_id" name="cliente_id" required>
+                            <option value="">-- Seleccionar Cliente --</option>
+                            <?php foreach ($data['clientes'] as $cliente): ?>
+                                <option value="<?= $cliente['id_client']; ?>">
+                                    <?= htmlspecialchars($cliente['nombre_cliente']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label for="ebitn" class="form-label">EEI ITN</label>
                         <input type="text" class="form-control" id="ebitn" name="ebitn">
                     </div>

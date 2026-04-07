@@ -48,6 +48,7 @@ class CrearCertificados extends Controller
         $data['cert_number'] = $cert_number;
         $data['direcciones'] = $this->model->obtenerDirecciones();
         $data['inspectores'] = $this->model->obtenerInspectores();
+        $data['clientes'] = $this->model->obtenerClientes();
         $this->views->getView('admin/CrearCertificados', "index", $data);
     }
 
@@ -330,6 +331,15 @@ class CrearCertificados extends Controller
             $source_file   = 'manual';
             $phone         = trim($_POST['telefono'] ?? '');
             $phone         = $phone !== '' ? $phone : null;
+            $cliente_id = isset($_POST['cliente_id']) ? (int)$_POST['cliente_id'] : 0;
+
+            if ($cliente_id <= 0) {
+                echo json_encode([
+                    'msg'   => 'Debes seleccionar un cliente.',
+                    'icono' => 'error'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
 
             $ebitn = isset($_POST['ebitn']) && trim($_POST['ebitn']) !== ''
                 ? trim($_POST['ebitn'])
@@ -527,6 +537,7 @@ class CrearCertificados extends Controller
                 (int)$_POST['inspector'],
                 $ebitn,
                 $id_usuario,
+                $cliente_id,
                 $test_date,
                 $expires,
                 $source_file

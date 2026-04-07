@@ -2,11 +2,13 @@
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reporte de Error</title>
 </head>
+
 <body>
   <div class="container mt-5">
     <h3 class="text-center">Crear Reporte de Error</h3>
@@ -45,14 +47,14 @@
 
           <!-- Select de inspector -->
           <div class="mb-3" id="inspectorSelectDiv" style="display: none;">
-             
+
             <select class="form-select" id="inspector_select">
               <option value="">-- Seleccione un inspector --</option>
             </select>
           </div>
 
           <!-- Subida de imágenes -->
-          <div class="mb-3" id="imagenesInput" style="display: none;"> 
+          <div class="mb-3" id="imagenesInput" style="display: none;">
             <input type="file" class="form-control" name="imagenes[]" id="imagenes" accept="image/*" multiple>
             <small class="text-muted">Máximo 9 imágenes</small>
           </div>
@@ -75,6 +77,7 @@
     </form>
   </div>
 </body>
+
 </html>
 
 <script src="<?php echo BASE_URL; ?>assets/js/modulos/erroresusuario.js"></script>

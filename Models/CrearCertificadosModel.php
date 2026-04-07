@@ -48,6 +48,7 @@ class CrearCertificadosModel extends Query
         $inspector_id,
         $eei_itn,
         $created_by,
+        $client_id,
         $test_date,
         $expires,
         $source_file
@@ -58,8 +59,8 @@ class CrearCertificadosModel extends Query
             $sql = "INSERT INTO certificates (
             cert_number, vin, address_id, phone, year, mfg_in, make,
             owner_name, model, license_plate, odometer, inspector_id, eei_itn,
-            created_by, test_date, expires, source_file, zip_file_path
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            created_by,client_id, test_date, expires, source_file, zip_file_path
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             $stmt = $this->db->prepare($sql);
             $ok = $stmt->execute([
@@ -77,6 +78,7 @@ class CrearCertificadosModel extends Query
                 $inspector_id,
                 $eei_itn,
                 $created_by,
+                $client_id,
                 $test_date,
                 $expires,
                 $source_file,
@@ -520,5 +522,11 @@ class CrearCertificadosModel extends Query
             ORDER BY id DESC
             LIMIT 1";
         return $this->select($sql, [$preval_id]);
+    }
+
+    public function obtenerClientes()
+    {
+        $sql = "SELECT id_client, nombre_cliente FROM clients ORDER BY nombre_cliente ASC";
+        return $this->selectAll($sql);
     }
 }
