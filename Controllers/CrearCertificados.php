@@ -1148,7 +1148,8 @@ class CrearCertificados extends Controller
         $api       = api_client('smogs_backups');
         $cfg       = api_config('smogs_backups');
         $isTesting = (!empty($cfg['mode']) && $cfg['mode'] === 'testing');
-        $path      = $isTesting ? '/post' : '/Mechanical/Emissions';
+        //ENVIAR CORRECTAMENTE AL ENDPOINT DE SMOGS BACKUPS
+        $path      = $isTesting ? '/post' : '/Mechanical/Emissions/';
 
         if (!$isTesting) {
             if (!file_exists($pdfFullPath))   return ['ok' => false, 'status' => 0, 'api_msg' => 'PDF no encontrado'];
