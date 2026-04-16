@@ -676,13 +676,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
           if (res.icono === "success") {
             alertas(res.msg, "success");
-            // Bloquear inputs de fotos también
             getPhotoInputs().forEach((input) => {
               input.style.pointerEvents = "none";
               input.style.opacity = "0.6";
             });
-            // Deshabilitar paso 2, habilitar paso 3
-
             btnPrevalidarFotos.disabled = true;
             btnCrearCertificado.disabled = false;
           } else {
@@ -690,6 +687,18 @@ document.addEventListener("DOMContentLoaded", function () {
               res.msg || "Error en la prevalidación de fotos.",
               res.icono || "error",
             );
+
+            // si fue timeout/reintento permitido
+            if (res.icono === "warning") {
+              btnPrevalidarFotos.disabled = false;
+            }
+
+            // si backend dice que ya no existe sesión
+            if (
+              (res.msg || "").includes("Debes prevalidar los datos primero")
+            ) {
+              btnPrevalidarDatos.disabled = false;
+            }
           }
         },
       );

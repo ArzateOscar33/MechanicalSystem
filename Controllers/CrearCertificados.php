@@ -190,9 +190,7 @@ class CrearCertificados extends Controller
             return;
         }
 
-        // ==========================================
-        // NUEVO: recuperar el mismo folio reservado
-        // ==========================================
+        // Recuperar el mismo folio reservado
         $reserva = $this->model->obtenerCertNumberPorPrevalId((int)$preval_id);
         $cert_number = $reserva['cert_number'] ?? null;
 
@@ -237,7 +235,6 @@ class CrearCertificados extends Controller
                 return;
             }
 
-            // Ahora se guardan ya con el folio reservado real
             $destFull = BASE_PATH . 'uploads/temp/' . $cert_number . '_foto_' . $i . '_' . $origName;
 
             if (!move_uploaded_file($tmpName, $destFull)) {
@@ -252,23 +249,48 @@ class CrearCertificados extends Controller
 
         $respuesta = $this->secomext->enviarFotos($cert_number, $vin, $fotosRutas);
 
+        $success  = (bool)($respuesta['success'] ?? false);
+        $mensaje  = trim((string)($respuesta['respuesta'] ?? 'Error desconocido al prevalidar fotos.'));
+        $mensajeL = mb_strtolower($mensaje, 'UTF-8');
+
+        // Detectar errores de transporte / timeout / red
+        $esErrorTemporal =
+            str_contains($mensajeL, 'timed out') ||
+            str_contains($mensajeL, 'timeout') ||
+            str_contains($mensajeL, 'socket read') ||
+            str_contains($mensajeL, 'http error') ||
+            str_contains($mensajeL, 'could not connect') ||
+            str_contains($mensajeL, 'connection refused') ||
+            str_contains($mensajeL, 'failed to load external entity') ||
+            str_contains($mensajeL, 'error fetching http headers');
+
         $this->prevalModel->actualizarPasoFotos(
             $preval_id,
-            $respuesta['success'] ? 'success' : 'failed',
-            $respuesta['respuesta']
+            $success ? 'success' : 'failed',
+            $mensaje
         );
 
-        if (!$respuesta['success']) {
+        if (!$success) {
+            // Si fue timeout o error temporal, NO romper el flujo
+            if ($esErrorTemporal) {
+                $this->responderJSON(
+                    'Secomext no respondió a tiempo durante la prevalidación de fotos. Puedes reintentar nuevamente sin volver a prevalidar los datos.',
+                    'warning'
+                );
+                return;
+            }
+
+            // Solo si fue rechazo real, aquí sí limpiamos todo
             $this->model->liberarReservaCertificado(
                 $cert_number,
                 (int)$preval_id,
-                'Fallo en prevalidación de fotos'
+                'Fallo real en prevalidación de fotos'
             );
 
             $this->limpiarTemporales($cert_number);
             unset($_SESSION['preval_fotos'], $_SESSION['preval_id'], $_SESSION['preval_cert_number']);
 
-            $this->responderJSON('Secomext rechazó las fotos: ' . $respuesta['respuesta'], 'error');
+            $this->responderJSON('Secomext rechazó las fotos: ' . $mensaje, 'error');
             return;
         }
 
