@@ -19,8 +19,8 @@ return [
     'smogs_backups' => [
         'base_url' => 'https://smogsbackups.com/restService',
         'timeout'  => 25,
-        'usuario'  => ' Mechanical1',
-        'password' => ' G7#xk9!Lmp2$VrN3',
+        'usuario'  => 'Mechanical1',
+        'password' => 'G7#xk9!Lmp2$VrN3',
         'mode'     => 'production', //testing o production
         'endpoints' => [
             'testing'    => 'https://postman-echo.com',

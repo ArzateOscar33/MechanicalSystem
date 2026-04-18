@@ -210,14 +210,14 @@ class CrearCertificados extends Controller
         }
 
         $fotoMap = [
-            0 => 'front',
-            1 => 'back',
-            2 => 'left',
-            3 => 'right',
-            4 => 'vindash',
-            5 => 'label',
-            6 => 'device',
-            7 => 'device2',
+            0 => 'vindash', // 1) Foto VIN
+            1 => 'front',   // 2) Foto Frente
+            2 => 'back',    // 3) Foto Atrás
+            3 => 'left',    // 4) Foto Piloto
+            4 => 'right',   // 5) Foto Pasajero
+            5 => 'label',   // 6) Foto Puerta
+            6 => 'device',  // 7) Foto Scanner
+            7 => 'device2', // 8) Foto Taller
         ];
 
         $fotosRutas = [];
@@ -1229,7 +1229,17 @@ class CrearCertificados extends Controller
                 }
             }
         }
+        // ===== DEBUG CREDENCIALES Y PAYLOAD =====
+        $endpointUsed = rtrim((string)api_base_url('smogs_backups'), '/') . $path;
 
+        error_log('[SmogsBackups] endpoint=' . $endpointUsed);
+        error_log('[SmogsBackups] usuario=' . ($payload['usuario'] ?? ''));
+        error_log('[SmogsBackups] password_len=' . strlen((string)($payload['password'] ?? '')));
+
+        // Validar que realmente se estén enviando assets
+        error_log('[SmogsBackups] fotoVin=' . (!empty($payload['fotoVin']) ? 'OK' : 'VACIO'));
+        error_log('[SmogsBackups] fotoPasajero=' . (!empty($payload['fotoPasajero']) ? 'OK' : 'VACIO'));
+        error_log('[SmogsBackups] pdf=' . (!empty($payload['certificadoPdf']) ? 'OK' : 'VACIO'));
         $resp = $api->postUrlEncoded($path, $payload);
 
 
