@@ -289,32 +289,41 @@ class CrearCertificadosModel extends Query
         return (int)($row['n'] ?? 1);
     }
 
-    public function insertarApiEmissionsSyncLog(array $d): int
+    public function insertarApiEmissionsSyncLog(array $data)
     {
-        $sql = "INSERT INTO api_emissions_sync_log
-            (cert_number, vin, mode, endpoint,
-             payload_sha256, pdf_sha256, photos_sha256_json,
-             http_status, api_result, api_description, response_raw,
-             attempt, sent_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        $sql = "INSERT INTO api_emissions_sync_log (
+        cert_number,
+        vin,
+        mode,
+        endpoint,
+        payload_sha256,
+        pdf_sha256,
+        photos_sha256_json,
+        http_status,
+        api_result,
+        api_description,
+        response_raw,
+        payload_debug,
+        attempt
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
-        return (int)$this->insertar($sql, [
-            $d['cert_number'] ?? '',
-            $d['vin'] ?? '',
-            $d['mode'] ?? 'production',
-            $d['endpoint'] ?? '',
+        $params = [
+            $data['cert_number'] ?? null,
+            $data['vin'] ?? null,
+            $data['mode'] ?? null,
+            $data['endpoint'] ?? null,
+            $data['payload_sha256'] ?? null,
+            $data['pdf_sha256'] ?? null,
+            $data['photos_sha256_json'] ?? null,
+            $data['http_status'] ?? 0,
+            $data['api_result'] ?? null,
+            $data['api_description'] ?? null,
+            $data['response_raw'] ?? null,
+            $data['payload_debug'] ?? null,
+            $data['attempt'] ?? 1,
+        ];
 
-            $d['payload_sha256'] ?? '',
-            $d['pdf_sha256'] ?? '',
-            $d['photos_sha256_json'] ?? '{}',
-
-            (int)($d['http_status'] ?? 0),
-            $d['api_result'] ?? null,
-            $d['api_description'] ?? null,
-            $d['response_raw'] ?? null,
-
-            (int)($d['attempt'] ?? 1),
-        ]);
+        return $this->insertar($sql, $params);
     }
     //Concurrencia de datos
 

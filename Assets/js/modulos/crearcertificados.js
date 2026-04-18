@@ -44,7 +44,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const mm = String(today.getMonth() + 1).padStart(2, "0");
   const dd = String(today.getDate()).padStart(2, "0");
   const fechaMinima = `${yyyy}-${mm}-${dd}`;
-  if (fechaInput) fechaInput.setAttribute("min", fechaMinima);
+  //TEMPORAL PARA PERMITIR FECHAS ANTERIORES, SE DEBE QUITAR EN PRODUCCIÓN
+  //if (fechaInput) fechaInput.setAttribute("min", fechaMinima);
   if (expiracionInput) expiracionInput.readOnly = true;
 
   // ===== Inputs required =====
@@ -268,14 +269,14 @@ document.addEventListener("DOMContentLoaded", function () {
       return false;
     }
 
-    const valorFecha = fechaInput ? fechaInput.value : "";
+    /* const valorFecha = fechaInput ? fechaInput.value : "";
     if (!valorFecha || valorFecha < fechaMinima) {
       alertas(
         "La fecha del certificado no puede ser anterior a hoy.",
         "warning",
       );
       return false;
-    }
+    }*/
 
     return true;
   }
@@ -349,12 +350,12 @@ document.addEventListener("DOMContentLoaded", function () {
   if (fechaInput && expiracionInput) {
     fechaInput.addEventListener("change", function () {
       const valor = fechaInput.value;
-      if (valor < fechaMinima) {
+      /*if (valor < fechaMinima) {
         alertas("La fecha no puede ser anterior a hoy.", "warning");
         fechaInput.value = "";
         expiracionInput.value = "";
         return;
-      }
+      }*/
       const fecha = new Date(valor);
       fecha.setMonth(fecha.getMonth() + 3);
       const y = fecha.getFullYear();

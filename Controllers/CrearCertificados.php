@@ -629,6 +629,7 @@ class CrearCertificados extends Controller
             // limpiarTemporales($cert_number) solo debe borrar QR/SVG/barcodes/fotos temp,
             // pero NO el PDF final porque ahora ya está en uploads/certificates/
             $this->limpiarTemporales($cert_number);
+            $this->limpiarTemporalesApi($cert_number);
 
             echo json_encode([
                 'msg'         => 'Certificado creado exitosamente',
@@ -1140,6 +1141,174 @@ class CrearCertificados extends Controller
         }
     }
 
+
+    private function optimizarImagenParaApi(
+        string $origen,
+        string $destino,
+        int $maxWidth = 1280,
+        int $quality = 55,
+        int $maxBytesObjetivo = 90000
+    ): array {
+        if (!file_exists($origen)) {
+            throw new Exception("No existe la imagen origen: {$origen}");
+        }
+
+        $info = @getimagesize($origen);
+        if (!$info) {
+            throw new Exception("No fue posible leer dimensiones de imagen: {$origen}");
+        }
+
+        $mime = $info['mime'] ?? '';
+        $src = null;
+
+        switch ($mime) {
+            case 'image/jpeg':
+                $src = @imagecreatefromjpeg($origen);
+                break;
+            case 'image/png':
+                $src = @imagecreatefrompng($origen);
+                break;
+            case 'image/webp':
+                if (function_exists('imagecreatefromwebp')) {
+                    $src = @imagecreatefromwebp($origen);
+                }
+                break;
+        }
+
+        if (!$src) {
+            throw new Exception("Formato no soportado o imagen inválida: {$mime}");
+        }
+
+        $origW = imagesx($src);
+        $origH = imagesy($src);
+
+        $newW = $origW;
+        $newH = $origH;
+
+        if ($origW > $maxWidth) {
+            $ratio = $maxWidth / $origW;
+            $newW = (int)round($origW * $ratio);
+            $newH = (int)round($origH * $ratio);
+        }
+
+        $tmp = imagecreatetruecolor($newW, $newH);
+        imageinterlace($tmp, true);
+
+        // fondo blanco por si viene PNG transparente
+        $white = imagecolorallocate($tmp, 255, 255, 255);
+        imagefill($tmp, 0, 0, $white);
+
+        imagecopyresampled($tmp, $src, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+
+        $q = $quality;
+        $ok = false;
+
+        do {
+            $ok = @imagejpeg($tmp, $destino, $q);
+            clearstatcache(true, $destino);
+
+            if (!$ok || !file_exists($destino)) {
+                imagedestroy($src);
+                imagedestroy($tmp);
+                throw new Exception("No fue posible escribir imagen optimizada: {$destino}");
+            }
+
+            $size = filesize($destino);
+            if ($size !== false && $size <= $maxBytesObjetivo) {
+                break;
+            }
+
+            $q -= 5;
+        } while ($q >= 35);
+
+        imagedestroy($src);
+        imagedestroy($tmp);
+
+        clearstatcache(true, $destino);
+
+        return [
+            'path' => $destino,
+            'size' => file_exists($destino) ? (int)filesize($destino) : 0,
+            'quality_final' => $q < 35 ? 35 : $q,
+            'mime' => 'image/jpeg',
+        ];
+    }
+
+    private function optimizarFotosParaApi(string $cert_number, array $fotosRutas): array
+    {
+        $dirApiTemp = BASE_PATH . 'uploads/temp/api/';
+        if (!is_dir($dirApiTemp)) {
+            mkdir($dirApiTemp, 0775, true);
+        }
+
+        $salida = [];
+        foreach ($fotosRutas as $campo => $rutaOriginal) {
+            $destino = $dirApiTemp . $cert_number . '_' . $campo . '_api.jpg';
+
+            $meta = $this->optimizarImagenParaApi(
+                $rutaOriginal,
+                $destino,
+                1280,   // ancho máximo
+                55,     // calidad inicial
+                90000   // objetivo aprox: 90 KB
+            );
+
+            $salida[$campo] = $meta['path'];
+        }
+
+        return $salida;
+    }
+
+    private function intentarOptimizarPdfParaApi(string $cert_number, string $pdfOriginal): string
+    {
+        if (!file_exists($pdfOriginal)) {
+            return $pdfOriginal;
+        }
+
+        clearstatcache(true, $pdfOriginal);
+        $sizeOriginal = filesize($pdfOriginal);
+
+        // Si ya está relativamente liviano, no hacer nada
+        if ($sizeOriginal !== false && $sizeOriginal <= 700000) {
+            return $pdfOriginal;
+        }
+
+        $dirApiTemp = BASE_PATH . 'uploads/temp/api/';
+        if (!is_dir($dirApiTemp)) {
+            mkdir($dirApiTemp, 0775, true);
+        }
+
+        $pdfOptimizado = $dirApiTemp . $cert_number . '_api.pdf';
+
+        // Requiere Ghostscript instalado en el servidor
+        $gs = 'gswin64c';
+        $cmd = $gs
+            . ' -sDEVICE=pdfwrite'
+            . ' -dCompatibilityLevel=1.4'
+            . ' -dPDFSETTINGS=/ebook'
+            . ' -dNOPAUSE -dQUIET -dBATCH'
+            . ' -sOutputFile=' . escapeshellarg($pdfOptimizado)
+            . ' ' . escapeshellarg($pdfOriginal);
+
+        @exec($cmd, $out, $code);
+
+        if ($code === 0 && file_exists($pdfOptimizado) && filesize($pdfOptimizado) > 0) {
+            return $pdfOptimizado;
+        }
+
+        // Si no hay Ghostscript o falla, regresamos el original
+        return $pdfOriginal;
+    }
+
+    private function limpiarTemporalesApi(string $cert_number): void
+    {
+        foreach (glob(BASE_PATH . "uploads/temp/api/{$cert_number}_*") as $f) {
+            if (is_file($f)) {
+                @unlink($f);
+            }
+        }
+    }
+
     // =========================================================
     // ENVIAR A SMOGS BACKUPS (sin cambios)
     // =========================================================
@@ -1170,33 +1339,28 @@ class CrearCertificados extends Controller
         $api       = api_client('smogs_backups');
         $cfg       = api_config('smogs_backups');
         $isTesting = (!empty($cfg['mode']) && $cfg['mode'] === 'testing');
-        //ENVIAR CORRECTAMENTE AL ENDPOINT DE SMOGS BACKUPS
-        $path      = $isTesting ? '/post' : '/Mechanical/Emissions/';
 
-        if (!$isTesting) {
-            if (!file_exists($pdfFullPath))   return ['ok' => false, 'status' => 0, 'api_msg' => 'PDF no encontrado'];
-            if (count($tempImgs) < 8)         return ['ok' => false, 'status' => 0, 'api_msg' => 'Faltan imágenes'];
-        }
+        $path = $isTesting ? '/post' : '/Mechanical/Emissions/';
 
         $payload = array_merge([], api_credentials('smogs_backups'));
-        $payload['vin']          = $post['vin']      ?? '';
-        $payload['odometer']     = $post['odometro'] ?? '';
-        $payload['licensePlate'] = $post['placa']    ?? '';
+        $payload['vin']          = trim((string)($post['vin'] ?? ''));
+        $payload['odometer']     = trim((string)($post['odometro'] ?? ''));
+        $payload['licensePlate'] = trim((string)($post['placa'] ?? ''));
         $payload['folio']        = $cert_number;
         $payload['testFecha']    = $fmtFecha($post['fecha'] ?? '');
         $payload['testHora']     = date('H:i');
 
         $lat = $direccion['latitude']  ?? ($post['latitud']  ?? '');
         $lon = $direccion['longitude'] ?? ($post['longitud'] ?? '');
-        $payload['geolocalizacion']    = trim((string)$lat) . ', ' . trim((string)$lon);
+        $payload['geolocalizacion'] = trim((string)$lat) . ', ' . trim((string)$lon);
 
         $payload['testignicion']       = $toPassFail($post['monitor_fallo_encendido']      ?? '');
         $payload['testSistGasolina']   = $toPassFail($post['monitor_sistema_combustible']  ?? '');
-        $payload['testCatalizador']    = $toPassFail($post['monitor_catalizador']           ?? '');
+        $payload['testCatalizador']    = $toPassFail($post['monitor_catalizador']          ?? '');
         $payload['testSensorOxigeno']  = $toPassFail($post['monitor_sensor_c2']            ?? '');
         $payload['testCompIntegrales'] = $toPassFail($post['monitor_integral_catalizador'] ?? '');
         $payload['testResultadoFinal'] = $toPassFail($post['resultado_prueba']             ?? '');
-        $payload['foto_Extension']     = $post['foto_Extension'] ?? 'jpg';
+        $payload['foto_Extension']     = 'jpg';
 
         $fotoMapSmogs = [
             'vindash' => 'fotoVin',
@@ -1209,67 +1373,289 @@ class CrearCertificados extends Controller
             'device2' => 'fotoTaller',
         ];
 
+        $payloadDebug = [
+            'mode'               => $cfg['mode'] ?? 'production',
+            'path'               => $path,
+            'cert_number'        => $cert_number,
+            'pdf_exists'         => false,
+            'pdf_size'           => 0,
+            'foto_extension'     => $payload['foto_Extension'],
+            'assets'             => [],
+            'optimized_api_files' => [],
+            'payload_order'      => [
+                'text_fields_first' => true,
+                'photos_before_pdf' => true,
+                'pdf_last'          => true,
+            ],
+        ];
+
+        $certificadoPdfBase64 = '';
+
         if ($isTesting) {
-            $payload['certificadoPdf'] = 'TEST_PDF_BASE64';
             $i = 0;
             foreach ($fotoMapSmogs as $origen => $destino) {
                 $payload[$destino] = 'TEST_IMG_BASE64_' . $i;
+                $payloadDebug['assets'][$destino] = [
+                    'source_key' => $origen,
+                    'testing'    => true,
+                    'path'       => null,
+                    'exists'     => true,
+                    'size'       => 1,
+                    'base64_len' => strlen($payload[$destino]),
+                    'sha256'     => null,
+                    'read_ok'    => true,
+                ];
                 $i++;
             }
+
+            $certificadoPdfBase64 = 'TEST_PDF_BASE64';
+
+            $payloadDebug['certificadoPdf'] = [
+                'exists'      => true,
+                'size'        => 1,
+                'base64_len'  => strlen($certificadoPdfBase64),
+                'sha256'      => null,
+                'read_ok'     => true,
+                'path'        => null,
+            ];
         } else {
-            $payload['certificadoPdf'] = base64_encode(file_get_contents($pdfFullPath));
+            $fotosRutasApi = $fotosRutas;
+            $pdfFullPathApi = $pdfFullPath;
+
+            try {
+                $fotosRutasApi = $this->optimizarFotosParaApi($cert_number, $fotosRutas);
+            } catch (\Throwable $e) {
+                error_log('[SmogsBackups] No fue posible optimizar fotos para API: ' . $e->getMessage());
+                $fotosRutasApi = $fotosRutas;
+            }
+
+            try {
+                $pdfFullPathApi = $this->intentarOptimizarPdfParaApi($cert_number, $pdfFullPath);
+            } catch (\Throwable $e) {
+                error_log('[SmogsBackups] No fue posible optimizar PDF para API: ' . $e->getMessage());
+                $pdfFullPathApi = $pdfFullPath;
+            }
+
+            $payloadDebug['optimized_api_files'] = [
+                'pdf_original'         => $pdfFullPath,
+                'pdf_api'              => $pdfFullPathApi,
+                'photos_original_count' => count($fotosRutas),
+                'photos_api_count'     => count($fotosRutasApi),
+            ];
+
+            if (!file_exists($pdfFullPathApi)) {
+                return [
+                    'ok'      => false,
+                    'status'  => 0,
+                    'api_msg' => 'PDF para API no encontrado.',
+                    'raw'     => '',
+                    'json'    => null,
+                ];
+            }
+
+            clearstatcache(true, $pdfFullPathApi);
+            $payloadDebug['pdf_exists'] = true;
+            $payloadDebug['pdf_size']   = (int)(filesize($pdfFullPathApi) ?: 0);
+
+            $pdfBin  = @file_get_contents($pdfFullPathApi);
+            $pdfSize = @filesize($pdfFullPathApi);
+
+            if ($pdfBin === false || $pdfSize === false || $pdfSize <= 0) {
+                return [
+                    'ok'      => false,
+                    'status'  => 0,
+                    'api_msg' => 'El PDF para API está vacío o no pudo leerse.',
+                    'raw'     => '',
+                    'json'    => null,
+                ];
+            }
+
+            $certificadoPdfBase64 = base64_encode($pdfBin);
+
+            $payloadDebug['certificadoPdf'] = [
+                'exists'      => true,
+                'size'        => (int)$pdfSize,
+                'base64_len'  => strlen($certificadoPdfBase64),
+                'sha256'      => @hash_file('sha256', $pdfFullPathApi) ?: null,
+                'read_ok'     => true,
+                'path'        => $pdfFullPathApi,
+            ];
 
             foreach ($fotoMapSmogs as $origen => $destino) {
-                $ruta = $fotosRutas[$origen] ?? '';
+                $ruta = $fotosRutasApi[$origen] ?? '';
 
-                if (!empty($ruta) && file_exists($ruta)) {
-                    $payload[$destino] = base64_encode(file_get_contents($ruta));
-                } else {
+                if (empty($ruta) || !file_exists($ruta)) {
                     $payload[$destino] = '';
+                    $payloadDebug['assets'][$destino] = [
+                        'source_key' => $origen,
+                        'path'       => $ruta,
+                        'exists'     => false,
+                        'size'       => 0,
+                        'base64_len' => 0,
+                        'sha256'     => null,
+                        'read_ok'    => false,
+                        'reason'     => 'Archivo no existe o ruta vacía',
+                    ];
+                    continue;
                 }
+
+                clearstatcache(true, $ruta);
+                $bin  = @file_get_contents($ruta);
+                $size = @filesize($ruta);
+
+                if ($bin === false || $size === false || $size <= 0) {
+                    $payload[$destino] = '';
+                    $payloadDebug['assets'][$destino] = [
+                        'source_key' => $origen,
+                        'path'       => $ruta,
+                        'exists'     => true,
+                        'size'       => (int)($size ?: 0),
+                        'base64_len' => 0,
+                        'sha256'     => @hash_file('sha256', $ruta) ?: null,
+                        'read_ok'    => false,
+                        'reason'     => 'No se pudo leer o tamaño inválido',
+                    ];
+                    continue;
+                }
+
+                $b64 = base64_encode($bin);
+
+                if ($b64 === '' || $b64 === false) {
+                    $payload[$destino] = '';
+                    $payloadDebug['assets'][$destino] = [
+                        'source_key' => $origen,
+                        'path'       => $ruta,
+                        'exists'     => true,
+                        'size'       => (int)$size,
+                        'base64_len' => 0,
+                        'sha256'     => @hash_file('sha256', $ruta) ?: null,
+                        'read_ok'    => false,
+                        'reason'     => 'Base64 vacío',
+                    ];
+                    continue;
+                }
+
+                $payload[$destino] = $b64;
+                $payloadDebug['assets'][$destino] = [
+                    'source_key' => $origen,
+                    'path'       => $ruta,
+                    'exists'     => true,
+                    'size'       => (int)$size,
+                    'base64_len' => strlen($b64),
+                    'sha256'     => @hash_file('sha256', $ruta) ?: null,
+                    'read_ok'    => true,
+                    'reason'     => 'OK',
+                ];
             }
         }
-        // ===== DEBUG CREDENCIALES Y PAYLOAD =====
+
+        // PDF AL FINAL DEL PAYLOAD
+        $payload['certificadoPdf'] = $certificadoPdfBase64;
+
+        $requiredAssets = [
+            'fotoVin',
+            'fotoFrente',
+            'fotoAtras',
+            'fotoPiloto',
+            'fotoPasajero',
+            'fotoPuerta',
+            'fotoScanner',
+            'fotoTaller',
+            'certificadoPdf',
+        ];
+
+        foreach ($requiredAssets as $asset) {
+            if (empty($payload[$asset])) {
+                $missingMsg = "Asset requerido vacío antes del envío: {$asset}";
+
+                $payloadSha   = hash('sha256', http_build_query($payload, '', '&', PHP_QUERY_RFC3986));
+                $endpointUsed = rtrim((string)api_base_url('smogs_backups'), '/') . $path;
+                $mode         = $cfg['mode'] ?? 'production';
+                $attempt      = 1;
+
+                try {
+                    $attempt = $this->model->siguienteAttemptApiEmissions($cert_number);
+                } catch (\Throwable $e) {
+                }
+
+                try {
+                    $this->model->insertarApiEmissionsSyncLog([
+                        'cert_number'        => $cert_number,
+                        'vin'                => $payload['vin'] ?? '',
+                        'mode'               => $mode,
+                        'endpoint'           => $endpointUsed,
+                        'payload_sha256'     => $payloadSha,
+                        'pdf_sha256'         => $payloadDebug['certificadoPdf']['sha256'] ?? '',
+                        'photos_sha256_json' => json_encode(array_map(function ($item) {
+                            return $item['sha256'] ?? null;
+                        }, $payloadDebug['assets']), JSON_UNESCAPED_UNICODE) ?: '{}',
+                        'http_status'        => 0,
+                        'api_result'         => 'LOCAL_VALIDATION_ERROR',
+                        'api_description'    => $missingMsg,
+                        'response_raw'       => '',
+                        'payload_debug'      => json_encode($payloadDebug, JSON_UNESCAPED_UNICODE) ?: '{}',
+                        'attempt'            => (int)$attempt,
+                    ]);
+                } catch (\Throwable $e) {
+                }
+
+                return [
+                    'ok'      => false,
+                    'status'  => 0,
+                    'api_msg' => $missingMsg,
+                    'raw'     => '',
+                    'json'    => null,
+                ];
+            }
+        }
+
+        $bodyPreview  = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
         $endpointUsed = rtrim((string)api_base_url('smogs_backups'), '/') . $path;
 
         error_log('[SmogsBackups] endpoint=' . $endpointUsed);
         error_log('[SmogsBackups] usuario=' . ($payload['usuario'] ?? ''));
         error_log('[SmogsBackups] password_len=' . strlen((string)($payload['password'] ?? '')));
+        error_log('[SmogsBackups] fotoVin_len=' . strlen((string)($payload['fotoVin'] ?? '')));
+        error_log('[SmogsBackups] fotoPasajero_len=' . strlen((string)($payload['fotoPasajero'] ?? '')));
+        error_log('[SmogsBackups] fotoTaller_len=' . strlen((string)($payload['fotoTaller'] ?? '')));
+        error_log('[SmogsBackups] pdf_len=' . strlen((string)($payload['certificadoPdf'] ?? '')));
+        error_log('[SmogsBackups] total_body_len=' . strlen($bodyPreview));
 
-        // Validar que realmente se estén enviando assets
-        error_log('[SmogsBackups] fotoVin=' . (!empty($payload['fotoVin']) ? 'OK' : 'VACIO'));
-        error_log('[SmogsBackups] fotoPasajero=' . (!empty($payload['fotoPasajero']) ? 'OK' : 'VACIO'));
-        error_log('[SmogsBackups] pdf=' . (!empty($payload['certificadoPdf']) ? 'OK' : 'VACIO'));
         $resp = $api->postUrlEncoded($path, $payload);
 
-
-        $pdfSha = (!$isTesting && file_exists($pdfFullPath)) ? hash_file('sha256', $pdfFullPath) : '';
+        $pdfSha = $payloadDebug['certificadoPdf']['sha256'] ?? '';
         $photosHashes = [];
+
         if (!$isTesting) {
-            foreach ($tempImgs as $img) {
-                $p = $img['path'] ?? '';
-                if ($p && file_exists($p))
-                    $photosHashes[(string)($img['index'] ?? 0)] = hash_file('sha256', $p);
+            foreach ($payloadDebug['assets'] as $destino => $info) {
+                $photosHashes[$destino] = $info['sha256'] ?? null;
             }
         }
 
-        $payloadSha   = hash('sha256', http_build_query($payload, '', '&', PHP_QUERY_RFC3986));
-        $endpointUsed = rtrim((string)api_base_url('smogs_backups'), '/') . $path;
-        $mode         = $cfg['mode'] ?? 'production';
-        $attempt      = 1;
-        error_log('[SmogsBackups] endpoint=' . $endpointUsed);
+        $payloadSha = hash('sha256', http_build_query($payload, '', '&', PHP_QUERY_RFC3986));
+        $mode       = $cfg['mode'] ?? 'production';
+        $attempt    = 1;
+
         error_log('[SmogsBackups] status=' . ($resp['status'] ?? 0) . ' body=' . ($resp['body'] ?? ''));
         error_log('[SmogsBackups] error=' . (($resp['error'] ?? null) ?: 'none'));
+
         try {
             $attempt = $this->model->siguienteAttemptApiEmissions($cert_number);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
         }
 
         $apiResult = null;
-        $apiDesc = null;
+        $apiDesc   = null;
+
         if (!empty($resp['json']) && is_array($resp['json'])) {
-            $apiResult = $resp['json']['result']      ?? ($resp['json']['Resultado']   ?? null);
-            $apiDesc   = $resp['json']['Description'] ?? ($resp['json']['descripcion'] ?? ($resp['json']['message'] ?? null));
+            $apiResult = $resp['json']['result']
+                ?? $resp['json']['Resultado']
+                ?? null;
+
+            $apiDesc = $resp['json']['Description']
+                ?? $resp['json']['descripcion']
+                ?? $resp['json']['message']
+                ?? null;
         }
 
         try {
@@ -1285,14 +1671,19 @@ class CrearCertificados extends Controller
                 'api_result'         => $apiResult,
                 'api_description'    => $apiDesc,
                 'response_raw'       => (string)($resp['body'] ?? ''),
+                'payload_debug'      => json_encode($payloadDebug, JSON_UNESCAPED_UNICODE) ?: '{}',
                 'attempt'            => (int)$attempt,
             ]);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
         }
 
         $apiMsg = '';
-        if (!empty($resp['json']))
-            $apiMsg = $resp['json']['Description'] ?? ($resp['json']['descripcion'] ?? ($resp['json']['message'] ?? ''));
+        if (!empty($resp['json']) && is_array($resp['json'])) {
+            $apiMsg = $resp['json']['Description']
+                ?? $resp['json']['descripcion']
+                ?? $resp['json']['message']
+                ?? '';
+        }
 
         return [
             'ok'      => $resp['ok']     ?? false,

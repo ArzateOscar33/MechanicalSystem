@@ -7,7 +7,6 @@ class ApiClient
     private int $timeout;
     private array $defaultHeaders;
 
-    // Debug opcional (útil para logs)
     public array $lastRequest = [];
     public array $lastResponse = [];
 
@@ -16,9 +15,7 @@ class ApiClient
         $this->baseUrl = rtrim($baseUrl, '/');
         $this->timeout = max(1, $timeout);
 
-        $this->defaultHeaders = array_merge([
-            'Accept: application/json',
-        ], $defaultHeaders);
+        $this->defaultHeaders = array_merge([], $defaultHeaders);
     }
 
     /** POST application/x-www-form-urlencoded */
@@ -29,15 +26,20 @@ class ApiClient
 
         $finalHeaders = array_merge(
             $this->defaultHeaders,
-            ['Content-Type: application/x-www-form-urlencoded'],
+            [
+                'Content-Type: application/x-www-form-urlencoded',
+                'Expect:',
+                'Connection: close',
+            ],
             $headers
         );
 
         $this->lastRequest = [
-            'method' => 'POST',
-            'url' => $url,
+            'method'  => 'POST',
+            'url'     => $url,
             'headers' => $finalHeaders,
-            'body' => $body,
+            'body'    => $body,
+            'body_len' => strlen($body),
         ];
 
         $respHeaders = [];
@@ -47,16 +49,23 @@ class ApiClient
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
             CURLOPT_TIMEOUT        => $this->timeout,
+            CURLOPT_CONNECTTIMEOUT => 15,
             CURLOPT_HTTPHEADER     => $finalHeaders,
             CURLOPT_POSTFIELDS     => $body,
             CURLOPT_HEADERFUNCTION => function ($curl, $headerLine) use (&$respHeaders) {
                 $len = strlen($headerLine);
                 $headerLine = trim($headerLine);
-                if ($headerLine === '' || strpos($headerLine, ':') === false) return $len;
+                if ($headerLine === '' || strpos($headerLine, ':') === false) {
+                    return $len;
+                }
                 [$k, $v] = explode(':', $headerLine, 2);
                 $respHeaders[trim($k)] = trim($v);
                 return $len;
             },
+            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
         ]);
 
         $raw   = curl_exec($ch);
@@ -68,7 +77,9 @@ class ApiClient
 
         $json = null;
         $decoded = json_decode((string)$raw, true);
-        if (json_last_error() === JSON_ERROR_NONE) $json = $decoded;
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $json = $decoded;
+        }
 
         $result = [
             'ok'      => ($errno === 0 && $code >= 200 && $code < 300),
