@@ -132,6 +132,19 @@
                         </ul>
                     </li>
                 <?php endif; ?>
+
+                <?php if ($_SESSION['rol_usuario'] == 1): ?>
+                    <li>
+                        <a href="javascript:;" class="has-arrow">
+                            <div class="parent-icon"><i class=' m-2 fas fa-book'></i></div>
+                            <div class="menu-title">Reportes</div>
+                        </a>
+                        <ul>
+                            <li><a href="<?php echo BASE_URL . 'Reportes'; ?>"><i class='fas fa-file-pdf  m-2'></i>Reporte Certificados</a></li>
+
+                        </ul>
+                    </li>
+                <?php endif; ?>
             </ul>
 
 
